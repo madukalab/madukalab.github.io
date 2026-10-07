@@ -21,6 +21,8 @@
       line-height: 1.5;
     }
 
+    /* CAPÇALERA */
+
     header {
       max-width: 1200px;
       margin: auto;
@@ -49,6 +51,9 @@
       color: #000;
     }
 
+
+    /* PRESENTACIÓ */
+
     .hero {
       max-width: 1200px;
       margin: auto;
@@ -68,6 +73,9 @@
       max-width: 650px;
     }
 
+
+    /* RECURSOS */
+
     .recursos {
       max-width: 1200px;
       margin: auto;
@@ -82,24 +90,109 @@
       color: #777;
     }
 
-    .buit {
+
+    /* GRAELLA */
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+
+    /* TARGETES */
+
+    .card {
       background: white;
       border-radius: 18px;
-      padding: 50px 35px;
-      color: #777;
-      max-width: 600px;
+      padding: 35px;
+      min-height: 260px;
+
+      text-decoration: none;
+      color: inherit;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
     }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    }
+
+
+    /* PART SUPERIOR TARGETA */
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .icon {
+      font-size: 38px;
+    }
+
+    .etiqueta {
+      background: #f1f1ef;
+      padding: 6px 10px;
+      border-radius: 20px;
+
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #666;
+    }
+
+
+    /* TEXT TARGETA */
+
+    .card h3 {
+      font-size: 25px;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      color: #777;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .obrir {
+      margin-top: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1d1d1f;
+    }
+
+
+    /* PEU */
 
     footer {
       max-width: 1200px;
       margin: auto;
       padding: 40px 30px;
+
       border-top: 1px solid #ddd;
+
       color: #888;
       font-size: 13px;
     }
 
+
+    /* MÒBIL */
+
     @media (max-width: 800px) {
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
 
       .hero {
         padding-top: 60px;
@@ -109,10 +202,14 @@
         letter-spacing: -3px;
       }
     }
+
   </style>
+
 </head>
 
+
 <body>
+
 
 <header>
 
@@ -127,7 +224,11 @@
 </header>
 
 
+
 <main>
+
+
+  <!-- PRESENTACIÓ -->
 
   <section class="hero">
 
@@ -143,22 +244,73 @@
   </section>
 
 
+
+  <!-- RECURSOS -->
+
   <section class="recursos">
 
     <h2>Recursos</h2>
 
-    <div class="buit">
-      Aviat hi trobaràs nous recursos.
+
+    <div class="grid">
+
+
+      <!-- JOC DE LES FITXES -->
+
+      <a
+        class="card"
+        href="https://jocdelesfitxes.netlify.app/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+
+        <div class="card-top">
+
+          <div class="icon">
+            🔴🔵
+          </div>
+
+          <div class="etiqueta">
+            MADUKA LAB
+          </div>
+
+        </div>
+
+
+        <div>
+
+          <h3>
+            El joc de les fitxes
+          </h3>
+
+          <p>
+            Experimenta amb l'atzar utilitzant
+            fitxes vermelles i blaves.
+          </p>
+
+          <div class="obrir">
+            Obrir recurs ↗
+          </div>
+
+        </div>
+
+      </a>
+
+
     </div>
 
   </section>
 
+
 </main>
+
 
 
 <footer>
   MADUKA LAB · Recursos educatius oberts
 </footer>
 
+
 </body>
+
 </html>

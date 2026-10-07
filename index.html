@@ -5,9 +5,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>EDULABCAT · Recursos digitals per a l'aula</title>
+  <title>EDULABCAT · Matemàtiques</title>
 
   <style>
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -16,9 +17,8 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f7f7f5;
+      background: #f5f5f3;
       color: #1d1d1f;
-      line-height: 1.5;
     }
 
     /* CAPÇALERA */
@@ -26,66 +26,87 @@
     header {
       max-width: 1200px;
       margin: auto;
-      padding: 35px 30px;
+      padding: 32px 30px;
+
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
     .logo {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 800;
       letter-spacing: -1px;
     }
 
-    nav a {
-      color: #555;
-      text-decoration: none;
-      margin-left: 30px;
-      font-size: 15px;
+    .area {
+      font-size: 14px;
+      color: #777;
     }
 
-    nav a:hover {
-      color: #000;
-    }
 
     /* PRESENTACIÓ */
 
     .hero {
       max-width: 1200px;
       margin: auto;
-      padding: 100px 30px 90px;
+      padding: 90px 30px 80px;
+    }
+
+    .etiqueta {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #777;
+      margin-bottom: 20px;
     }
 
     .hero h1 {
-      font-size: clamp(52px, 8vw, 100px);
-      line-height: 0.95;
-      letter-spacing: -5px;
-      max-width: 950px;
+      font-size: clamp(55px, 9vw, 110px);
+      line-height: 0.9;
+      letter-spacing: -6px;
     }
 
     .hero p {
+      max-width: 620px;
       margin-top: 35px;
-      font-size: 21px;
+
+      font-size: 20px;
+      line-height: 1.5;
       color: #666;
-      max-width: 650px;
     }
 
-    /* RECURSOS */
 
-    .recursos {
+    /* ACTIVITATS */
+
+    .activitats {
       max-width: 1200px;
       margin: auto;
-      padding: 40px 30px 100px;
+      padding: 30px 30px 120px;
     }
 
-    .recursos h2 {
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
+    .titol-seccio {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      border-bottom: 1px solid #d8d8d8;
+      padding-bottom: 15px;
       margin-bottom: 30px;
-      color: #777;
     }
+
+    .titol-seccio h2 {
+      font-size: 16px;
+    }
+
+    .titol-seccio span {
+      font-size: 13px;
+      color: #888;
+    }
+
+
+    /* GRID */
 
     .grid {
       display: grid;
@@ -93,74 +114,131 @@
       gap: 20px;
     }
 
+
+    /* TARGETES */
+
     .card {
       background: white;
       border-radius: 18px;
-      padding: 35px;
-      min-height: 240px;
+      padding: 30px;
+
+      min-height: 260px;
+
       text-decoration: none;
       color: inherit;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+
+      transition:
+        transform .2s ease,
+        box-shadow .2s ease;
     }
 
     .card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+      box-shadow: 0 15px 35px rgba(0,0,0,.08);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
     }
 
     .icon {
-      font-size: 35px;
+      font-size: 38px;
+    }
+
+    .curs {
+      background: #f1f1ef;
+      padding: 6px 10px;
+      border-radius: 20px;
+
+      font-size: 12px;
+      color: #666;
     }
 
     .card h3 {
-      font-size: 24px;
-      margin-bottom: 5px;
+      font-size: 25px;
+      letter-spacing: -0.5px;
+      margin-bottom: 7px;
     }
 
     .card p {
-      color: #777;
       font-size: 14px;
+      color: #777;
+      line-height: 1.5;
     }
 
-    /* PEU */
+    .obrir {
+      margin-top: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+
+    /* TARGETA PROPERAMENT */
+
+    .properament {
+      opacity: .45;
+      cursor: default;
+    }
+
+    .properament:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+
+    /* FOOTER */
 
     footer {
       max-width: 1200px;
       margin: auto;
-      padding: 40px 30px;
+
       border-top: 1px solid #ddd;
-      color: #888;
+
+      padding: 35px 30px 50px;
+
       font-size: 13px;
+      color: #888;
+
+      display: flex;
+      justify-content: space-between;
     }
 
-    /* MÒBIL */
 
-    @media (max-width: 800px) {
+    /* RESPONSIVE */
+
+    @media (max-width: 850px) {
 
       .grid {
         grid-template-columns: 1fr;
       }
 
       .hero {
-        padding-top: 60px;
+        padding-top: 50px;
       }
 
       .hero h1 {
         letter-spacing: -3px;
       }
 
-      nav {
-        display: none;
+      footer {
+        flex-direction: column;
+        gap: 10px;
       }
+
     }
 
   </style>
 </head>
 
+
 <body>
+
 
 <header>
 
@@ -168,108 +246,187 @@
     EDULABCAT
   </div>
 
-  <nav>
-    <a href="#recursos">Recursos</a>
-    <a href="#">Sobre el projecte</a>
-  </nav>
+  <div class="area">
+    Matemàtiques
+  </div>
 
 </header>
 
 
+
 <main>
+
+
+  <!-- PRESENTACIÓ -->
 
   <section class="hero">
 
+    <div class="etiqueta">
+      Recursos digitals
+    </div>
+
     <h1>
-      Aprendre.<br>
-      Experimentar.<br>
-      Crear.
+      Matemàtiques.
     </h1>
 
     <p>
-      Laboratori de recursos digitals per a l'aula.
-      Activitats interactives, jocs i eines per aprendre
-      experimentant.
+      Activitats interactives, simuladors i jocs per
+      experimentar amb les matemàtiques a l'aula.
     </p>
 
   </section>
 
 
-  <section class="recursos" id="recursos">
 
-    <h2>Explora els recursos</h2>
+  <!-- ACTIVITATS -->
+
+  <section class="activitats">
+
+    <div class="titol-seccio">
+
+      <h2>Activitats</h2>
+
+      <span>EDULABCAT</span>
+
+    </div>
+
 
     <div class="grid">
 
+
+      <!-- ACTIVITAT 1 -->
+
       <a class="card" href="#">
-        <div class="icon">🎲</div>
+
+        <div class="card-top">
+
+          <div class="icon">
+            🎲
+          </div>
+
+          <div class="curs">
+            5è
+          </div>
+
+        </div>
+
 
         <div>
-          <h3>Matemàtiques</h3>
-          <p>Jocs, simuladors i activitats interactives.</p>
+
+          <h3>
+            Simuladors d'atzar
+          </h3>
+
+          <p>
+            Experimenta amb la probabilitat utilitzant
+            diferents simuladors d'atzar.
+          </p>
+
+          <div class="obrir">
+            Obrir activitat →
+          </div>
+
         </div>
+
       </a>
 
 
-      <a class="card" href="#">
-        <div class="icon">💻</div>
+
+      <!-- ACTIVITAT 2 -->
+
+      <a class="card properament">
+
+        <div class="card-top">
+
+          <div class="icon">
+            🪙
+          </div>
+
+          <div class="curs">
+            5è
+          </div>
+
+        </div>
+
 
         <div>
-          <h3>Programació</h3>
-          <p>Scratch, pensament computacional i creació digital.</p>
+
+          <h3>
+            Probabilitat
+          </h3>
+
+          <p>
+            Nous recursos i experiments de probabilitat.
+          </p>
+
+          <div class="obrir">
+            Properament
+          </div>
+
         </div>
+
       </a>
 
 
-      <a class="card" href="#">
-        <div class="icon">🤖</div>
+
+      <!-- ACTIVITAT 3 -->
+
+      <a class="card properament">
+
+        <div class="card-top">
+
+          <div class="icon">
+            ➗
+          </div>
+
+          <div class="curs">
+            Primària
+          </div>
+
+        </div>
+
 
         <div>
-          <h3>Robòtica</h3>
-          <p>Reptes, projectes i activitats STEAM.</p>
+
+          <h3>
+            Nous recursos
+          </h3>
+
+          <p>
+            Més activitats matemàtiques s'afegiran
+            progressivament.
+          </p>
+
+          <div class="obrir">
+            Properament
+          </div>
+
         </div>
+
       </a>
 
-
-      <a class="card" href="#">
-        <div class="icon">🎵</div>
-
-        <div>
-          <h3>Música</h3>
-          <p>Recursos digitals per experimentar amb la música.</p>
-        </div>
-      </a>
-
-
-      <a class="card" href="#">
-        <div class="icon">🧪</div>
-
-        <div>
-          <h3>Projectes</h3>
-          <p>Experiments i propostes interdisciplinàries.</p>
-        </div>
-      </a>
-
-
-      <a class="card" href="#">
-        <div class="icon">🧰</div>
-
-        <div>
-          <h3>Eines</h3>
-          <p>Petites utilitats digitals per al dia a dia de l'aula.</p>
-        </div>
-      </a>
 
     </div>
 
   </section>
 
+
 </main>
 
 
+
 <footer>
-  EDULABCAT · Recursos educatius oberts
+
+  <span>
+    EDULABCAT
+  </span>
+
+  <span>
+    Recursos digitals per a l'aula
+  </span>
+
 </footer>
+
 
 </body>
 </html>

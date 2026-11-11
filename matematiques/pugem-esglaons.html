@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#163d31">
+<title>Pugem esglaons! · PCMAT</title>
+<style>
+:root{font-family:"Trebuchet MS",system-ui,sans-serif;color:#163d31;background:#f8f6ed;--green:#163d31;--lime:#d6ed9e;--line:#dedfd2}
+*{box-sizing:border-box}body{margin:0}button{font:inherit}button{cursor:pointer}button:disabled{cursor:default;opacity:.48}button:focus-visible{outline:3px solid #cf651f;outline-offset:3px}
+header{border-bottom:1px solid var(--line)}.wrap{width:min(1120px,calc(100% - 36px));margin:auto}.brand{display:flex;align-items:center;gap:12px;padding:16px 0;font-weight:800}.mark{display:grid;place-items:center;background:var(--green);color:white;border-radius:12px;width:42px;height:42px;font-size:24px}.brand small{font-size:13px;color:#52675c;font-weight:600}
+h1{font-size:clamp(38px,7vw,72px);letter-spacing:-.065em;margin:24px 0 5px;line-height:1.05}p{line-height:1.5}.intro{margin:0 0 20px;color:#40574c}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}nav button,.secondary{border:1px solid #a8b6a8;background:#fffdf6;color:var(--green);border-radius:10px;padding:9px 14px;font-weight:800}nav button[aria-pressed=true]{background:var(--green);color:white;border-color:var(--green)}
+.layout{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(250px,1fr);gap:16px;align-items:start}.card{background:#fffdf6;border:1px solid var(--line);border-radius:20px;padding:18px}.scene{border-radius:14px;background:linear-gradient(#e8f0d6,#f1f2db 75%,#e2e8c7);overflow:hidden}
+canvas{width:100%;display:block}.bar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}.bar h2,.card h2{margin:0;font-size:21px}.position{font-size:13px;background:#ebefdd;padding:5px 9px;border-radius:100px;white-space:nowrap}.moves{display:flex;gap:8px;flex-wrap:wrap}.primary{background:var(--green);color:#fff;border:1px solid var(--green);border-radius:10px;padding:11px 16px;font-weight:800}.jump2{background:var(--lime);color:var(--green);border-color:#acc47d}.route{margin:12px 0 4px;font-weight:800}.feedback{min-height:25px;margin:0 0 10px;color:#425c4e}.routes,.sum-list{padding:0;list-style:none;display:grid;gap:6px;margin:0;font-variant-numeric:tabular-nums}.routes{margin-top:10px}.sum-list li+li{border-top:1px solid var(--line);padding-top:6px}.routes li{background:#eaf0d7;border-radius:8px;padding:5px 8px;font-weight:750}.count{font-size:15px;color:#435e4e;margin:7px 0}.summary{margin:16px 0}.summary h2{margin-bottom:8px}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:8px 5px;border-top:1px solid var(--line);vertical-align:top}th:last-child,td:last-child{text-align:right}td:first-child{width:90px}td:nth-child(2){overflow-wrap:anywhere}footer{padding:8px 0 22px;color:#52675c;font-size:14px}@media(max-width:720px){.layout{grid-template-columns:1fr}.card{padding:13px}nav button{padding:8px 11px}.summary{font-size:14px}}
+</style>
+</head>
+<body>
+<header><div class="wrap brand"><span class="mark" aria-hidden="true">↗</span> PCMAT <small>Fibonacci</small></div></header>
+<main class="wrap">
+<h1>Pugem esglaons!</h1>
+<p class="intro">Ajuda en MAT a arribar a dalt sumant salts d’1 o de 2 esglaons. Cada vegada que trobis una manera nova de pujar, suma 1 al recompte.</p>
+<nav id="levels" aria-label="Tria el nombre d’esglaons"></nav>
+<div class="layout">
+<section class="card" aria-labelledby="level-title">
+<div class="bar"><h2 id="level-title"></h2><span id="position" class="position"></span></div>
+<div class="scene"><canvas id="stairs" width="1200" height="480" aria-hidden="true"></canvas></div>
+<p id="route" class="route"></p>
+<p class="feedback" id="feedback" role="status" aria-live="polite"></p>
+<div class="moves"><button class="primary" id="one">↑ Puja 1</button><button class="primary jump2" id="two">↑ Puja 2</button><button class="secondary" id="undo">Desfés el salt</button><button class="secondary" id="restart">Torna a baix</button></div>
+</section>
+<section class="card" aria-labelledby="routes-title">
+<h2 id="routes-title">Recorreguts descoberts</h2><p class="count" id="count"></p><ul class="routes" id="routes" role="list"></ul>
+<p id="hint">Prova de canviar l’ordre dels salts. Pujar 1 i després 2 fa el mateix recorregut que pujar 2 i després 1?</p>
+</section>
+</div>
+<section class="card summary"><h2>La teva taula</h2><table><thead><tr><th scope="col">Esglaons</th><th scope="col">Sumes trobades</th><th scope="col">Total trobat</th></tr></thead><tbody id="summary"></tbody></table></section>
+<footer>PCMAT · Tasca 2</footer>
+</main>
+<script>
+const get = id => document.getElementById(id);
+const totals = [1, 2, 3, 5, 8, 13];
+const key = 'pcmat-pugem-esglaons-v1';
+let saved = [];
+try { saved = JSON.parse(localStorage.getItem(key)) || []; } catch {}
+const discoveries = totals.map((_, i) => new Set(
+  (Array.isArray(saved[i]) ? saved[i] : []).filter(route =>
+    typeof route === 'string' && /^[12]+$/.test(route) &&
+    [...route].reduce((sum, jump) => sum + Number(jump), 0) === i + 1)
+));
+let level = 1;
+let route = [];
+let message = '';
+let frame;
+const format = jumps => [...jumps].join(' + ');
+const equation = (jumps, sum) => format(jumps) + ' = ' + sum;
+const ctx = get('stairs').getContext('2d');
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+function position() { return route.reduce((sum, jump) => sum + jump, 0); }
+function selectLevel(n) {
+  level = n;
+  restart();
+}
+function restart() {
+  route = [];
+  message = '';
+  render();
+}
+function move(jump) {
+  const previous = position();
+  if (previous + jump > level) return;
+  route.push(jump);
+  if (position() === level) {
+    const found = discoveries[level - 1];
+    const path = route.join('');
+    if (found.has(path)) {
+      message = 'Ja havies trobat aquesta manera. El recompte continua a ' + found.size + '.';
+    } else {
+      found.add(path);
+      try { localStorage.setItem(key, JSON.stringify(discoveries.map(set => [...set]))); } catch {}
+      const tally = (found.size - 1) + ' + 1 = ' + found.size;
+      message = 'Una manera nova! ' + tally + (found.size === totals[level - 1]
+        ? '. Has completat l’escala!' : '.');
+    }
+  } else {
+    message = '';
+  }
+  render(previous);
+  if (position() === level) get('restart').focus({preventScroll:true});
+  else if (jump === 2 && get('two').disabled) get('one').focus({preventScroll:true});
+}
+function undo() {
+  if (!route.length || position() === level) return;
+  route.pop();
+  message = '';
+  render();
+  if (get('undo').disabled) get('one').focus({preventScroll:true});
+}
+function render(previous = position()) {
+  const step = position();
+  const found = discoveries[level - 1];
+  const complete = found.size === totals[level - 1];
+  [...get('levels').children].forEach((button, i) => {
+    const done = discoveries[i].size === totals[i];
+    button.textContent = (i + 1) + (done ? ' ✓' : '');
+    button.setAttribute('aria-pressed', i + 1 === level);
+    button.setAttribute('aria-label', (i + 1) + (i ? ' esglaons' : ' esglaó') + (done ? ', completada' : ''));
+  });
+  get('level-title').textContent = level === 1 ? 'Escala d’1 esglaó' : 'Escala de ' + level + ' esglaons';
+  get('position').textContent = step === 0 ? 'A baix' : 'Esglaó ' + step + ' de ' + level;
+  get('route').textContent = route.length
+    ? equation(route, step) + ' · ' + route.length + (route.length === 1 ? ' salt' : ' salts')
+    : '0 esglaons pujats';
+  get('feedback').textContent = message;
+  get('one').disabled = step === level;
+  get('two').disabled = step + 2 > level;
+  get('undo').disabled = !step || step === level;
+  get('count').textContent = complete ? found.size + ' · Escala completada'
+    : found.size ? found.size + (found.size === 1 ? ' manera trobada' : ' maneres trobades')
+    : '0 maneres trobades';
+  get('routes').innerHTML = [...found].map(path => '<li>' + equation(path, level) + '</li>').join('');
+  get('hint').hidden = complete;
+  get('summary').innerHTML = discoveries.map((set, i) =>
+    '<tr><th scope="row">' + (i + 1) + '</th><td>' + (set.size ? '<ul class="sum-list" role="list">' + [...set].map(path =>
+      '<li>' + equation(path, i + 1) + '</li>').join('') + '</ul>' : '—') +
+    '</td><td>' + set.size + (set.size === totals[i] ? ' ✓' : '') + '</td></tr>').join('');
+  cancelAnimationFrame(frame);
+  if (previous === step || reducedMotion.matches) {
+    draw(step, 0);
+    return;
+  }
+  const start = performance.now();
+  function animate(time) {
+    const progress = Math.min(1, (time - start) / 320);
+    draw(previous + (step - previous) * progress, Math.sin(Math.PI * progress) * 32);
+    if (progress < 1) frame = requestAnimationFrame(animate);
+  }
+  frame = requestAnimationFrame(animate);
+}
+function shape(fill, points) {
+  ctx.beginPath();
+  points.forEach(([x,y], i) => i ? ctx.lineTo(x,y) : ctx.moveTo(x,y));
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+}
+function oval(fill,x,y,rx,ry) {
+  ctx.beginPath();
+  ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);
+  ctx.fillStyle = fill;
+  ctx.fill();
+}
+function draw(step, lift) {
+  ctx.setTransform(2,0,0,2,0,0);
+  ctx.clearRect(0,0,600,240);
+  const width = Math.min(93, 438 / level);
+  const rise = Math.min(33, 124 / level);
+  const origin = (600 - width * level) / 2 + 17;
+  const floor = 213;
+  const visited = new Set();
+  let sum = 0;
+  for (const jump of route) { sum += jump; visited.add(sum); }
+  ctx.fillStyle = '#c9d4aa';
+  ctx.fillRect(0,floor,600,27);
+  for (let i = 1; i <= level; i++) {
+    const x = origin + (i-1)*width;
+    const y = floor - i*rise;
+    ctx.fillStyle = visited.has(i) ? '#35604d' : '#aec49b';
+    ctx.fillRect(x,y,width,floor-y);
+    ctx.fillStyle = visited.has(i) ? '#d6ed9e' : '#718e72';
+    ctx.fillRect(x,y,width,4);
+    ctx.fillStyle = visited.has(i) ? 'white' : '#163d31';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 14px system-ui';
+    ctx.fillText(i,x+width/2,y+19);
+  }
+  const startX = origin - 40;
+  const x = step < 1 ? startX + step*(40 + width/2) : origin + (step-.5)*width;
+  ctx.save();
+  ctx.translate(x, floor - step*rise - lift);
+  oval('#dd7835',-19,-17,16,9);
+  oval('#fff9eb',-29,-18,7,7);
+  oval('#18392e',-7,-4,7,4);
+  oval('#18392e',8,-4,7,4);
+  oval('#184738',0,-17,15,16);
+  shape('#cf662e',[[-17,-51],[-19,-71],[-3,-59],[6,-59],[17,-71],[18,-49]]);
+  shape('#f8bc93',[[-15,-57],[-16,-65],[-8,-58],[9,-57],[15,-65],[15,-55]]);
+  oval('#e7823d',0,-47,19,15);
+  shape('#fff9eb',[[-17,-46],[0,-39],[17,-46],[13,-36],[0,-31],[-13,-36]]);
+  oval('#302c2a',-7,-48,2,2);
+  oval('#302c2a',7,-48,2,2);
+  oval('#302c2a',0,-40,3,2);
+  ctx.font = 'bold 7px system-ui';
+  ctx.fillStyle = 'white';
+  ctx.fillText('PCMAT',0,-15);
+  ctx.restore();
+}
+totals.forEach((_, i) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.addEventListener('click', () => selectLevel(i + 1));
+  get('levels').append(button);
+});
+get('one').addEventListener('click', () => move(1));
+get('two').addEventListener('click', () => move(2));
+get('restart').addEventListener('click', () => { restart(); get('one').focus({preventScroll:true}); });
+get('undo').addEventListener('click', undo);
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#20382c">
+<title>Piràmides numèriques · MADUKA</title>
+<style>
+:root{color-scheme:light;font-family:"Trebuchet MS",system-ui,sans-serif;background:#f7f5eb;color:#20382c;--ink:#20382c;--muted:#506357;--line:#dce0d0;--paper:#fffdf6;--given:#dce9c6}
+*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #8553a5;outline-offset:3px}
+.wrap{width:min(1040px,calc(100% - 36px));margin:auto}header{border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:12px;padding:16px 0;font-weight:900;letter-spacing:.06em}.mark{background:var(--ink);color:#fff;border-radius:10px;display:grid;place-items:center;width:38px;height:38px}.brand small{color:var(--muted);font-weight:650}
+h1{font-size:clamp(38px,7vw,73px);letter-spacing:-.07em;line-height:1;margin:30px 0 10px}.intro{margin:0 0 25px;color:var(--muted);line-height:1.5}
+.layout{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(235px,1fr);gap:16px;align-items:start}.card{border:1px solid var(--line);border-radius:22px;background:var(--paper);padding:20px}.card h2{font-size:20px;margin:0}.board-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.score{background:#e9eddc;border-radius:20px;padding:6px 10px;font-size:14px;white-space:nowrap}
+.stage{border-radius:15px;background:radial-gradient(ellipse at top,#f4f7e8,#e9efdc);padding:24px 8px;display:grid;gap:5px;--cell:clamp(49px,12vw,82px)}.row{display:flex;justify-content:center;gap:5px}.cell{display:grid;place-items:center;width:var(--cell);height:calc(var(--cell)*.78);font-size:clamp(20px,5vw,30px);font-weight:800;border-radius:10px;color:var(--ink);font-variant-numeric:tabular-nums}.given{background:var(--given);border:1px solid #acc094}input.cell{display:block;text-align:center;border:2px solid #83947d;background:#fffefa;padding:0 3px;min-width:0}input.cell[aria-invalid=true]{border-color:#a14433;background:#fff1e7}input.cell.correct{border-color:#599344;background:#ecf6db}
+.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:15px}.primary,.mode{border-radius:10px;padding:10px 14px;font-weight:800}.primary{border:1px solid var(--ink);background:var(--ink);color:white}.mode{border:1px solid #aab9a2;background:var(--paper);color:var(--ink);text-align:left}.mode[aria-pressed=true]{background:#e3edd0;border-color:#758e69}.mode-list{display:grid;gap:8px;margin:12px 0 18px}.status{min-height:2.8em;line-height:1.4;color:var(--muted);margin:12px 0 0}.status[data-tone=error]{color:#943828}.status[data-tone=success]{color:#316331;font-weight:800}button:disabled{opacity:.65;cursor:default}
+aside p{line-height:1.5;color:var(--muted)}details{border-top:1px solid var(--line);padding-top:12px}summary{cursor:pointer;font-weight:750}.example{display:grid;gap:4px;margin-top:12px;--cell:36px}.example .cell{height:27px;font-size:14px;border-radius:5px}.example p{margin:8px 0 0}.legend{font-size:14px}.legend::before{content:"";display:inline-block;width:12px;height:12px;margin-right:6px;border-radius:3px;background:var(--given);border:1px solid #acc094;vertical-align:baseline}footer{color:var(--muted);font-size:13px;padding:18px 0}
+@media(max-width:700px){.layout{grid-template-columns:1fr}.card{padding:15px}}
+</style>
+</head>
+<body>
+<header><div class="wrap brand"><span class="mark" aria-hidden="true">▴</span> MADUKA <small>Matemàtiques</small></div></header>
+<main class="wrap">
+<h1>Piràmides numèriques</h1>
+<p class="intro">Cada casella és la suma de les dues que té just a sota. Omple tots els buits per passar a una piràmide nova.</p>
+<div class="layout">
+<section class="card" aria-labelledby="puzzle-title">
+  <div class="board-head"><h2 id="puzzle-title">Piràmide 1</h2><span class="score" id="score">0 resoltes</span></div>
+  <form id="puzzle" novalidate>
+    <div class="stage" id="stage" role="group" aria-labelledby="puzzle-title"></div>
+    <div class="actions"><button class="primary" id="check">Comprova</button></div>
+  </form>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+</section>
+<aside class="card" aria-labelledby="mode-title">
+  <h2 id="mode-title">Quin repte vols?</h2>
+  <div class="mode-list" aria-label="Tipus de piràmide" role="group">
+    <button class="mode" type="button" data-mode="base" aria-pressed="true">Amb la base donada</button>
+    <button class="mode" type="button" data-mode="mixed" aria-pressed="false">Amb buits a la base</button>
+  </div>
+  <p class="legend">Casella amb un número donat</p>
+  <details>
+    <summary>Veure un exemple</summary>
+    <div class="example" id="example" role="img" aria-label="Piràmide resolta. Base 4, 6, 5 i 3. Pis següent 10, 11 i 8. Després 21 i 19. A dalt 40."></div>
+    <p>4 + 6 = 10 i 6 + 5 = 11. Just a sobre, 10 + 11 = 21.</p>
+  </details>
+</aside>
+</div>
+</main>
+<footer class="wrap">MADUKA · Materials educatius oberts</footer>
+<script>
+const get = id => document.getElementById(id);
+const stage = get('stage');
+const status = get('status');
+const check = get('check');
+const modes = [...document.querySelectorAll('[data-mode]')];
+const baseClues = ['0:0', '0:1', '0:2', '0:3'];
+const mixedClues = [
+  ['0:0', '0:3', '1:1', '1:2'],
+  ['0:0', '0:3', '1:0', '1:1'],
+  ['0:0', '0:1', '0:3', '1:2'],
+  ['0:0', '0:2', '0:3', '2:0'],
+  ['0:0', '0:1', '0:2', '3:0'],
+  ['0:1', '0:2', '0:3', '3:0']
+];
+const used = new Set();
+let mode = 'base';
+let solved = 0;
+let fields = [];
+let transition = null;
+
+function pyramid(base) {
+  const rows = [base];
+  while (rows.at(-1).length > 1) {
+    const row = rows.at(-1);
+    rows.push(row.slice(1).map((value, i) => row[i] + value));
+  }
+  return rows;
+}
+
+function nextBase() {
+  const randomBase = () => Array.from({length: 4}, () => 1 + Math.floor(Math.random() * 9));
+  if (used.size === 6561) used.clear();
+  let base;
+  do { base = randomBase(); } while (used.has(base.join('')));
+  used.add(base.join(''));
+  return base;
+}
+
+function displayBoard(container, rows, clues) {
+  container.replaceChildren();
+  const inputs = [];
+  for (let floor = rows.length - 1; floor >= 0; floor--) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    rows[floor].forEach((value, col) => {
+      const given = !clues || clues.includes(floor + ':' + col);
+      const cell = document.createElement(given ? 'span' : 'input');
+      cell.className = given ? 'cell given' : 'cell';
+      if (given) {
+        cell.textContent = value;
+        cell.setAttribute('aria-label', 'Pis ' + (floor + 1) + ', casella ' + (col + 1) + ', número donat ' + value);
+      } else {
+        cell.type = 'text';
+        cell.inputMode = 'numeric';
+        cell.autocomplete = 'off';
+        cell.setAttribute('aria-label', 'Pis ' + (floor + 1) + ' des de baix, casella ' + (col + 1) + ' des de l’esquerra');
+        inputs.push({cell, value});
+      }
+      row.append(cell);
+    });
+    container.append(row);
+  }
+  return inputs.reverse();
+}
+
+function announce(message, tone = '') {
+  status.textContent = message;
+  status.dataset.tone = tone;
+}
+
+function newPuzzle() {
+  clearTimeout(transition);
+  transition = null;
+  const clues = mode === 'base' ? baseClues : mixedClues[solved % mixedClues.length];
+  fields = displayBoard(stage, pyramid(nextBase()), clues);
+  get('puzzle-title').textContent = 'Piràmide ' + (solved + 1);
+  get('score').textContent = solved + (solved === 1 ? ' resolta' : ' resoltes');
+  check.disabled = false;
+}
+
+function matches({cell, value}) {
+  const answer = cell.value.trim();
+  return /^\d+$/.test(answer) && Number(answer) === value;
+}
+
+function evaluate(showFeedback) {
+  if (transition !== null) return;
+  if (fields.every(matches)) {
+    solved++;
+    get('score').textContent = solved + (solved === 1 ? ' resolta' : ' resoltes');
+    fields.forEach(({cell}) => {
+      cell.removeAttribute('aria-invalid');
+      cell.classList.add('correct');
+      cell.readOnly = true;
+    });
+    check.disabled = true;
+    announce('Correcte! Ara apareixerà una piràmide nova.', 'success');
+    transition = setTimeout(() => {
+      newPuzzle();
+      announce('Piràmide ' + (solved + 1) + ' preparada.');
+      fields[0].cell.focus({preventScroll:true});
+    }, 1500);
+    return;
+  }
+  if (!showFeedback) return;
+  let errors = 0;
+  fields.forEach(field => {
+    if (field.cell.value.trim() && !matches(field)) {
+      errors++;
+      field.cell.setAttribute('aria-invalid', 'true');
+    }
+  });
+  announce(errors ? 'Revisa les caselles marcades.' : 'Encara hi ha caselles buides.', 'error');
+}
+
+stage.addEventListener('input', event => {
+  event.target.removeAttribute('aria-invalid');
+  announce('');
+  evaluate(false);
+});
+get('puzzle').addEventListener('submit', event => {
+  event.preventDefault();
+  evaluate(true);
+});
+modes.forEach(button => button.addEventListener('click', () => {
+  if (mode === button.dataset.mode) return;
+  mode = button.dataset.mode;
+  modes.forEach(item => item.setAttribute('aria-pressed', item === button));
+  newPuzzle();
+  announce('Piràmide nova preparada.');
+}));
+displayBoard(get('example'), pyramid([4, 6, 5, 3]));
+newPuzzle();
+</script>
+</body>
+</html>

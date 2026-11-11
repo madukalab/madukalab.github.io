@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dibuixem Fibonacci · MADUKA</title>
+<style>
+:root{font-family:"Trebuchet MS",system-ui,sans-serif;color:#193b30;background:#f8f6eb;--ink:#193b30;--muted:#52665b;--line:#dce0d2;--paper:#fffdf6;--orange:#a54424}
+*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer}button:disabled{cursor:default;opacity:.45}button:focus-visible,input:focus-visible{outline:3px solid #a54424;outline-offset:3px}
+.wrap{width:min(1140px,calc(100% - 32px));margin:auto}header{border-bottom:1px solid var(--line)}.brand{padding:16px 0;display:flex;align-items:center;gap:12px;font-weight:900;letter-spacing:.05em}.mark{display:grid;place-items:center;width:37px;height:37px;background:var(--ink);color:white;border-radius:10px;font-size:25px}.brand small{color:var(--muted);font-weight:600}
+h1{font-size:clamp(38px,7vw,75px);letter-spacing:-.07em;line-height:1;margin:30px 0 10px}p{line-height:1.5}.intro{margin:0 0 22px;color:var(--muted)}.layout{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(260px,1fr);gap:15px;align-items:start}.card{background:var(--paper);border:1px solid var(--line);border-radius:19px;padding:16px}.card h2{margin:0;font-size:20px}.bar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}.pill{border-radius:30px;background:#e6eed9;padding:5px 9px;font-size:14px;white-space:nowrap}.stage{background:#f3f5e8;border:1px solid #e0e5d5;border-radius:12px;overflow:hidden}canvas{display:block;width:100%;touch-action:none;cursor:crosshair}.legend{font-size:13px;color:var(--muted);margin:10px 0 0}.legend b{color:var(--orange)}
+.sequence{padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:5px;margin:12px 0 18px}.sequence li{display:grid;place-items:center;min-width:33px;height:34px;border-radius:8px;background:#edf0e4;font-weight:800}.sequence .current{background:#f4ddc8;color:#763316}.sequence .done{background:#dce9c7}.step{font-weight:750;margin:0 0 8px}.help{color:var(--muted);margin:0 0 12px}.controls{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}input{width:72px;padding:8px;border:1px solid #829786;border-radius:8px;background:white;color:var(--ink)}.primary,.secondary{border-radius:8px;padding:8px 11px;font-weight:800}.primary{background:var(--ink);color:white;border:1px solid var(--ink)}.secondary{background:#fffdf6;color:var(--ink);border:1px solid #9db09b}.status{min-height:2.8em;margin:8px 0 0;color:var(--muted)}.status[data-tone=error]{color:#993c23}.status[data-tone=success]{color:#286136;font-weight:800}[hidden]{display:none!important}footer{padding:20px 0;color:var(--muted);font-size:13px}@media(max-width:740px){.layout{grid-template-columns:1fr}.card{padding:13px}}
+</style>
+</head>
+<body>
+<header><div class="wrap brand"><span class="mark" aria-hidden="true">↻</span>MADUKA <small>Matemàtiques</small></div></header>
+<main class="wrap">
+<h1>Dibuixem Fibonacci</h1>
+<p class="intro">Completa la successió i dibuixa una espiral de Fibonacci, un arc cada vegada.</p>
+<div class="layout">
+<section class="card" aria-labelledby="board-title">
+<div class="bar"><h2 id="board-title">Quadrícula</h2><span class="pill" id="progress">0 de 7 arcs</span></div>
+<div class="stage"><canvas id="board" width="1380" height="900" aria-label="Quadrícula de l’espiral. També pots fer servir els controls de traçat del joc."></canvas></div>
+<p class="legend" id="legend" hidden><b>●</b> Inici de l’arc &nbsp; <b>○</b> Final de l’arc &nbsp; · &nbsp; Cada quadradet fa 1 unitat.</p>
+</section>
+<section class="card" aria-labelledby="sequence-title">
+<h2 id="sequence-title">Successió de Fibonacci</h2>
+<ol class="sequence" id="sequence" aria-label="Termes de la successió"></ol>
+<p class="step" id="step"></p>
+<p class="help" id="help"></p>
+<form id="value-form" class="controls" novalidate>
+<input id="value" inputmode="numeric" autocomplete="off" aria-label="Costat del quadrat següent">
+<button class="primary" type="submit">Afegeix el quadrat</button>
+</form>
+<div class="controls" id="drawing" hidden>
+<button class="secondary" type="button" id="guide" aria-pressed="true">Amaga la guia</button>
+<button class="secondary" type="button" id="keyboard">Traça un tram</button>
+<button class="secondary" type="button" id="clear">Esborra el traç</button>
+</div>
+<p class="status" id="status" role="status" aria-live="polite"></p>
+<button class="primary" type="button" id="restart" hidden>Torna a començar</button>
+</section>
+</div>
+</main>
+<footer class="wrap">MADUKA · Materials educatius oberts</footer>
+<script>
+const get = id => document.getElementById(id);
+const canvas = get('board');
+const ctx = canvas.getContext('2d');
+const terms = [1, 1];
+while (terms.length < 7) terms.push(terms.at(-1) + terms.at(-2));
+const quarter = Math.PI / 2;
+const squares = [{x:0,y:0,n:1,cx:1,cy:1,angle:Math.PI}];
+let bounds = {left:0,right:1,top:0,bottom:1};
+
+for (let i = 1; i < terms.length; i++) {
+  const n = terms[i];
+  const {left,right,top,bottom} = bounds;
+  const placements = [
+    {x:left,y:top-n,cx:right,cy:top},
+    {x:right,y:top,cx:right,cy:bottom},
+    {x:left,y:bottom,cx:left,cy:bottom},
+    {x:left-n,y:top,cx:left,cy:top}
+  ];
+  const square = {...placements[i % 4],n,angle:Math.PI + i * quarter};
+  squares.push(square);
+  bounds = {left:Math.min(left,square.x),right:Math.max(right,square.x+n),
+    top:Math.min(top,square.y),bottom:Math.max(bottom,square.y+n)};
+}
+
+const colors = ['#eec991','#f2dab1','#cbdca9','#afc998','#e1d6a9','#b9d6c4','#d8dcb3'];
+const chunks = 16;
+let index = 0;
+let added = false;
+let guide = true;
+let progress = 0;
+let pointer = null;
+let ink = [];
+let view;
+
+function boardView() {
+  const visible = squares.slice(0, Math.max(1,index + Number(added)));
+  const left = Math.min(...visible.map(s => s.x));
+  const right = Math.max(...visible.map(s => s.x + s.n));
+  const top = Math.min(...visible.map(s => s.y));
+  const bottom = Math.max(...visible.map(s => s.y + s.n));
+  const scale = Math.min(270, canvas.width / (bottom - top + 2), canvas.height / (right - left + 2));
+  return {
+    scale,
+    offsetX: canvas.width / 2 - (top + bottom) * scale / 2,
+    offsetY: canvas.height / 2 + (left + right) * scale / 2
+  };
+}
+
+function point(square, fraction) {
+  const angle = square.angle + quarter * fraction;
+  return [square.cx + square.n * Math.cos(angle), square.cy + square.n * Math.sin(angle)];
+}
+
+function paintArc(square, fraction, color, width, dashed = false) {
+  ctx.beginPath();
+  ctx.setLineDash(dashed ? [.12,.12] : []);
+  ctx.arc(square.cx,square.cy,square.n,square.angle,square.angle+quarter*fraction);
+  ctx.strokeStyle=color;
+  ctx.lineWidth=width;
+  ctx.lineCap='round';
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function draw() {
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  view = boardView();
+  const {scale,offsetX,offsetY} = view;
+  ctx.setTransform(0,-scale,scale,0,offsetX,offsetY);
+  for (let i=0; i<index+Number(added); i++) {
+    const {x,y,n}=squares[i];
+    ctx.fillStyle=colors[i];
+    ctx.fillRect(x,y,n,n);
+  }
+  ctx.beginPath();
+  for (let x=-4; x<=11; x++) { ctx.moveTo(x,-6); ctx.lineTo(x,17); }
+  for (let y=-6; y<=17; y++) { ctx.moveTo(-4,y); ctx.lineTo(11,y); }
+  ctx.strokeStyle='#a2b49d88';
+  ctx.lineWidth=.022;
+  ctx.stroke();
+  for (let i=0; i<index+Number(added); i++) {
+    const {x,y,n}=squares[i];
+    ctx.strokeStyle=i===index ? '#355c48' : '#748b6b';
+    ctx.lineWidth=i===index ? .075 : .04;
+    ctx.strokeRect(x,y,n,n);
+  }
+  for (let i=0;i<index;i++) paintArc(squares[i],1,'#a54424',.13);
+  if (!added) return;
+  const square=squares[index];
+  if (guide) paintArc(square,1,'#7d6857',.06,true);
+  if (progress) paintArc(square,progress/chunks,'#a54424',.13);
+  if (ink.length > 1) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(square.x-.4,square.y-.4,square.n+.8,square.n+.8);
+    ctx.clip();
+    ctx.beginPath();
+    ctx.moveTo(...ink[0]);
+    for (const position of ink.slice(1)) ctx.lineTo(...position);
+    ctx.strokeStyle='#a5442499';
+    ctx.lineWidth=Math.max(.035,5/scale);
+    ctx.lineCap='round';
+    ctx.lineJoin='round';
+    ctx.stroke();
+    ctx.restore();
+  }
+  for (const fraction of [0,1]) {
+    ctx.beginPath();
+    ctx.arc(...point(square,fraction),.13,0,2*Math.PI);
+    ctx.fillStyle=fraction ? '#fffdf6' : '#a54424';
+    ctx.fill();
+    ctx.strokeStyle='#a54424';
+    ctx.lineWidth=.05;
+    ctx.stroke();
+  }
+}
+
+function announce(message, tone='') {
+  get('status').textContent=message;
+  get('status').dataset.tone=tone;
+}
+
+function render() {
+  const complete=index===terms.length;
+  get('progress').textContent=index+' de '+terms.length+' arcs';
+  get('sequence').replaceChildren(...terms.map((value,i) => {
+    const item=document.createElement('li');
+    item.textContent=i<2 || i<index+Number(added) ? value : '·';
+    if (i<index) item.className='done';
+    if (i===index) {
+      item.className='current';
+      item.setAttribute('aria-current','step');
+    }
+    return item;
+  }));
+  get('step').textContent=complete ? 'Espiral completada!' : added ? 'Dibuixa l’arc del quadrat de '+terms[index] : 'Troba el costat del quadrat '+(index+1);
+  get('help').textContent=complete ? 'Els costats dels quadrats segueixen la successió 1, 1, 2, 3, 5, 8, 13.' : added
+    ? 'Dibuixa del punt ple al cercle buit i deixa anar el ratolí o aixeca el dit. També pots avançar amb «Traça un tram».'
+    : index<2 ? 'La successió comença amb dos uns. Escriu 1 per col·locar aquest quadrat.'
+    : 'Suma els dos últims termes: '+terms[index-2]+' + '+terms[index-1]+'.';
+  get('value-form').hidden=complete || added;
+  get('drawing').hidden=!added;
+  get('legend').hidden=!added;
+  get('restart').hidden=!complete;
+  get('guide').textContent=guide ? 'Amaga la guia' : 'Mostra la guia';
+  get('guide').setAttribute('aria-pressed',guide);
+  draw();
+}
+
+get('value-form').addEventListener('submit',event=>{
+  event.preventDefault();
+  if (added || index===terms.length) return;
+  const input=get('value');
+  if (!/^\d+$/.test(input.value.trim()) || Number(input.value)!==terms[index]) {
+    announce('Revisa el número i torna-ho a provar.','error');
+    input.setAttribute('aria-invalid','true');
+    input.focus();
+    return;
+  }
+  input.removeAttribute('aria-invalid');
+  input.value='';
+  added=true;
+  announce('Quadrat afegit.');
+  render();
+  get('keyboard').focus({preventScroll:true});
+});
+get('value').addEventListener('input',()=>get('value').removeAttribute('aria-invalid'));
+
+function advance(amount) {
+  progress=Math.min(chunks,progress+amount);
+  if (progress<chunks) { draw(); return; }
+  index++;
+  added=false;
+  progress=0;
+  pointer=null;
+  ink=[];
+  const complete=index===terms.length;
+  announce(complete ? 'Has dibuixat els set arcs!' : 'Arc completat. Ara afegeix el quadrat següent.','success');
+  render();
+  get(complete?'restart':'value').focus({preventScroll:true});
+}
+
+function gridPoint(event) {
+  const box=canvas.getBoundingClientRect();
+  const x = (event.clientX-box.left)*canvas.width/box.width;
+  const y = (event.clientY-box.top)*canvas.height/box.height;
+  return [(view.offsetY-y)/view.scale,(x-view.offsetX)/view.scale];
+}
+
+const distance = (a,b) => Math.hypot(a[0]-b[0],a[1]-b[1]);
+
+function distanceToStroke(target) {
+  let closest = distance(target,ink[0]);
+  for (let i=1;i<ink.length;i++) {
+    const [x,y] = ink[i-1];
+    const dx = ink[i][0]-x;
+    const dy = ink[i][1]-y;
+    const lengthSquared = dx*dx+dy*dy;
+    if (!lengthSquared) continue;
+    const projection = ((target[0]-x)*dx+(target[1]-y)*dy)/lengthSquared;
+    const fraction = Math.max(0,Math.min(1,projection));
+    closest = Math.min(closest,distance(target,[x+fraction*dx,y+fraction*dy]));
+  }
+  return closest;
+}
+
+canvas.addEventListener('pointerdown',event=>{
+  if (!added || pointer!==null || event.button!==0) return;
+  pointer=event.pointerId;
+  progress=0;
+  ink=[gridPoint(event)];
+  canvas.setPointerCapture(pointer);
+  announce('');
+  draw();
+});
+canvas.addEventListener('pointermove',event=>{
+  if (pointer!==event.pointerId) return;
+  ink.push(gridPoint(event));
+  draw();
+});
+canvas.addEventListener('pointerup',event=>{
+  if (pointer!==event.pointerId) return;
+  pointer=null;
+  ink.push(gridPoint(event));
+  const square=squares[index];
+  const endpointTolerance=Math.max(.29,square.n*.16);
+  if (distance(ink[0],point(square,0))>endpointTolerance) {
+    announce('Torna-ho a provar des del punt ple.','error');
+  } else if (distance(ink.at(-1),point(square,1))>endpointTolerance) {
+    announce('Acaba el traç al cercle buit.','error');
+  } else {
+    const curveTolerance=Math.max(.17,square.n*.14);
+    const passed=[.2,.35,.5,.65,.8].filter(fraction=>
+      distanceToStroke(point(square,fraction))<=curveTolerance);
+    if (passed.length>=4) {
+      advance(chunks);
+      return;
+    }
+    announce('Segueix la corba entre els dos punts. Pots tornar a dibuixar-la.','error');
+  }
+  draw();
+});
+for (const type of ['pointercancel','lostpointercapture']) {
+  canvas.addEventListener(type,event=>{
+    if (event.pointerId!==pointer) return;
+    pointer=null;
+    draw();
+  });
+}
+get('clear').addEventListener('click',()=>{
+  if (!added) return;
+  pointer=null;
+  ink=[];
+  progress=0;
+  announce('');
+  draw();
+});
+get('keyboard').addEventListener('click',()=>{
+  if (!added) return;
+  pointer=null;
+  ink=[];
+  announce('');
+  advance(4);
+});
+get('guide').addEventListener('click',()=>{ guide=!guide; render(); });
+get('restart').addEventListener('click',()=>{
+  index=0;
+  guide=true;
+  announce('');
+  render();
+  get('value').focus();
+});
+render();
+</script>
+</body>
+</html>

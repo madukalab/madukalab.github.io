@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>L’abella del rusc · MADUKA</title>
+<style>
+:root{font-family:"Trebuchet MS",system-ui,sans-serif;color:#392b1a;background:#fbf6e9;--ink:#392b1a;--muted:#675641;--line:#e6d9bd;--paper:#fffdf6}
+*{box-sizing:border-box}body{margin:0}button{font:inherit;cursor:pointer}button:focus-visible,summary:focus-visible{outline:3px solid #975019;outline-offset:3px}button:disabled{opacity:.48;cursor:default}p{line-height:1.5}.wrap{width:min(1080px,calc(100% - 32px));margin:auto}header{border-bottom:1px solid var(--line)}.brand{padding:15px 0;display:flex;align-items:center;gap:12px;font-weight:900;letter-spacing:.06em}.mark{background:#4b351f;color:#fff5d2;border-radius:10px;width:38px;height:38px;display:grid;place-items:center;font-size:25px}.brand small{color:var(--muted);font-weight:600}h1{font-size:clamp(37px,7vw,74px);letter-spacing:-.065em;line-height:1;margin:30px 0 9px}.intro{color:var(--muted);margin:0 0 20px}.layout{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(245px,1fr);gap:15px;align-items:start}.card{border:1px solid var(--line);border-radius:20px;background:var(--paper);padding:17px}.card h2{font-size:20px;margin:0}.bar{display:flex;justify-content:space-between;gap:8px;align-items:center}.pill{border-radius:25px;background:#f5e8c5;padding:5px 10px;font-size:14px}.board{container-type:inline-size;position:relative;aspect-ratio:1.85;background:#faf0d4;border-radius:13px;margin:13px 0;isolation:isolate}.hex{position:absolute;transform:translate(-50%,-50%);width:25%;height:53.4%;border:0;padding:0;background:#b88839;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);color:#493219;display:grid;place-items:center;font-size:clamp(19px,7cqw,42px);font-weight:900}.hex::before{content:"";position:absolute;inset:2px;clip-path:inherit;background:#f8e7b4;z-index:-1}.hex[data-state=available]::before{background:#ffd47b}.hex[data-state=available]:hover::before,.hex:focus-visible::before{background:#edaf46}.hex:focus-visible{background:#493219}.hex[data-state=visited]::before{background:#e6c88e}.hex[data-state=current]::before{background:#efb35b}.bee{position:absolute;left:50%;top:54%;width:22%;transform:translate(-50%,-50%);font-size:clamp(24px,9cqw,54px);text-align:center;pointer-events:none;z-index:2;transition:left .22s,top .22s}.hex[data-state=current] .letter{transform:translateY(-8px);font-size:.46em;align-self:start;margin-top:22%}.hex:first-child .letter{font-size:.38em}.controls{display:flex;flex-wrap:wrap;gap:8px}.control{border:1px solid #bca775;border-radius:8px;background:#fff8e4;color:var(--ink);padding:8px 11px;font-weight:750}.primary{background:#513823;color:white;border-color:#513823}.status{min-height:2.8em;margin:9px 0;color:var(--muted)}.status[data-tone=error]{color:#973b21}.status[data-tone=success]{color:#43622f;font-weight:800}.route{font-weight:800;margin:8px 0}.paths{padding-left:23px;margin:12px 0}.paths li{padding:6px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}.note{color:var(--muted);margin:8px 0}.count{margin:7px 0;color:var(--muted)}details{margin-top:15px}summary{cursor:pointer;font-weight:800}footer{padding:20px 0;color:var(--muted);font-size:13px}[hidden]{display:none!important}@media(max-width:710px){.layout{grid-template-columns:1fr}.card{padding:12px}}@media(prefers-reduced-motion:reduce){.bee{transition:none}}
+.levels{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.levels button[aria-pressed=true]{background:#513823;color:white;border-color:#513823}.hex[data-target=true]{background:#875216}.hex[data-state=beyond]::before{background:#efe6d4}.hex[data-state=beyond]{color:#766650}.summary{margin-top:15px}.summary table{width:100%;border-collapse:collapse;text-align:left;margin-top:10px}.summary th,.summary td{border-top:1px solid var(--line);padding:8px;vertical-align:top}.summary th:last-child,.summary td:last-child{text-align:right}.summary ul{margin:0;padding:0;list-style:none}.summary li+li{margin-top:4px}
+</style>
+</head>
+<body>
+<header><div class="wrap brand"><span class="mark" aria-hidden="true">⬡</span>MADUKA <small>Matemàtiques</small></div></header>
+<main class="wrap">
+<h1>L’abella del rusc</h1>
+<p class="intro">Quants camins hi ha per arribar a cada cel·la? Comença per A i avança fins a E. L’abella només es mou cap a la dreta entre cel·les que comparteixen un costat.</p>
+<nav class="levels" id="levels" aria-label="Tria la cel·la de destí"></nav>
+<div class="layout">
+<section class="card" aria-labelledby="board-title">
+<div class="bar"><h2 id="board-title">El rusc</h2><span class="pill" id="position"></span></div>
+<div class="board" id="board" role="group" aria-label="Cel·les del rusc"></div>
+<p class="route" id="route"></p>
+<p class="status" id="status" role="status" aria-live="polite"></p>
+<div class="controls">
+<button class="control primary" type="button" id="again">Torna a l’inici</button>
+<button class="control primary" type="button" id="next" hidden></button>
+<button class="control" type="button" id="undo">Desfés l’últim pas</button>
+</div>
+<details>
+<summary>Com es juga?</summary>
+<p class="note">Clica una de les cel·les ressaltades. Cada camí nou suma 1 al recompte de la destinació. Torna a l’inici per provar un altre camí. Quan els hagis trobat tots, podràs passar a la cel·la següent.</p>
+</details>
+</section>
+<section class="card" aria-labelledby="paths-title">
+<h2 id="paths-title">Camins trobats</h2>
+<p class="count" id="count"></p>
+<ol class="paths" id="paths"></ol>
+<p class="note" id="reflection" hidden>Fixa’t en l’últim pas. Quants camins arriben a E des de C? I quants hi arriben des de D? Què passa si sumes els dos resultats?</p>
+</section>
+</div>
+<section class="card summary" aria-labelledby="summary-title">
+<h2 id="summary-title">Taula de camins</h2>
+<table>
+<thead><tr><th scope="col">Destinació</th><th scope="col">Camins trobats</th><th scope="col">Total trobat</th></tr></thead>
+<tbody id="summary"></tbody>
+</table>
+</section>
+</main>
+<footer class="wrap">MADUKA · Materials educatius oberts</footer>
+<script>
+const get = id => document.getElementById(id);
+const labels = ['Inici','A','B','C','D','E'];
+// The two forward neighbours share the slanted side and the vertical side.
+const links = [[1,2],[2,3],[3,4],[4,5],[5],[]];
+const last = labels.length - 1;
+let goal = 1;
+let unlocked = 1;
+const ways = [1];
+for (let cell = 1; cell <= last; cell++) {
+  ways[cell] = links.reduce((sum, exits, previous) =>
+    exits.includes(cell) ? sum + ways[previous] : sum, 0);
+}
+
+const discoveries = labels.map(() => new Set());
+const levels = labels.slice(1).map((label,i) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'control';
+  button.addEventListener('click', () => selectGoal(i + 1));
+  get('levels').append(button);
+  return button;
+});
+let route = [0];
+const board = get('board');
+const centers = labels.map((_,i) => [18.75 + i * 12.5, i % 2 ? 70 : 30]);
+const buttons = labels.map((label,i) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'hex';
+  button.style.left = centers[i][0] + '%';
+  button.style.top = centers[i][1] + '%';
+  const letter = document.createElement('span');
+  letter.className = 'letter';
+  letter.textContent = label;
+  button.append(letter);
+  button.addEventListener('click', () => move(i));
+  board.append(button);
+  return button;
+});
+const bee = document.createElement('span');
+bee.className = 'bee';
+bee.setAttribute('aria-hidden','true');
+bee.textContent = '🐝';
+board.append(bee);
+
+function announce(message, tone = '') {
+  get('status').textContent = message;
+  get('status').dataset.tone = tone;
+}
+
+function format(path) {
+  return path.map(cell => labels[cell]).join(' → ');
+}
+
+function selectGoal(cell) {
+  if (cell > unlocked) return;
+  goal = cell;
+  route = [0];
+  announce('Porta l’abella fins a ' + labels[goal] + '.');
+  render();
+}
+
+function move(cell) {
+  const current = route.at(-1);
+  if (current === goal) return;
+  if (cell > goal) {
+    announce('Ara la destinació és ' + labels[goal] + '.','error');
+    return;
+  }
+  if (!links[current].includes(cell)) {
+    announce(cell <= current ? 'L’abella sempre ha d’avançar.' : 'Tria una cel·la que comparteixi un costat amb la teva.','error');
+    return;
+  }
+  route.push(cell);
+  if (cell === goal) {
+    const found = discoveries[goal];
+    const key = route.join('');
+    if (found.has(key)) announce('Aquest camí ja l’havies trobat.','error');
+    else {
+      found.add(key);
+      const complete = found.size === ways[goal];
+      if (complete && goal === unlocked && goal < last) unlocked++;
+      announce(complete
+        ? 'Has trobat tots els camins fins a ' + labels[goal] + '!'
+        : 'Camí nou! ' + (found.size - 1) + ' + 1 = ' + found.size + '.','success');
+    }
+    render();
+    get(get('next').hidden ? 'again' : 'next').focus({preventScroll:true});
+    return;
+  }
+  announce('');
+  render();
+}
+
+function render() {
+  const current = route.at(-1);
+  const found = discoveries[goal];
+  levels.forEach((button,i) => {
+    const cell = i + 1;
+    button.textContent = labels[cell] + (discoveries[cell].size === ways[cell] ? ' ✓' : '');
+    button.disabled = cell > unlocked;
+    button.setAttribute('aria-pressed',cell === goal);
+  });
+  get('board-title').textContent = 'Destinació ' + labels[goal];
+  get('paths-title').textContent = 'Camins fins a ' + labels[goal];
+  get('next').hidden = goal === last || found.size !== ways[goal];
+  get('next').textContent = goal < last ? 'Passa a ' + labels[goal + 1] : '';
+  buttons.forEach((button,i) => {
+    const state = i === current ? 'current' : i > goal ? 'beyond'
+      : links[current].includes(i) ? 'available' : route.includes(i) ? 'visited' : 'waiting';
+    button.dataset.target = i === goal;
+    button.dataset.state = state;
+    button.setAttribute('aria-label',labels[i] + (state === 'current' ? ', hi ha l’abella'
+      : state === 'available' ? ', moviment possible' : ''));
+    button.setAttribute('aria-current',i === current ? 'location' : 'false');
+  });
+  bee.style.left = centers[current][0] + '%';
+  bee.style.top = (centers[current][1] + 5) + '%';
+  get('position').textContent = current === 0 ? 'A l’inici' : 'Cel·la ' + labels[current];
+  get('route').textContent = 'Camí actual · ' + format(route);
+  get('again').disabled = route.length === 1;
+  get('undo').disabled = route.length === 1 || current === goal;
+  get('count').textContent = found.size + (found.size === 1 ? ' camí diferent' : ' camins diferents');
+  get('paths').replaceChildren(...[...found].map(key => {
+    const item = document.createElement('li');
+    item.textContent = format([...key].map(Number));
+    return item;
+  }));
+  get('reflection').hidden = discoveries[last].size !== ways[last];
+  get('summary').innerHTML = discoveries.slice(1).map((paths,i) => {
+    const cell = i + 1;
+    const list = paths.size ? '<ul role="list">' + [...paths].map(key =>
+      '<li>' + format([...key].map(Number)) + '</li>').join('') + '</ul>' : '—';
+    const total = cell <= unlocked ? paths.size : '—';
+    return '<tr><th scope="row">' + labels[cell] + '</th><td>' + list + '</td><td>' + total + '</td></tr>';
+  }).join('');
+}
+get('again').addEventListener('click',()=>{
+  route = [0];
+  announce('L’abella ha tornat a l’inici.');
+  render();
+  buttons[1].focus({preventScroll:true});
+});
+get('undo').addEventListener('click',()=>{
+  if (route.length <= 1 || route.at(-1) === goal) return;
+  route.pop();
+  announce('Has desfet l’últim pas.');
+  render();
+  if (route.length === 1) buttons[1].focus({preventScroll:true});
+});
+get('next').addEventListener('click',()=>{
+  if (goal >= last || discoveries[goal].size !== ways[goal]) return;
+  selectGoal(goal + 1);
+  buttons[1].focus({preventScroll:true});
+});
+announce('Tria A per començar.');
+render();
+</script>
+</body>
+</html>

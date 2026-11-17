@@ -144,28 +144,40 @@
         </div>
 
         <button class="mode" type="button" id="timed" aria-pressed="false">Contrarellotge</button>
-        <details class="help">
-          <summary>Info</summary>
-          <p>
-            Amb el Contrarellotge, cada 30 segons s’esborra un número a l’atzar,
-            sigui una pista o una resposta que hagis escrit.
-          </p>
-          <p>
-            Si et quedes sense pistes, pots reiniciar la mateixa piràmide.
-          </p>
-          <p>
-            Com més ràpid resolguis la piràmide i més alt sigui el nivell,
-            més punts guanyaràs. Si mantens el Contrarellotge activat
-            des del començament de la piràmide, guanyaràs un 25 % extra.
-          </p>
-          <p>Les caselles verdes contenen els nombres donats.</p>
-        </details>
+          <details class="help">
+            <summary>Info</summary>
+            <p>
+              Amb el Contrarellotge, cada 30 segons s’esborra un número a l’atzar,
+              sigui una pista o una resposta que hagis escrit.
+            </p>
+            <p>
+              Si et quedes sense pistes, pots reiniciar la mateixa piràmide.
+            </p>
+            <p>
+              Com més ràpid resolguis la piràmide i més alt sigui el nivell,
+              més punts guanyaràs. Si mantens el Contrarellotge activat
+              des del començament de la piràmide, guanyaràs un 25 % extra.
+            </p>
+            <p>Les caselles verdes contenen els nombres donats.</p>
+          </details>
 
-        <details>
-          <summary>Veure un exemple</summary>
-          <div class="example" id="example" role="img"
-            aria-label="Piràmide resolta. Base 4, 6, 5 i 3. Pis següent 10, 11 i 8. Després 21 i 19. A dalt 40."></div>
-          <p>4 + 6 = 10 i 6 + 5 = 11. Just a sobre, 10 + 11 = 21.</p>
+          <details>
+            <summary>Veure un exemple</summary>
+            <div class="example" id="example" role="img"
+              aria-label="Piràmide resolta. Base 4, 6, 5 i 3. Pis següent 10, 11 i 8. Després 21 i 19. A dalt 40."></div>
+            <p>4 + 6 = 10 i 6 + 5 = 11. Just a sobre, 10 + 11 = 21.</p>
+          </details>
+          <details>
+          <summary>Classificació</summary>
+        
+          <form id="ranking-form" class="actions">
+            <label for="player-name">Nom o àlies</label>
+            <input id="player-name" type="text" maxlength="30" autocomplete="off" required>
+            <button class="primary" type="submit">Desa la puntuació</button>
+          </form>
+        
+          <p class="help" id="ranking-status" role="status"></p>
+          <ol id="ranking-list"></ol>
         </details>
       </aside>
     </div>
@@ -500,6 +512,62 @@
 
     displayBoard(get('example'), pyramid([4, 6, 5, 3]));
     newPuzzle();
+    const rankingForm = document.getElementById('ranking-form');
+    const playerName = document.getElementById('player-name');
+    const rankingList = document.getElementById('ranking-list');
+    const rankingStatus = document.getElementById('ranking-status');
+    const rankingKey = 'maduka-piramides-classificacio';
+    
+    function loadRanking() {
+      return JSON.parse(localStorage.getItem(rankingKey) ?? '[]');
+    }
+    
+    function showRanking(entries) {
+      rankingList.replaceChildren();
+    
+      entries.forEach(({ name, score }) => {
+        const item = document.createElement('li');
+        item.textContent = `${name} · ${score.toLocaleString('ca-ES')} punts`;
+        rankingList.append(item);
+      });
+    }
+    
+    rankingForm.addEventListener('submit', event => {
+      event.preventDefault();
+    
+      const name = playerName.value.trim().replace(/\s+/g, ' ');
+      if (!name || totalPoints === 0) {
+        rankingStatus.textContent = 'Escriu el nom i resol almenys una piràmide.';
+        return;
+      }
+    
+      try {
+        const entries = loadRanking();
+        const key = name.toLocaleLowerCase('ca');
+        const previous = entries.find(entry => entry.key === key);
+    
+        if (previous && previous.score >= totalPoints) {
+          rankingStatus.textContent = 'Ja tens una puntuació igual o més alta.';
+          return;
+        }
+    
+        const updated = entries.filter(entry => entry.key !== key);
+        updated.push({ key, name, score: totalPoints });
+        updated.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name, 'ca'));
+    
+        localStorage.setItem(rankingKey, JSON.stringify(updated));
+        showRanking(updated);
+        rankingStatus.textContent = 'Puntuació desada.';
+      } catch {
+        rankingStatus.textContent = 'El navegador no ha pogut desar la classificació.';
+      }
+    });
+    
+    try {
+      showRanking(loadRanking());
+    } catch {
+      rankingStatus.textContent = 'El navegador no ha pogut carregar la classificació.';
+    }
   </script>
 </body>
 </html>

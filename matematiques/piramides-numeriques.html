@@ -137,6 +137,7 @@
           <button class="mode" type="button" data-mode="base" aria-pressed="true">Amb la base donada</button>
           <button class="mode" type="button" data-mode="mixed" aria-pressed="false">Amb buits a la base</button>
           <button class="mode" type="button" data-mode="decimal" aria-pressed="false">Amb nombres decimals</button>
+          <button class="mode" type="button" data-mode="decimal-mixed" aria-pressed="false">Amb nombres decimals i buits a la base</button>
         </div>
 
         <button class="mode" type="button" id="timed" aria-pressed="false">Contrarellotge</button>
@@ -346,8 +347,9 @@
       clearTimeout(transition);
       transition = null;
 
-      const decimal = mode === 'decimal';
-      const clues = mode === 'mixed' ? mixedClues[solved % mixedClues.length] : baseClues;
+      const decimal = mode === 'decimal' || mode === 'decimal-mixed';
+      const mixed = mode === 'mixed' || mode === 'decimal-mixed';
+      const clues = mixed ? mixedClues[solved % mixedClues.length] : baseClues;
       const base = nextBase();
 
       // Els valors decimals es calculen en dècimes enteres. 24 representa 2,4.

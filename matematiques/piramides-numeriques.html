@@ -5,104 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#20382c">
   <title>Piràmides numèriques · MADUKA</title>
-
   <style>
     :root {
       color-scheme: light;
       font-family: "Trebuchet MS", system-ui, sans-serif;
-      background: #f7f5eb;
       color: #20382c;
+      background: #f7f5eb;
       --ink: #20382c;
       --muted: #506357;
       --line: #dce0d0;
       --paper: #fffdf6;
       --given: #dce9c6;
     }
-
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
     body { margin: 0; }
     button, input { font: inherit; }
     button, summary { cursor: pointer; }
-
-    button:focus-visible,
-    input:focus-visible,
-    summary:focus-visible {
-      outline: 3px solid #8553a5;
-      outline-offset: 3px;
-    }
-
+    :focus-visible { outline: 3px solid #8553a5; outline-offset: 3px; }
     .wrap { width: min(1040px, calc(100% - 36px)); margin: auto; }
     header { border-bottom: 1px solid var(--line); }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px 0;
-      font-weight: 900;
-      letter-spacing: .06em;
-    }
-
-    .mark {
-      display: grid;
-      place-items: center;
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: var(--ink);
-      color: white;
-    }
-
+    .brand { display: flex; align-items: center; gap: 12px; padding: 16px 0; font-weight: 900; letter-spacing: .06em; }
+    .mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; background: var(--ink); color: white; }
     .brand small { color: var(--muted); font-weight: 650; }
-
-    h1 {
-      margin: 30px 0 10px;
-      font-size: clamp(38px, 7vw, 73px);
-      letter-spacing: -.07em;
-      line-height: 1;
-    }
-
+    h1 { margin: 30px 0 10px; font-size: clamp(38px, 7vw, 73px); letter-spacing: -.07em; line-height: 1; }
     .intro { margin: 0 0 25px; color: var(--muted); line-height: 1.5; }
-
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.8fr) minmax(235px, 1fr);
-      gap: 16px;
-      align-items: start;
-    }
-
-    .card {
-      padding: 20px;
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      background: var(--paper);
-    }
-
+    .layout { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(235px, 1fr); gap: 16px; align-items: start; }
+    .card { padding: 20px; border: 1px solid var(--line); border-radius: 22px; background: var(--paper); }
     .card h2 { margin: 0; font-size: 20px; }
-
-    .board-head, .actions {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
+    .board-head, .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
     .board-head { justify-content: space-between; margin-bottom: 14px; }
     .actions { margin-top: 15px; }
-
-    .score {
-      padding: 6px 10px;
-      border-radius: 20px;
-      background: #e9eddc;
-      font-size: 14px;
-      white-space: nowrap;
-    }
-
+    .score { padding: 6px 10px; border-radius: 20px; background: #e9eddc; font-size: 14px; }
     .clock {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       gap: 8px;
       margin-bottom: 12px;
       padding: 8px 12px;
@@ -110,20 +48,10 @@
       background: #e9eddc;
       font-size: 14px;
     }
-
     .clock strong { font-size: 22px; font-variant-numeric: tabular-nums; }
     .clock[data-urgent="true"] { background: #fae0d5; color: #843627; }
-
-    .stage {
-      display: grid;
-      gap: 5px;
-      padding: 24px 8px;
-      border-radius: 15px;
-      background: radial-gradient(ellipse at top, #f4f7e8, #e9efdc);
-    }
-
+    .stage { display: grid; gap: 5px; padding: 24px 8px; border-radius: 15px; background: radial-gradient(ellipse at top, #f4f7e8, #e9efdc); }
     .row { display: flex; justify-content: center; gap: 5px; }
-
     .cell {
       display: grid;
       place-items: center;
@@ -135,53 +63,27 @@
       font-weight: 800;
       font-variant-numeric: tabular-nums;
     }
-
     .given { border: 1px solid #acc094; background: var(--given); }
-
-    input.cell {
-      display: block;
-      min-width: 0;
-      padding: 0 3px;
-      border: 2px solid #83947d;
-      background: #fffefa;
-      text-align: center;
-    }
-
+    input.cell { display: block; min-width: 0; padding: 0 3px; border: 2px solid #83947d; background: #fffefa; text-align: center; }
     input.cell[aria-invalid="true"] { border-color: #a14433; background: #fff1e7; }
     input.cell.correct { border-color: #599344; background: #ecf6db; }
     input.cell.erased { border-color: #a85c25; background: #fff1d7; }
-
-    .primary, .mode {
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-weight: 800;
-    }
-
+    .primary, .mode { padding: 10px 14px; border-radius: 10px; font-weight: 800; }
     .primary { border: 1px solid var(--ink); background: var(--ink); color: white; }
-
-    .mode {
-      border: 1px solid #aab9a2;
-      background: var(--paper);
-      color: var(--ink);
-      text-align: left;
-    }
-
+    .mode { border: 1px solid #aab9a2; background: var(--paper); color: var(--ink); text-align: left; }
     .mode[aria-pressed="true"] { border-color: #758e69; background: #e3edd0; }
     .mode-list { display: grid; gap: 8px; margin: 12px 0 18px; }
     button:disabled { opacity: .65; cursor: default; }
-
     .status, aside p { color: var(--muted); line-height: 1.5; }
     .status { min-height: 2.8em; margin: 12px 0 0; }
     .status[data-tone="error"] { color: #943828; }
     .status[data-tone="success"] { color: #316331; font-weight: 800; }
-    .help { margin: 8px 0 0; font-size: 14px; }
-
+    .help { font-size: 14px; }
     details { padding-top: 12px; border-top: 1px solid var(--line); }
     summary { font-weight: 750; }
     .example { display: grid; gap: 4px; margin-top: 12px; }
     .example .cell { width: 36px; height: 27px; border-radius: 5px; font-size: 14px; }
     footer { padding: 18px 0; color: var(--muted); font-size: 13px; }
-
     @media (max-width: 700px) {
       .layout { grid-template-columns: 1fr; }
       .card { padding: 15px; }
@@ -198,17 +100,21 @@
 
   <main class="wrap">
     <h1>Piràmides numèriques</h1>
-    <p class="intro">
-      Cada casella és la suma de les dues que té just a sota.
-      Omple tots els buits per passar a una piràmide nova.
-    </p>
+    <p class="intro">Cada casella és la suma de les dues que té just a sota. Omple tots els buits per passar a una piràmide nova.</p>
 
     <div class="layout">
       <section class="card" aria-labelledby="puzzle-title">
         <div class="board-head">
           <h2 id="puzzle-title">Piràmide 1</h2>
           <span class="score" id="score">0 resoltes</span>
+          <span class="score" id="points">0 punts totals</span>
         </div>
+
+        <div class="clock">
+          <span>Temps de resolució</span>
+          <strong id="elapsed" role="timer" aria-live="off">0:00</strong>
+        </div>
+        <p class="help" id="last-result" hidden></p>
 
         <div class="clock" id="clock" hidden>
           <span>Temps fins que s’esborri un número</span>
@@ -222,7 +128,6 @@
             <button class="mode" type="button" id="restart" hidden>Reinicia la piràmide</button>
           </div>
         </form>
-
         <p class="status" id="status" role="status"></p>
       </section>
 
@@ -237,6 +142,7 @@
         <button class="mode" type="button" id="timed" aria-pressed="false">Contrarellotge</button>
         <p class="help">Cada 30 segons s’esborra un número a l’atzar, sigui una pista o una resposta que hagis escrit.</p>
         <p class="help">Si et quedes sense pistes, pots reiniciar la mateixa piràmide.</p>
+        <p class="help">Com més ràpid resolguis la piràmide, més punts guanyaràs. En 10 segons obtens 750 punts i en 30 segons, 500.</p>
         <p>Les caselles verdes contenen els nombres donats.</p>
 
         <details>
@@ -257,6 +163,9 @@
     const status = get('status');
     const check = get('check');
     const clock = get('clock');
+    const elapsed = get('elapsed');
+    const points = get('points');
+    const lastResult = get('last-result');
     const countdown = get('countdown');
     const timedButton = get('timed');
     const restart = get('restart');
@@ -277,6 +186,8 @@
     let mode = 'base';
     let timed = false;
     let solved = 0;
+    let totalPoints = 0;
+    let startedAt = 0;
     let puzzle;
     let tiles = [];
     let transition = null;
@@ -287,7 +198,7 @@
       const rows = [base];
       while (rows.at(-1).length > 1) {
         const row = rows.at(-1);
-        rows.push(row.slice(1).map((value, i) => row[i] + value));
+        rows.push(row.slice(1).map((value, index) => row[index] + value));
       }
       return rows;
     }
@@ -356,8 +267,13 @@
       status.dataset.tone = tone;
     }
 
-    function updateScore() {
-      get('score').textContent = solved + (solved === 1 ? ' resolta' : ' resoltes');
+    function formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      return minutes + ':' + String(seconds % 60).padStart(2, '0');
+    }
+
+    function pointsFor(milliseconds) {
+      return Math.max(1, Math.round(1000 / (1 + milliseconds / 30_000)));
     }
 
     function stopClock() {
@@ -393,6 +309,9 @@
 
     function updateClock() {
       const now = performance.now();
+      elapsed.textContent = formatTime(Math.floor((now - startedAt) / 1000));
+
+      if (!timed) return;
 
       if (now >= deadline) {
         eraseNumber();
@@ -400,7 +319,7 @@
       }
 
       const seconds = Math.ceil((deadline - now) / 1000);
-      countdown.textContent = '0:' + String(seconds).padStart(2, '0');
+      countdown.textContent = formatTime(seconds);
       clock.dataset.urgent = String(seconds <= 5);
     }
 
@@ -408,7 +327,7 @@
       stopClock();
       clock.hidden = !timed;
       restart.hidden = !timed;
-      if (!timed || transition !== null) return;
+      if (transition !== null) return;
 
       deadline = performance.now() + intervalMs;
       updateClock();
@@ -437,6 +356,7 @@
         : base;
 
       puzzle = { rows: pyramid(values), clues, decimal };
+      startedAt = performance.now();
       renderPuzzle();
     }
 
@@ -457,10 +377,21 @@
       const fields = tiles.filter(tile => !tile.given);
 
       if (fields.every(matches)) {
+        const duration = performance.now() - startedAt;
+        const time = formatTime(Math.floor(duration / 1000));
+        const earned = pointsFor(duration);
+        const result = time + ' · +' + earned + ' punts';
+
         stopClock();
         clock.hidden = true;
+        elapsed.textContent = time;
+        totalPoints += earned;
+        points.textContent = totalPoints + ' punts totals';
+        lastResult.textContent = 'Última piràmide · ' + result;
+        lastResult.hidden = false;
+
         solved++;
-        updateScore();
+        get('score').textContent = solved + (solved === 1 ? ' resolta' : ' resoltes');
 
         fields.forEach(({ element }) => {
           element.removeAttribute('aria-invalid');
@@ -471,13 +402,13 @@
 
         check.disabled = true;
         restart.disabled = true;
-        announce('Correcte! Ara apareixerà una piràmide nova.', 'success');
+        announce('Correcte! ' + result, 'success');
 
         transition = setTimeout(() => {
           newPuzzle();
           announce('Piràmide ' + (solved + 1) + ' preparada.');
-          stage.querySelector('.row:last-child input, .row:nth-last-child(2) input, input')
-            ?.focus({ preventScroll: true });
+          const firstInput = [...tiles].reverse().find(tile => !tile.given);
+          firstInput?.element.focus({ preventScroll: true });
         }, 1500);
         return;
       }
@@ -534,7 +465,7 @@
 
     restart.addEventListener('click', () => {
       renderPuzzle();
-      announce('Pistes inicials recuperades. El rellotge torna a 30 segons.');
+      announce('Pistes inicials recuperades. El compte enrere torna a 30 segons.');
     });
 
     displayBoard(get('example'), pyramid([4, 6, 5, 3]));

@@ -143,7 +143,7 @@
         <button class="mode" type="button" id="timed" aria-pressed="false">Contrarellotge</button>
         <p class="help">Cada 30 segons s’esborra un número a l’atzar, sigui una pista o una resposta que hagis escrit.</p>
         <p class="help">Si et quedes sense pistes, pots reiniciar la mateixa piràmide.</p>
-        <p class="help">Com més ràpid resolguis la piràmide, més punts guanyaràs. En 10 segons obtens 750 punts i en 30 segons, 500.</p>
+        <p class="help">Com més ràpid resolguis la piràmide i més alt sigui el nivell, més punts guanyaràs. Si mantens el Contrarellotge activat des del començament de la piràmide, guanyaràs un 25 % extra.</p>
         <p>Les caselles verdes contenen els nombres donats.</p>
 
         <details>
@@ -185,7 +185,7 @@
     const intervalMs = 30_000;
     const used = new Set();
     let mode = 'base';
-    let timed = false;
+    let qualifiesForTimedBonus = false;
     let solved = 0;
     let totalPoints = 0;
     let startedAt = 0;
@@ -274,7 +274,18 @@
     }
 
     function pointsFor(milliseconds) {
-      return Math.max(1, Math.round(1000 / (1 + milliseconds / 30_000)));
+      const levelMultipliers = {
+        base: 1,
+        mixed: 1.25,
+        decimal: 1.5,
+        'decimal-mixed': 2
+      };
+    
+      const speedPoints = 1000 / (1 + milliseconds / 30_000);
+      const levelMultiplier = levelMultipliers[mode];
+      const timedMultiplier = qualifiesForTimedBonus ? 1.25 : 1;
+    
+      return Math.max(1, Math.round(speedPoints * levelMultiplier * timedMultiplier));
     }
 
     function stopClock() {
@@ -358,6 +369,7 @@
         : base;
 
       puzzle = { rows: pyramid(values), clues, decimal };
+      qualifiesForTimedBonus = timed;
       startedAt = performance.now();
       renderPuzzle();
     }
@@ -454,6 +466,7 @@
 
     timedButton.addEventListener('click', () => {
       timed = !timed;
+      if (!timed) qualifiesForTimedBonus = false;
       timedButton.setAttribute('aria-pressed', String(timed));
 
       if (transition === null) {

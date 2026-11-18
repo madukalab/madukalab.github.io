@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#20382c">
-
   <title>Piràmides numèriques · MADUKA</title>
 
   <style>
@@ -167,6 +166,13 @@
 
     /* Piràmide */
 
+    #start {
+      width: 100%;
+      margin-bottom: 14px;
+      padding: 13px;
+      font-size: 17px;
+    }
+
     .stage {
       display: grid;
       gap: 5px;
@@ -252,13 +258,6 @@
     button:disabled {
       opacity: .65;
       cursor: default;
-    }
-
-    #start {
-      width: 100%;
-      margin-top: 6px;
-      padding: 14px;
-      font-size: 17px;
     }
 
     .status,
@@ -694,7 +693,7 @@
           Comença
         </button>
 
-        <form id="puzzle" novalidate hidden>
+        <form id="puzzle" novalidate>
           <div
             class="stage"
             id="stage"
@@ -703,7 +702,7 @@
           ></div>
 
           <div class="actions">
-            <button class="primary" type="submit" id="check">
+            <button class="primary" type="submit" id="check" disabled>
               Comprova
             </button>
 
@@ -742,7 +741,7 @@
             >
 
             <button class="primary" type="submit">
-              Desa la millor partida
+              Registra la puntuació
             </button>
           </form>
 
@@ -841,21 +840,29 @@
           <div class="game-info">
             <h3>Com es juga?</h3>
             <p>
-              Tria el nivell i prem <strong>Comença</strong>.
-              La piràmide apareix i el temps comença a comptar.
+              Tria el nivell i prem <strong>Comença</strong>
+              per activar les caselles i el rellotge.
             </p>
             <p>
               Cada casella és la suma de les dues que té just a sota.
               Completa els buits. Les caselles verdes són les pistes.
             </p>
             <p>
+              Pots passar entre les caselles amb les
+              <strong>quatre fletxes del teclat</strong>.
+              Les fletxes salten les pistes verdes.
+              També pots fer servir la tecla Tab.
+            </p>
+            <p>
               Quan ho tinguis tot correcte, guanyaràs punts.
-              Prem <strong>Comença</strong> per iniciar la piràmide següent.
+              La piràmide següent esperarà que premis
+              <strong>Comença</strong>.
             </p>
 
             <h3>Com es guanyen punts?</h3>
             <p>
-              Com menys temps triguis, més punts obtindràs.
+              Com menys temps triguis des que prems Comença,
+              més punts obtindràs.
               Els nivells més difícils multipliquen la puntuació.
             </p>
 
@@ -890,16 +897,17 @@
               el bonus estarà disponible a la següent.
             </p>
             <p>
-              Amb <strong>Reinicia la piràmide</strong> recuperes
-              les pistes inicials i el compte enrere torna a 30 segons.
+              Amb <strong>Reinicia la piràmide</strong>
+              recuperes les pistes inicials i el compte enrere
+              torna a 30 segons.
               El temps total de resolució continua comptant.
             </p>
 
-            <h3>Com es desa el resultat?</h3>
+            <h3>Com es registra el resultat?</h3>
             <p>
-              A la classificació, escriu l’àlies i l’escola.
-              Prem <strong>Desa la millor partida</strong>.
-              Es conserva el resultat més alt de cada àlies i escola.
+              Escriu l’àlies i l’escola i prem
+              <strong>Registra la puntuació</strong>.
+              Es conserva la millor partida de cada àlies i escola.
             </p>
             <p>
               El rànquing és compartit entre dispositius.
@@ -908,7 +916,7 @@
             </p>
             <p>
               Per començar el torn d’un altre alumne,
-              desa el resultat i recarrega la pàgina.
+              registra el resultat i recarrega la pàgina.
             </p>
           </div>
         </details>
@@ -1024,6 +1032,7 @@
       input.type = 'text';
       input.inputMode = tile.decimal ? 'decimal' : 'numeric';
       input.autocomplete = 'off';
+      input.readOnly = !puzzleStarted;
       input.setAttribute('aria-label', tile.label);
 
       return input;
@@ -1045,7 +1054,14 @@
             ' des de baix, casella ' + (col + 1) +
             ' des de l’esquerra';
 
-          const tile = { value, decimal, given, label };
+          const tile = {
+            value,
+            decimal,
+            given,
+            label,
+            floor,
+            col
+          };
 
           if (given) {
             const text = formatValue(value, decimal);
@@ -1193,7 +1209,7 @@
       );
 
       get('puzzle-title').textContent = 'Piràmide ' + (solved + 1);
-      check.disabled = false;
+      check.disabled = !puzzleStarted;
       restart.disabled = false;
 
       startClock();
@@ -1236,10 +1252,10 @@
 
       renderPuzzle();
 
-      puzzleForm.hidden = true;
+      puzzleForm.hidden = false;
       startButton.hidden = false;
 
-      announce('Prem Comença quan estiguis a punt.');
+      announce('Prem Comença per activar les caselles i el temps.');
     }
 
     function focusFirstInput() {
@@ -1248,6 +1264,78 @@
         .find(tile => !tile.given);
 
       firstInput?.element.focus({ preventScroll: true });
+    }
+
+    // Navegació amb les fletxes del teclat
+
+    function moveFocus(event) {
+      const directions = [
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowUp',
+        'ArrowDown'
+      ];
+
+      if (
+        !directions.includes(event.key) ||
+        !puzzleStarted ||
+        transition !== null
+      ) {
+        return;
+      }
+
+      const current = tiles.find(tile =>
+        tile.element === event.target
+      );
+
+      if (!current || current.given) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const editable = tiles.filter(tile =>
+        !tile.given && !tile.element.readOnly
+      );
+
+      let target;
+
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        const step = event.key === 'ArrowLeft' ? -1 : 1;
+
+        target = editable
+          .filter(tile =>
+            tile.floor === current.floor &&
+            (tile.col - current.col) * step > 0
+          )
+          .sort((a, b) =>
+            Math.abs(a.col - current.col) -
+            Math.abs(b.col - current.col)
+          )[0];
+      } else {
+        const step = event.key === 'ArrowUp' ? 1 : -1;
+
+        const candidates = editable.filter(tile =>
+          (tile.floor - current.floor) * step > 0
+        );
+
+        const currentX = current.col + current.floor / 2;
+
+        candidates.sort((a, b) =>
+          Math.abs(a.floor - current.floor) -
+          Math.abs(b.floor - current.floor) ||
+          Math.abs(a.col + a.floor / 2 - currentX) -
+          Math.abs(b.col + b.floor / 2 - currentX) ||
+          a.col - b.col
+        );
+
+        target = candidates[0];
+      }
+
+      if (target) {
+        target.element.focus({ preventScroll: true });
+        target.element.select();
+      }
     }
 
     // Comprovació de les respostes
@@ -1348,12 +1436,20 @@
       startedAt = performance.now();
 
       startButton.hidden = true;
-      puzzleForm.hidden = false;
+      check.disabled = false;
+
+      tiles
+        .filter(tile => !tile.given)
+        .forEach(tile => {
+          tile.element.readOnly = false;
+        });
 
       startClock();
       announce('');
       focusFirstInput();
     });
+
+    stage.addEventListener('keydown', moveFocus);
 
     stage.addEventListener('input', event => {
       event.target.removeAttribute('aria-invalid');
@@ -1495,7 +1591,7 @@
 
         rankingStatus.textContent = data.entries.length
           ? 'Classificació actualitzada.'
-          : 'Encara no hi ha cap partida desada.';
+          : 'Encara no hi ha cap partida registrada.';
       } catch {
         rankingStatus.textContent =
           'No s’ha pogut carregar la classificació. Torna-ho a provar.';
@@ -1523,7 +1619,7 @@
       const score = totalPoints;
 
       setRankingBusy(true);
-      rankingStatus.textContent = 'Desant la puntuació…';
+      rankingStatus.textContent = 'Registrant la puntuació…';
 
       try {
         const data = await requestRanking({
@@ -1537,11 +1633,11 @@
         showRanking(data.entries);
 
         rankingStatus.textContent = data.improved
-          ? 'Millor partida desada!'
-          : 'Ja tens una partida igual o millor desada.';
+          ? 'Puntuació registrada!'
+          : 'Ja tens una partida igual o millor registrada.';
       } catch {
         rankingStatus.textContent =
-          'No s’ha pogut confirmar el resultat. Pots tornar-lo a desar.';
+          'No s’ha pogut confirmar el resultat. Pots tornar-lo a registrar.';
       } finally {
         setRankingBusy(false);
       }

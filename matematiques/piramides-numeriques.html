@@ -704,6 +704,9 @@
           <strong id="countdown" role="timer" aria-live="off">0:30</strong>
         </div>
 
+        <button class="primary" type="button" id="start">
+        Comença
+        </button>
         <form id="puzzle" novalidate>
           <div
             class="stage"
@@ -966,6 +969,7 @@
 
     let mode = 'base';
     let timed = false;
+    let puzzleStarted = false;
     let qualifiesForTimedBonus = false;
     let solved = 0;
     let totalPoints = 0;
@@ -1162,14 +1166,14 @@
 
     function startClock() {
       stopClock();
-
-      clock.hidden = !timed;
-      restart.hidden = !timed;
-
-      if (transition !== null) {
+    
+      clock.hidden = !timed || !puzzleStarted;
+      restart.hidden = !timed || !puzzleStarted;
+    
+      if (!puzzleStarted || transition !== null) {
         return;
       }
-
+    
       deadline = performance.now() + intervalMs;
       updateClock();
       timer = setInterval(updateClock, 100);
@@ -1195,35 +1199,40 @@
     function newPuzzle() {
       clearTimeout(transition);
       transition = null;
-
+      stopClock();
+      puzzleStarted = false;
+    
       const decimal =
         mode === 'decimal' || mode === 'decimal-mixed';
-
+    
       const mixed =
         mode === 'mixed' || mode === 'decimal-mixed';
-
+    
       const clues = mixed
         ? mixedClues[solved % mixedClues.length]
         : baseClues;
-
+    
       const base = nextBase();
-
-      // Es calculen dècimes enteres per evitar errors de suma decimal.
-      // Per exemple, 24 representa 2,4.
+    
       const values = decimal
         ? base.map(value => value * 10 + 1 + Math.floor(Math.random() * 9))
         : base;
-
+    
       puzzle = {
         rows: pyramid(values),
         clues,
         decimal
       };
-
-      qualifiesForTimedBonus = timed;
-      startedAt = performance.now();
-
+    
+      qualifiesForTimedBonus = false;
+      elapsed.textContent = '0:00';
+    
       renderPuzzle();
+    
+      get('puzzle').hidden = true;
+      get('start').hidden = false;
+    
+      announce('Prem Comença quan estiguis a punt.');
     }
 
     // Comprovació de les respostes
@@ -1240,7 +1249,7 @@
     }
 
     function evaluate(showFeedback) {
-      if (transition !== null) {
+      if (!puzzleStarted || transition !== null) {
         return;
       }
 
@@ -1279,15 +1288,8 @@
         announce('Correcte! ' + result, 'success');
 
         transition = setTimeout(() => {
-          newPuzzle();
-          announce('Piràmide ' + (solved + 1) + ' preparada.');
-
-          const firstInput = [...tiles]
-            .reverse()
-            .find(tile => !tile.given);
-
-          firstInput?.element.focus({ preventScroll: true });
-        }, 1500);
+        newPuzzle();
+        get('start').focus({ preventScroll: true });
 
         return;
       }
@@ -1510,6 +1512,27 @@
 
     rankingRefresh.addEventListener('click', refreshRanking);
 
+    get('start').addEventListener('click', () => {
+      if (puzzleStarted || transition !== null) {
+        return;
+      }
+    
+      puzzleStarted = true;
+      qualifiesForTimedBonus = timed;
+      startedAt = performance.now();
+    
+      get('start').hidden = true;
+      get('puzzle').hidden = false;
+    
+      startClock();
+      announce('');
+    
+      const firstInput = [...tiles]
+        .reverse()
+        .find(tile => !tile.given);
+    
+      firstInput?.element.focus({ preventScroll: true });
+    });
     // Inici
 
     displayBoard(get('example'), pyramid([4, 6, 5, 3]));

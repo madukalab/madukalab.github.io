@@ -514,6 +514,27 @@
         transition: none;
       }
     }
+
+    #player-school {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #aab9a2;
+  border-radius: 9px;
+  background: #fffefa;
+  color: #20382c;
+}
+
+#ranking-list li {
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+#ranking-list li > div {
+  color: var(--muted);
+  font-size: 12px;
+}
+    
   </style>
 </head>
 
@@ -705,12 +726,11 @@
           <p>4 + 6 = 10 i 6 + 5 = 11. Just a sobre, 10 + 11 = 21.</p>
         </details>
 
-        <details>
+        <details id="ranking-panel">
           <summary>Classificació</summary>
-
+        
           <form id="ranking-form" class="actions">
-            <label for="player-name">Nom o àlies</label>
-
+            <label for="player-name">Àlies</label>
             <input
               id="player-name"
               type="text"
@@ -718,13 +738,27 @@
               autocomplete="off"
               required
             >
-
+        
+            <label for="player-school">Escola</label>
+            <input
+              id="player-school"
+              type="text"
+              maxlength="80"
+              autocomplete="organization"
+              required
+            >
+        
             <button class="primary" type="submit">
-              Desa la puntuació
+              Desa la millor partida
             </button>
           </form>
-
+        
           <p class="help" id="ranking-status" role="status"></p>
+        
+          <button class="mode" type="button" id="ranking-refresh">
+            Actualitza el rànquing
+          </button>
+        
           <ol id="ranking-list"></ol>
         </details>
       </aside>
@@ -1174,80 +1208,129 @@
     displayBoard(get('example'), pyramid([4, 6, 5, 3]));
     newPuzzle();
 
-    const rankingForm = get('ranking-form');
-    const playerName = get('player-name');
-    const rankingList = get('ranking-list');
-    const rankingStatus = get('ranking-status');
-    const rankingKey = 'maduka-piramides-classificacio';
-
-    function loadRanking() {
-      return JSON.parse(localStorage.getItem(rankingKey) ?? '[]');
-    }
-
-    function showRanking(entries) {
-      rankingList.replaceChildren();
-
-      entries.forEach(({ name, score }) => {
-        const item = document.createElement('li');
-
-        item.textContent =
-          `${name} · ${score.toLocaleString('ca-ES')} punts`;
-
-        rankingList.append(item);
-      });
-    }
-
-    rankingForm.addEventListener('submit', event => {
-      event.preventDefault();
-
-      const name = playerName.value.trim().replace(/\s+/g, ' ');
-
-      if (!name || totalPoints === 0) {
-        rankingStatus.textContent =
-          'Escriu el nom i resol almenys una piràmide.';
-        return;
+      const rankingUrl = 'ENGANXA_AQUI_L_ADREÇA_QUE_ACABA_EN_EXEC';
+      
+      const rankingForm = get('ranking-form');
+      const playerName = get('player-name');
+      const playerSchool = get('player-school');
+      const rankingList = get('ranking-list');
+      const rankingStatus = get('ranking-status');
+      const rankingRefresh = get('ranking-refresh');
+      const rankingSubmit = rankingForm.querySelector('button[type="submit"]');
+      
+      let rankingBusy = false;
+      
+      function showRanking(entries) {
+        rankingList.replaceChildren();
+      
+        entries.forEach(({ name, school, score }) => {
+          const item = document.createElement('li');
+          const player = document.createElement('strong');
+          const schoolLabel = document.createElement('div');
+          const pointsLabel = document.createElement('div');
+      
+          player.textContent = name;
+          schoolLabel.textContent = school;
+          pointsLabel.textContent =
+            Number(score).toLocaleString('ca-ES') + ' punts';
+      
+          item.append(player, schoolLabel, pointsLabel);
+          rankingList.append(item);
+        });
       }
-
-      try {
-        const entries = loadRanking();
-        const key = name.toLocaleLowerCase('ca');
-
-        const previous = entries.find(entry => entry.key === key);
-
-        if (previous && previous.score >= totalPoints) {
+      
+      async function requestRanking(options = {}) {
+        const response = await fetch(rankingUrl, {
+          ...options,
+          cache: 'no-store'
+        });
+      
+        if (!response.ok) {
+          throw new Error('No s’ha pogut connectar amb la classificació.');
+        }
+      
+        const data = await response.json();
+      
+        if (data.ok === false || !Array.isArray(data.entries)) {
+          throw new Error(data.error || 'Resposta incorrecta.');
+        }
+      
+        return data;
+      }
+      
+      function setRankingBusy(busy) {
+        rankingBusy = busy;
+        rankingSubmit.disabled = busy;
+        rankingRefresh.disabled = busy;
+      }
+      
+      async function refreshRanking() {
+        if (rankingBusy) return;
+      
+        setRankingBusy(true);
+        rankingStatus.textContent = 'Carregant la classificació…';
+      
+        try {
+          const data = await requestRanking();
+          showRanking(data.entries);
+      
+          rankingStatus.textContent = data.entries.length
+            ? 'Classificació actualitzada.'
+            : 'Encara no hi ha cap partida desada.';
+        } catch {
           rankingStatus.textContent =
-            'Ja tens una puntuació igual o més alta.';
+            'No s’ha pogut carregar la classificació. Torna-ho a provar.';
+        } finally {
+          setRankingBusy(false);
+        }
+      }
+      
+      rankingForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (rankingBusy) return;
+      
+        const name = playerName.value.trim().replace(/\s+/g, ' ');
+        const school = playerSchool.value.trim().replace(/\s+/g, ' ');
+      
+        if (!name || !school || totalPoints <= 0) {
+          rankingStatus.textContent =
+            'Escriu l’àlies i l’escola i resol almenys una piràmide.';
           return;
         }
-
-        const updated = entries.filter(entry => entry.key !== key);
-
-        updated.push({
-          key,
-          name,
-          score: totalPoints
-        });
-
-        updated.sort((a, b) =>
-          b.score - a.score || a.name.localeCompare(b.name, 'ca')
-        );
-
-        localStorage.setItem(rankingKey, JSON.stringify(updated));
-
-        showRanking(updated);
-        rankingStatus.textContent = 'Puntuació desada.';
-      } catch {
-        rankingStatus.textContent =
-          'El navegador no ha pogut desar la classificació.';
-      }
-    });
-
-    try {
-      showRanking(loadRanking());
-    } catch {
-      rankingStatus.textContent =
-        'El navegador no ha pogut carregar la classificació.';
-    }
+      
+        // Es desa el total aconseguit en el moment de prémer el botó.
+        const score = totalPoints;
+      
+        setRankingBusy(true);
+        rankingStatus.textContent = 'Desant la puntuació…';
+      
+        try {
+          const data = await requestRanking({
+            method: 'POST',
+            headers: {
+              'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify({ name, school, score })
+          });
+      
+          showRanking(data.entries);
+      
+          rankingStatus.textContent = data.improved
+            ? 'Millor partida desada!'
+            : 'Ja tens una partida igual o millor desada.';
+        } catch {
+          rankingStatus.textContent =
+            'No s’ha pogut confirmar el resultat. Pots tornar-lo a desar.';
+        } finally {
+          setRankingBusy(false);
+        }
+      });
+      
+      rankingRefresh.addEventListener('click', refreshRanking);
+      
+      get('ranking-panel').addEventListener('toggle', event => {
+        if (event.target.open) refreshRanking();
+      });
   </script>
 </body>
 </html>

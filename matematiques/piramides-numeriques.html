@@ -137,6 +137,8 @@
       font-size: 14px;
     }
 
+    /* Rellotges */
+
     .clock {
       display: flex;
       justify-content: space-between;
@@ -162,6 +164,8 @@
       background: #fae0d5;
       color: #843627;
     }
+
+    /* Piràmide */
 
     .stage {
       display: grid;
@@ -218,6 +222,8 @@
       background: #fff1d7;
     }
 
+    /* Botons i missatges */
+
     .primary,
     .mode {
       padding: 10px 14px;
@@ -246,6 +252,13 @@
     button:disabled {
       opacity: .65;
       cursor: default;
+    }
+
+    #start {
+      width: 100%;
+      margin-top: 6px;
+      padding: 14px;
+      font-size: 17px;
     }
 
     .status,
@@ -542,30 +555,60 @@
     }
 
     #ranking-list {
-      padding-left: 28px;
-      font-size: 13px;
-      line-height: 1.8;
+      margin: 20px 0 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: ranking;
     }
 
     #ranking-list li {
-      padding: 12px 8px;
+      counter-increment: ranking;
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr) minmax(0, 1.6fr) auto;
+      align-items: center;
+      gap: 12px;
+      padding: 15px 10px;
       border-bottom: 1px solid var(--line);
-      overflow-wrap: anywhere;
     }
 
-    #ranking-list li::marker {
-      color: var(--ink);
-      font-weight: 800;
+    #ranking-list li::before {
+      content: counter(ranking) ".";
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
     }
 
     #ranking-list li strong {
-      font-size: 15px;
+      min-width: 0;
+      color: var(--ink);
+      font-size: 14px;
+      overflow-wrap: anywhere;
     }
 
     #ranking-list li > div {
-      margin-top: 3px;
-      color: var(--muted);
+      min-width: 0;
+      margin: 0;
       font-size: 13px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+
+    #ranking-list li > div:first-of-type {
+      text-align: center;
+      color: var(--muted);
+    }
+
+    #ranking-list li > div:last-of-type {
+      text-align: right;
+      color: var(--ink);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    #ranking-list li:first-child {
+      border-radius: 10px 10px 0 0;
+      background: #edf2e4;
     }
 
     footer {
@@ -584,6 +627,19 @@
       }
     }
 
+    @media (max-width: 480px) {
+      #ranking-list li {
+        grid-template-columns: 20px minmax(0, 1fr) minmax(0, 1.3fr) auto;
+        gap: 6px;
+        padding: 12px 4px;
+      }
+
+      #ranking-list li strong,
+      #ranking-list li > div {
+        font-size: 12px;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .level-option,
       .switch-track,
@@ -591,76 +647,6 @@
         transition: none;
       }
     }
-
-    #ranking-list {
-  margin: 20px 0 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: ranking;
-}
-
-#ranking-list li {
-  counter-increment: ranking;
-  display: grid;
-  grid-template-columns: 26px minmax(0, 1fr) minmax(0, 1.6fr) auto;
-  align-items: center;
-  gap: 12px;
-  padding: 15px 10px;
-  border-bottom: 1px solid var(--line);
-}
-
-#ranking-list li::before {
-  content: counter(ranking) ".";
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-#ranking-list li strong {
-  min-width: 0;
-  color: var(--ink);
-  font-size: 14px;
-  overflow-wrap: anywhere;
-}
-
-#ranking-list li > div {
-  min-width: 0;
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
-}
-
-#ranking-list li > div:first-of-type {
-  text-align: center;
-  color: var(--muted);
-}
-
-#ranking-list li > div:last-of-type {
-  text-align: right;
-  color: var(--ink);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-#ranking-list li:first-child {
-  border-radius: 10px 10px 0 0;
-  background: #edf2e4;
-}
-
-@media (max-width: 480px) {
-  #ranking-list li {
-    grid-template-columns: 20px minmax(0, 1fr) minmax(0, 1.3fr) auto;
-    gap: 6px;
-    padding: 12px 4px;
-  }
-
-  #ranking-list li strong,
-  #ranking-list li > div {
-    font-size: 12px;
-  }
-}
   </style>
 </head>
 
@@ -705,9 +691,10 @@
         </div>
 
         <button class="primary" type="button" id="start">
-        Comença
+          Comença
         </button>
-        <form id="puzzle" novalidate>
+
+        <form id="puzzle" novalidate hidden>
           <div
             class="stage"
             id="stage"
@@ -854,12 +841,16 @@
           <div class="game-info">
             <h3>Com es juga?</h3>
             <p>
+              Tria el nivell i prem <strong>Comença</strong>.
+              La piràmide apareix i el temps comença a comptar.
+            </p>
+            <p>
               Cada casella és la suma de les dues que té just a sota.
               Completa els buits. Les caselles verdes són les pistes.
             </p>
             <p>
-              Quan ho tinguis tot correcte, apareixerà una piràmide nova
-              i els punts se sumaran al teu marcador.
+              Quan ho tinguis tot correcte, guanyaràs punts.
+              Prem <strong>Comença</strong> per iniciar la piràmide següent.
             </p>
 
             <h3>Com es guanyen punts?</h3>
@@ -890,20 +881,24 @@
               <li>Has de tornar a completar la casella esborrada.</li>
             </ul>
             <p>
-              Si el mantens activat des del començament de la piràmide,
+              Si està activat quan prems <strong>Comença</strong>
+              i el mantens activat fins al final,
               guanyes un <strong>25 % extra de punts</strong>.
-              Si l’actives a mitja piràmide, el bonus comença a la següent.
             </p>
             <p>
-              Amb <strong>Reinicia la piràmide</strong> recuperes les pistes
-              inicials i el compte enrere torna a 30 segons.
+              Si l’actives amb la piràmide començada,
+              el bonus estarà disponible a la següent.
+            </p>
+            <p>
+              Amb <strong>Reinicia la piràmide</strong> recuperes
+              les pistes inicials i el compte enrere torna a 30 segons.
               El temps total de resolució continua comptant.
             </p>
 
             <h3>Com es desa el resultat?</h3>
             <p>
-              A la classificació, sota la piràmide, escriu l’àlies
-              i l’escola. Prem <strong>Desa la millor partida</strong>.
+              A la classificació, escriu l’àlies i l’escola.
+              Prem <strong>Desa la millor partida</strong>.
               Es conserva el resultat més alt de cada àlies i escola.
             </p>
             <p>
@@ -951,6 +946,8 @@
     const countdown = get('countdown');
     const timedButton = get('timed');
     const restart = get('restart');
+    const startButton = get('start');
+    const puzzleForm = get('puzzle');
     const modes = [...document.querySelectorAll('[data-mode]')];
 
     const baseClues = ['0:0', '0:1', '0:2', '0:3'];
@@ -1075,7 +1072,7 @@
       return cells;
     }
 
-    // Missatges, temps i punts
+    // Missatges, temps i puntuació
 
     function announce(message, tone = '') {
       status.textContent = message;
@@ -1143,6 +1140,10 @@
     }
 
     function updateClock() {
+      if (!puzzleStarted || transition !== null) {
+        return;
+      }
+
       const now = performance.now();
 
       elapsed.textContent = formatTime(
@@ -1166,14 +1167,16 @@
 
     function startClock() {
       stopClock();
-    
-      clock.hidden = !timed || !puzzleStarted;
-      restart.hidden = !timed || !puzzleStarted;
-    
-      if (!puzzleStarted || transition !== null) {
+
+      const running = puzzleStarted && transition === null;
+
+      clock.hidden = !timed || !running;
+      restart.hidden = !timed || !running;
+
+      if (!running) {
         return;
       }
-    
+
       deadline = performance.now() + intervalMs;
       updateClock();
       timer = setInterval(updateClock, 100);
@@ -1201,38 +1204,50 @@
       transition = null;
       stopClock();
       puzzleStarted = false;
-    
+
       const decimal =
         mode === 'decimal' || mode === 'decimal-mixed';
-    
+
       const mixed =
         mode === 'mixed' || mode === 'decimal-mixed';
-    
+
       const clues = mixed
         ? mixedClues[solved % mixedClues.length]
         : baseClues;
-    
+
       const base = nextBase();
-    
+
+      // Es treballa amb dècimes enteres per evitar errors de suma decimal.
+      // Per exemple, 24 representa 2,4.
       const values = decimal
         ? base.map(value => value * 10 + 1 + Math.floor(Math.random() * 9))
         : base;
-    
+
       puzzle = {
         rows: pyramid(values),
         clues,
         decimal
       };
-    
+
       qualifiesForTimedBonus = false;
       elapsed.textContent = '0:00';
-    
+      countdown.textContent = '0:30';
+      clock.dataset.urgent = 'false';
+
       renderPuzzle();
-    
-      get('puzzle').hidden = true;
-      get('start').hidden = false;
-    
+
+      puzzleForm.hidden = true;
+      startButton.hidden = false;
+
       announce('Prem Comença quan estiguis a punt.');
+    }
+
+    function focusFirstInput() {
+      const firstInput = [...tiles]
+        .reverse()
+        .find(tile => !tile.given);
+
+      firstInput?.element.focus({ preventScroll: true });
     }
 
     // Comprovació de les respostes
@@ -1288,8 +1303,9 @@
         announce('Correcte! ' + result, 'success');
 
         transition = setTimeout(() => {
-        newPuzzle();
-        get('start').focus({ preventScroll: true });
+          newPuzzle();
+          startButton.focus({ preventScroll: true });
+        }, 1500);
 
         return;
       }
@@ -1322,6 +1338,23 @@
 
     // Controls del joc
 
+    startButton.addEventListener('click', () => {
+      if (puzzleStarted || transition !== null) {
+        return;
+      }
+
+      puzzleStarted = true;
+      qualifiesForTimedBonus = timed;
+      startedAt = performance.now();
+
+      startButton.hidden = true;
+      puzzleForm.hidden = false;
+
+      startClock();
+      announce('');
+      focusFirstInput();
+    });
+
     stage.addEventListener('input', event => {
       event.target.removeAttribute('aria-invalid');
       event.target.classList.remove('erased');
@@ -1330,7 +1363,7 @@
       evaluate(false);
     });
 
-    get('puzzle').addEventListener('submit', event => {
+    puzzleForm.addEventListener('submit', event => {
       event.preventDefault();
       evaluate(true);
     });
@@ -1351,7 +1384,6 @@
         });
 
         newPuzzle();
-        announce('Piràmide nova preparada.');
       });
     });
 
@@ -1363,26 +1395,31 @@
       }
 
       timedButton.setAttribute('aria-pressed', String(timed));
+      startClock();
 
-      if (transition === null) {
-        startClock();
-      } else {
-        restart.hidden = !timed;
-      }
+      const message = timed
+        ? 'Contrarellotge activat.'
+        : 'Contrarellotge desactivat.';
 
       announce(
-        timed
-          ? 'Contrarellotge activat.'
-          : 'Contrarellotge desactivat.'
+        puzzleStarted
+          ? message
+          : message + ' Prem Comença quan estiguis a punt.'
       );
     });
 
     restart.addEventListener('click', () => {
+      if (!puzzleStarted || transition !== null) {
+        return;
+      }
+
       renderPuzzle();
 
       announce(
         'Pistes inicials recuperades. El compte enrere torna a 30 segons.'
       );
+
+      focusFirstInput();
     });
 
     // Classificació compartida
@@ -1512,27 +1549,6 @@
 
     rankingRefresh.addEventListener('click', refreshRanking);
 
-    get('start').addEventListener('click', () => {
-      if (puzzleStarted || transition !== null) {
-        return;
-      }
-    
-      puzzleStarted = true;
-      qualifiesForTimedBonus = timed;
-      startedAt = performance.now();
-    
-      get('start').hidden = true;
-      get('puzzle').hidden = false;
-    
-      startClock();
-      announce('');
-    
-      const firstInput = [...tiles]
-        .reverse()
-        .find(tile => !tile.given);
-    
-      firstInput?.element.focus({ preventScroll: true });
-    });
     // Inici
 
     displayBoard(get('example'), pyramid([4, 6, 5, 3]));

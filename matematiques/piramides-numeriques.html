@@ -313,6 +313,207 @@
         padding: 15px;
       }
     }
+
+    /* Selector de nivell */
+    .level-list {
+      gap: 8px;
+      margin: 18px 0;
+    }
+    
+    .level-option {
+      display: grid;
+      gap: 5px;
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid #d4ddcc;
+      border-radius: 13px;
+      background: #fffdf6;
+      transition: background .18s, border-color .18s;
+    }
+    
+    .level-option:hover {
+      background: #f0f4e7;
+      border-color: #94aa85;
+    }
+    
+    .level-option[aria-pressed="true"] {
+      background: #e3edd0;
+      border-color: #6c895c;
+      box-shadow: inset 3px 0 0 #6c895c;
+    }
+    
+    .level-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    
+    .level-heading strong {
+      font-size: 16px;
+    }
+    
+    .level-points {
+      color: #587149;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    
+    .level-description {
+      color: #61715d;
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+    
+    /* Interruptor de Contrarellotge */
+    .timed-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 18px;
+      padding: 14px;
+      border: 1px solid #d4ddcc;
+      border-radius: 13px;
+    }
+    
+    .timed-copy {
+      display: grid;
+      gap: 5px;
+    }
+    
+    .timed-copy strong {
+      font-size: 15px;
+    }
+    
+    .timed-copy > span {
+      color: #61715d;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+    
+    .switch-track {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      width: 42px;
+      height: 25px;
+      padding: 3px;
+      border-radius: 20px;
+      background: #d5ddce;
+      transition: background .18s;
+    }
+    
+    .switch-thumb {
+      width: 19px;
+      height: 19px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 1px 3px #20382c26;
+      transition: transform .18s;
+    }
+    
+    .timed-toggle[aria-pressed="true"] .switch-track {
+      background: #527343;
+    }
+    
+    .timed-toggle[aria-pressed="true"] .switch-thumb {
+      transform: translateX(17px);
+    }
+    
+    /* Desplegables */
+    aside details {
+      margin: 0;
+      padding: 0;
+      border-top: 1px solid #dce0d0;
+    }
+    
+    aside details > summary,
+    aside details.help > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 15px 4px;
+      border-radius: 6px;
+      color: #354c3b;
+      font-size: 14px;
+      font-weight: 700;
+      list-style: none;
+    }
+    
+    aside details > summary::-webkit-details-marker {
+      display: none;
+    }
+    
+    aside details > summary::after {
+      content: "+";
+      color: #708267;
+      font-size: 22px;
+      font-weight: 400;
+    }
+    
+    aside details[open] > summary::after {
+      content: "−";
+    }
+    
+    aside details > summary:hover {
+      background: #f0f4e7;
+    }
+    
+    aside details > p {
+      margin: 0 4px 14px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    
+    aside details > .example,
+    aside details > form,
+    aside details > ol {
+      margin-bottom: 16px;
+    }
+    
+    #ranking-form {
+      align-items: stretch;
+    }
+    
+    #ranking-form label {
+      width: 100%;
+      font-size: 13px;
+    }
+    
+    #player-name {
+      width: 100%;
+      min-width: 0;
+      padding: 10px 12px;
+      border: 1px solid #aab9a2;
+      border-radius: 9px;
+      background: #fffefa;
+      color: #20382c;
+    }
+    
+    #ranking-form button {
+      width: 100%;
+      font-size: 13px;
+    }
+    
+    #ranking-list {
+      padding-left: 25px;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    
+    @media (prefers-reduced-motion: reduce) {
+      .level-option,
+      .switch-track,
+      .switch-thumb {
+        transition: none;
+      }
+    }
   </style>
 </head>
 
@@ -376,55 +577,53 @@
       <aside class="card" aria-labelledby="mode-title">
         <h2 id="mode-title">Quin repte vols?</h2>
 
-        <div
-          class="mode-list"
-          role="group"
-          aria-label="Tipus de piràmide"
-        >
-          <button
-            class="mode"
-            type="button"
-            data-mode="base"
-            aria-pressed="true"
-          >
-            Nivell fàcil. Amb la base donada
+        <div class="mode-list level-list" role="group" aria-label="Nivell de dificultat">
+          <button class="mode level-option" type="button"
+            data-mode="base" aria-pressed="true">
+            <span class="level-heading">
+              <strong>Fàcil</strong>
+              <span class="level-points">×1 punts</span>
+            </span>
+            <span class="level-description">Amb la base donada</span>
           </button>
-
-          <button
-            class="mode"
-            type="button"
-            data-mode="mixed"
-            aria-pressed="false"
-          >
-            Nivell mitjà. Amb buits a la base
+        
+          <button class="mode level-option" type="button"
+            data-mode="mixed" aria-pressed="false">
+            <span class="level-heading">
+              <strong>Mitjà</strong>
+              <span class="level-points">×1,25 punts</span>
+            </span>
+            <span class="level-description">Amb buits a la base</span>
           </button>
-
-          <button
-            class="mode"
-            type="button"
-            data-mode="decimal"
-            aria-pressed="false"
-          >
-            Nivell difícil. Amb nombres decimals
+        
+          <button class="mode level-option" type="button"
+            data-mode="decimal" aria-pressed="false">
+            <span class="level-heading">
+              <strong>Difícil</strong>
+              <span class="level-points">×1,5 punts</span>
+            </span>
+            <span class="level-description">Amb nombres decimals</span>
           </button>
-
-          <button
-            class="mode"
-            type="button"
-            data-mode="decimal-mixed"
-            aria-pressed="false"
-          >
-            Nivell molt difícil. Amb nombres decimals i buits a la base
+        
+          <button class="mode level-option" type="button"
+            data-mode="decimal-mixed" aria-pressed="false">
+            <span class="level-heading">
+              <strong>Molt difícil</strong>
+              <span class="level-points">×2 punts</span>
+            </span>
+            <span class="level-description">Decimals i buits a la base</span>
           </button>
         </div>
-
-        <button
-          class="mode"
-          type="button"
-          id="timed"
-          aria-pressed="false"
-        >
-          Contrarellotge
+        
+        <button class="mode timed-toggle" type="button"
+          id="timed" aria-pressed="false">
+          <span class="timed-copy">
+            <strong>Contrarellotge</strong>
+            <span>Un número s’esborra cada 30 segons</span>
+          </span>
+          <span class="switch-track" aria-hidden="true">
+            <span class="switch-thumb"></span>
+          </span>
         </button>
 
         <details class="help">

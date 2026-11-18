@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#20382c">
   <title>Piràmides numèriques · MADUKA</title>
+
   <style>
     :root {
       color-scheme: light;
@@ -17,26 +18,123 @@
       --paper: #fffdf6;
       --given: #dce9c6;
     }
-    * { box-sizing: border-box; }
-    [hidden] { display: none !important; }
-    body { margin: 0; }
-    button, input { font: inherit; }
-    button, summary { cursor: pointer; }
-    :focus-visible { outline: 3px solid #8553a5; outline-offset: 3px; }
-    .wrap { width: min(1040px, calc(100% - 36px)); margin: auto; }
-    header { border-bottom: 1px solid var(--line); }
-    .brand { display: flex; align-items: center; gap: 12px; padding: 16px 0; font-weight: 900; letter-spacing: .06em; }
-    .mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; background: var(--ink); color: white; }
-    .brand small { color: var(--muted); font-weight: 650; }
-    h1 { margin: 30px 0 10px; font-size: clamp(38px, 7vw, 73px); letter-spacing: -.07em; line-height: 1; }
-    .intro { margin: 0 0 25px; color: var(--muted); line-height: 1.5; }
-    .layout { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(235px, 1fr); gap: 16px; align-items: start; }
-    .card { padding: 20px; border: 1px solid var(--line); border-radius: 22px; background: var(--paper); }
-    .card h2 { margin: 0; font-size: 20px; }
-    .board-head, .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-    .board-head { justify-content: space-between; margin-bottom: 14px; }
-    .actions { margin-top: 15px; }
-    .score { padding: 6px 10px; border-radius: 20px; background: #e9eddc; font-size: 14px; }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button,
+    summary {
+      cursor: pointer;
+    }
+
+    :focus-visible {
+      outline: 3px solid #8553a5;
+      outline-offset: 3px;
+    }
+
+    .wrap {
+      width: min(1040px, calc(100% - 36px));
+      margin: auto;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 0;
+      font-weight: 900;
+      letter-spacing: .06em;
+    }
+
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--ink);
+      color: white;
+    }
+
+    .brand small {
+      color: var(--muted);
+      font-weight: 650;
+    }
+
+    h1 {
+      margin: 30px 0 10px;
+      font-size: clamp(38px, 7vw, 73px);
+      letter-spacing: -.07em;
+      line-height: 1;
+    }
+
+    .intro {
+      margin: 0 0 25px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.8fr) minmax(235px, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .card {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--paper);
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .board-head,
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .board-head {
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .actions {
+      margin-top: 15px;
+    }
+
+    .score {
+      padding: 6px 10px;
+      border-radius: 20px;
+      background: #e9eddc;
+      font-size: 14px;
+    }
+
     .clock {
       display: flex;
       justify-content: space-between;
@@ -48,10 +146,31 @@
       background: #e9eddc;
       font-size: 14px;
     }
-    .clock strong { font-size: 22px; font-variant-numeric: tabular-nums; }
-    .clock[data-urgent="true"] { background: #fae0d5; color: #843627; }
-    .stage { display: grid; gap: 5px; padding: 24px 8px; border-radius: 15px; background: radial-gradient(ellipse at top, #f4f7e8, #e9efdc); }
-    .row { display: flex; justify-content: center; gap: 5px; }
+
+    .clock strong {
+      font-size: 22px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .clock[data-urgent="true"] {
+      background: #fae0d5;
+      color: #843627;
+    }
+
+    .stage {
+      display: grid;
+      gap: 5px;
+      padding: 24px 8px;
+      border-radius: 15px;
+      background: radial-gradient(ellipse at top, #f4f7e8, #e9efdc);
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+    }
+
     .cell {
       display: grid;
       place-items: center;
@@ -63,36 +182,140 @@
       font-weight: 800;
       font-variant-numeric: tabular-nums;
     }
-    .given { border: 1px solid #acc094; background: var(--given); }
-    input.cell { display: block; min-width: 0; padding: 0 3px; border: 2px solid #83947d; background: #fffefa; text-align: center; }
-    input.cell[aria-invalid="true"] { border-color: #a14433; background: #fff1e7; }
-    input.cell.correct { border-color: #599344; background: #ecf6db; }
-    input.cell.erased { border-color: #a85c25; background: #fff1d7; }
-    .primary, .mode { padding: 10px 14px; border-radius: 10px; font-weight: 800; }
-    .primary { border: 1px solid var(--ink); background: var(--ink); color: white; }
-    .mode { border: 1px solid #aab9a2; background: var(--paper); color: var(--ink); text-align: left; }
-    .mode[aria-pressed="true"] { border-color: #758e69; background: #e3edd0; }
-    .mode-list { display: grid; gap: 8px; margin: 12px 0 18px; }
-    button:disabled { opacity: .65; cursor: default; }
-    .status, aside p { color: var(--muted); line-height: 1.5; }
-    .status { min-height: 2.8em; margin: 12px 0 0; }
-    .status[data-tone="error"] { color: #943828; }
-    .status[data-tone="success"] { color: #316331; font-weight: 800; }
-    .help { font-size: 14px; }
-    details { padding-top: 12px; border-top: 1px solid var(--line); }
-    summary { font-weight: 750; }
-    .example { display: grid; gap: 4px; margin-top: 12px; }
-    .example .cell { width: 36px; height: 27px; border-radius: 5px; font-size: 14px; }
-    footer { padding: 18px 0; color: var(--muted); font-size: 13px; }
-    @media (max-width: 700px) {
-      .layout { grid-template-columns: 1fr; }
-      .card { padding: 15px; }
+
+    .given {
+      border: 1px solid #acc094;
+      background: var(--given);
     }
+
+    input.cell {
+      display: block;
+      min-width: 0;
+      padding: 0 3px;
+      border: 2px solid #83947d;
+      background: #fffefa;
+      text-align: center;
+    }
+
+    input.cell[aria-invalid="true"] {
+      border-color: #a14433;
+      background: #fff1e7;
+    }
+
+    input.cell.correct {
+      border-color: #599344;
+      background: #ecf6db;
+    }
+
+    input.cell.erased {
+      border-color: #a85c25;
+      background: #fff1d7;
+    }
+
+    .primary,
+    .mode {
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 800;
+    }
+
+    .primary {
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: white;
+    }
+
+    .mode {
+      border: 1px solid #aab9a2;
+      background: var(--paper);
+      color: var(--ink);
+      text-align: left;
+    }
+
+    .mode[aria-pressed="true"] {
+      border-color: #758e69;
+      background: #e3edd0;
+    }
+
+    .mode-list {
+      display: grid;
+      gap: 8px;
+      margin: 12px 0 18px;
+    }
+
+    button:disabled {
+      opacity: .65;
+      cursor: default;
+    }
+
+    .status,
+    aside p {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .status {
+      min-height: 2.8em;
+      margin: 12px 0 0;
+    }
+
+    .status[data-tone="error"] {
+      color: #943828;
+    }
+
+    .status[data-tone="success"] {
+      color: #316331;
+      font-weight: 800;
+    }
+
+    .help {
+      font-size: 14px;
+    }
+
+    details {
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    summary {
+      font-weight: 750;
+    }
+
     details.help > summary {
-    font-size: 1rem;
+      font-size: 1rem;
+    }
+
+    .example {
+      display: grid;
+      gap: 4px;
+      margin-top: 12px;
+    }
+
+    .example .cell {
+      width: 36px;
+      height: 27px;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    footer {
+      padding: 18px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 700px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 15px;
+      }
     }
   </style>
 </head>
+
 <body>
   <header>
     <div class="wrap brand">
@@ -103,7 +326,11 @@
 
   <main class="wrap">
     <h1>Piràmides numèriques</h1>
-    <p class="intro">Cada casella és la suma de les dues que té just a sota. Omple tots els buits per passar a una piràmide nova.</p>
+
+    <p class="intro">
+      Cada casella és la suma de les dues que té just a sota.
+      Omple tots els buits per passar a una piràmide nova.
+    </p>
 
     <div class="layout">
       <section class="card" aria-labelledby="puzzle-title">
@@ -117,6 +344,7 @@
           <span>Temps de resolució</span>
           <strong id="elapsed" role="timer" aria-live="off">0:00</strong>
         </div>
+
         <p class="help" id="last-result" hidden></p>
 
         <div class="clock" id="clock" hidden>
@@ -125,57 +353,134 @@
         </div>
 
         <form id="puzzle" novalidate>
-          <div class="stage" id="stage" role="group" aria-labelledby="puzzle-title"></div>
+          <div
+            class="stage"
+            id="stage"
+            role="group"
+            aria-labelledby="puzzle-title"
+          ></div>
+
           <div class="actions">
-            <button class="primary" type="submit" id="check">Comprova</button>
-            <button class="mode" type="button" id="restart" hidden>Reinicia la piràmide</button>
+            <button class="primary" type="submit" id="check">
+              Comprova
+            </button>
+
+            <button class="mode" type="button" id="restart" hidden>
+              Reinicia la piràmide
+            </button>
           </div>
         </form>
+
         <p class="status" id="status" role="status"></p>
       </section>
 
       <aside class="card" aria-labelledby="mode-title">
         <h2 id="mode-title">Quin repte vols?</h2>
-        <div class="mode-list" role="group" aria-label="Tipus de piràmide">
-          <button class="mode" type="button" data-mode="base" aria-pressed="true">Nivell fàcil. Amb la base donada</button>
-          <button class="mode" type="button" data-mode="mixed" aria-pressed="false">Nivell mitjà. Amb buits a la base</button>
-          <button class="mode" type="button" data-mode="decimal" aria-pressed="false">Nivell difícil. Amb nombres decimals</button>
-          <button class="mode" type="button" data-mode="decimal-mixed" aria-pressed="false">Nivell molt difícil. Amb nombres decimals i buits a la base</button>
+
+        <div
+          class="mode-list"
+          role="group"
+          aria-label="Tipus de piràmide"
+        >
+          <button
+            class="mode"
+            type="button"
+            data-mode="base"
+            aria-pressed="true"
+          >
+            Nivell fàcil. Amb la base donada
+          </button>
+
+          <button
+            class="mode"
+            type="button"
+            data-mode="mixed"
+            aria-pressed="false"
+          >
+            Nivell mitjà. Amb buits a la base
+          </button>
+
+          <button
+            class="mode"
+            type="button"
+            data-mode="decimal"
+            aria-pressed="false"
+          >
+            Nivell difícil. Amb nombres decimals
+          </button>
+
+          <button
+            class="mode"
+            type="button"
+            data-mode="decimal-mixed"
+            aria-pressed="false"
+          >
+            Nivell molt difícil. Amb nombres decimals i buits a la base
+          </button>
         </div>
 
-        <button class="mode" type="button" id="timed" aria-pressed="false">Contrarellotge</button>
-          <details class="help">
-            <summary>Info</summary>
-            <p>
-              Amb el Contrarellotge, cada 30 segons s’esborra un número a l’atzar,
-              sigui una pista o una resposta que hagis escrit.
-            </p>
-            <p>
-              Si et quedes sense pistes, pots reiniciar la mateixa piràmide.
-            </p>
-            <p>
-              Com més ràpid resolguis la piràmide i més alt sigui el nivell,
-              més punts guanyaràs. Si mantens el Contrarellotge activat
-              des del començament de la piràmide, guanyaràs un 25 % extra.
-            </p>
-            <p>Les caselles verdes contenen els nombres donats.</p>
-          </details>
+        <button
+          class="mode"
+          type="button"
+          id="timed"
+          aria-pressed="false"
+        >
+          Contrarellotge
+        </button>
 
-          <details>
-            <summary>Veure un exemple</summary>
-            <div class="example" id="example" role="img"
-              aria-label="Piràmide resolta. Base 4, 6, 5 i 3. Pis següent 10, 11 i 8. Després 21 i 19. A dalt 40."></div>
-            <p>4 + 6 = 10 i 6 + 5 = 11. Just a sobre, 10 + 11 = 21.</p>
-          </details>
-          <details>
+        <details class="help">
+          <summary>Info</summary>
+
+          <p>
+            Amb el Contrarellotge, cada 30 segons s’esborra un número
+            a l’atzar, sigui una pista o una resposta que hagis escrit.
+          </p>
+
+          <p>
+            Si et quedes sense pistes, pots reiniciar la mateixa piràmide.
+          </p>
+
+          <p>
+            Com més ràpid resolguis la piràmide i més alt sigui el nivell,
+            més punts guanyaràs. Si mantens el Contrarellotge activat
+            des del començament de la piràmide, guanyaràs un 25 % extra.
+          </p>
+
+          <p>Les caselles verdes contenen els nombres donats.</p>
+        </details>
+
+        <details>
+          <summary>Veure un exemple</summary>
+
+          <div
+            class="example"
+            id="example"
+            role="img"
+            aria-label="Piràmide resolta. Base 4, 6, 5 i 3. Pis següent 10, 11 i 8. Després 21 i 19. A dalt 40."
+          ></div>
+
+          <p>4 + 6 = 10 i 6 + 5 = 11. Just a sobre, 10 + 11 = 21.</p>
+        </details>
+
+        <details>
           <summary>Classificació</summary>
-        
+
           <form id="ranking-form" class="actions">
             <label for="player-name">Nom o àlies</label>
-            <input id="player-name" type="text" maxlength="30" autocomplete="off" required>
-            <button class="primary" type="submit">Desa la puntuació</button>
+
+            <input
+              id="player-name"
+              type="text"
+              maxlength="30"
+              autocomplete="off"
+              required
+            >
+
+            <button class="primary" type="submit">
+              Desa la puntuació
+            </button>
           </form>
-        
+
           <p class="help" id="ranking-status" role="status"></p>
           <ol id="ranking-list"></ol>
         </details>
@@ -183,10 +488,13 @@
     </div>
   </main>
 
-  <footer class="wrap">MADUKA · Materials educatius oberts</footer>
+  <footer class="wrap">
+    MADUKA · Materials educatius oberts
+  </footer>
 
   <script>
     const get = id => document.getElementById(id);
+
     const stage = get('stage');
     const status = get('status');
     const check = get('check');
@@ -200,6 +508,7 @@
     const modes = [...document.querySelectorAll('[data-mode]')];
 
     const baseClues = ['0:0', '0:1', '0:2', '0:3'];
+
     const mixedClues = [
       ['0:0', '0:3', '1:1', '1:2'],
       ['0:0', '0:3', '1:0', '1:1'],
@@ -211,7 +520,9 @@
 
     const intervalMs = 30_000;
     const used = new Set();
+
     let mode = 'base';
+    let timed = false;
     let qualifiesForTimedBonus = false;
     let solved = 0;
     let totalPoints = 0;
@@ -224,19 +535,29 @@
 
     function pyramid(base) {
       const rows = [base];
+
       while (rows.at(-1).length > 1) {
         const row = rows.at(-1);
-        rows.push(row.slice(1).map((value, index) => row[index] + value));
+        rows.push(
+          row.slice(1).map((value, index) => row[index] + value)
+        );
       }
+
       return rows;
     }
 
     function nextBase() {
-      if (used.size === 6561) used.clear();
+      if (used.size === 6561) {
+        used.clear();
+      }
 
       let base;
+
       do {
-        base = Array.from({ length: 4 }, () => 1 + Math.floor(Math.random() * 9));
+        base = Array.from(
+          { length: 4 },
+          () => 1 + Math.floor(Math.random() * 9)
+        );
       } while (used.has(base.join('')));
 
       used.add(base.join(''));
@@ -244,16 +565,20 @@
     }
 
     function formatValue(value, decimal) {
-      return decimal ? (value / 10).toFixed(1).replace('.', ',') : String(value);
+      return decimal
+        ? (value / 10).toFixed(1).replace('.', ',')
+        : String(value);
     }
 
     function makeInput(tile) {
       const input = document.createElement('input');
+
       input.className = 'cell';
       input.type = 'text';
       input.inputMode = tile.decimal ? 'decimal' : 'numeric';
       input.autocomplete = 'off';
       input.setAttribute('aria-label', tile.label);
+
       return input;
     }
 
@@ -267,15 +592,24 @@
 
         rows[floor].forEach((value, col) => {
           const given = !clues || clues.includes(floor + ':' + col);
-          const label = 'Pis ' + (floor + 1) + ' des de baix, casella ' + (col + 1) + ' des de l’esquerra';
+
+          const label =
+            'Pis ' + (floor + 1) +
+            ' des de baix, casella ' + (col + 1) +
+            ' des de l’esquerra';
+
           const tile = { value, decimal, given, label };
 
           if (given) {
             const text = formatValue(value, decimal);
+
             tile.element = document.createElement('span');
             tile.element.className = 'cell given';
             tile.element.textContent = text;
-            tile.element.setAttribute('aria-label', label + ', número donat ' + text);
+            tile.element.setAttribute(
+              'aria-label',
+              label + ', número donat ' + text
+            );
           } else {
             tile.element = makeInput(tile);
           }
@@ -297,6 +631,7 @@
 
     function formatTime(seconds) {
       const minutes = Math.floor(seconds / 60);
+
       return minutes + ':' + String(seconds % 60).padStart(2, '0');
     }
 
@@ -307,12 +642,15 @@
         decimal: 1.5,
         'decimal-mixed': 2
       };
-    
+
       const speedPoints = 1000 / (1 + milliseconds / 30_000);
       const levelMultiplier = levelMultipliers[mode];
       const timedMultiplier = qualifiesForTimedBonus ? 1.25 : 1;
-    
-      return Math.max(1, Math.round(speedPoints * levelMultiplier * timedMultiplier));
+
+      return Math.max(
+        1,
+        Math.round(speedPoints * levelMultiplier * timedMultiplier)
+      );
     }
 
     function stopClock() {
@@ -330,9 +668,13 @@
         return;
       }
 
-      const tile = candidates[Math.floor(Math.random() * candidates.length)];
+      const tile = candidates[
+        Math.floor(Math.random() * candidates.length)
+      ];
+
       if (tile.given) {
         const input = makeInput(tile);
+
         tile.element.replaceWith(input);
         tile.element = input;
         tile.given = false;
@@ -343,14 +685,20 @@
 
       stage.querySelector('.erased')?.classList.remove('erased');
       tile.element.classList.add('erased');
+
       announce('S’ha esborrat un número. ' + tile.label + '.');
     }
 
     function updateClock() {
       const now = performance.now();
-      elapsed.textContent = formatTime(Math.floor((now - startedAt) / 1000));
 
-      if (!timed) return;
+      elapsed.textContent = formatTime(
+        Math.floor((now - startedAt) / 1000)
+      );
+
+      if (!timed) {
+        return;
+      }
 
       if (now >= deadline) {
         eraseNumber();
@@ -358,15 +706,20 @@
       }
 
       const seconds = Math.ceil((deadline - now) / 1000);
+
       countdown.textContent = formatTime(seconds);
       clock.dataset.urgent = String(seconds <= 5);
     }
 
     function startClock() {
       stopClock();
+
       clock.hidden = !timed;
       restart.hidden = !timed;
-      if (transition !== null) return;
+
+      if (transition !== null) {
+        return;
+      }
 
       deadline = performance.now() + intervalMs;
       updateClock();
@@ -374,10 +727,17 @@
     }
 
     function renderPuzzle() {
-      tiles = displayBoard(stage, puzzle.rows, puzzle.clues, puzzle.decimal);
+      tiles = displayBoard(
+        stage,
+        puzzle.rows,
+        puzzle.clues,
+        puzzle.decimal
+      );
+
       get('puzzle-title').textContent = 'Piràmide ' + (solved + 1);
       check.disabled = false;
       restart.disabled = false;
+
       startClock();
     }
 
@@ -385,19 +745,33 @@
       clearTimeout(transition);
       transition = null;
 
-      const decimal = mode === 'decimal' || mode === 'decimal-mixed';
-      const mixed = mode === 'mixed' || mode === 'decimal-mixed';
-      const clues = mixed ? mixedClues[solved % mixedClues.length] : baseClues;
+      const decimal =
+        mode === 'decimal' || mode === 'decimal-mixed';
+
+      const mixed =
+        mode === 'mixed' || mode === 'decimal-mixed';
+
+      const clues = mixed
+        ? mixedClues[solved % mixedClues.length]
+        : baseClues;
+
       const base = nextBase();
 
-      // Els valors decimals es calculen en dècimes enteres. 24 representa 2,4.
+      // Els valors decimals es calculen en dècimes enteres.
+      // Per exemple, 24 representa 2,4.
       const values = decimal
         ? base.map(value => value * 10 + 1 + Math.floor(Math.random() * 9))
         : base;
 
-      puzzle = { rows: pyramid(values), clues, decimal };
+      puzzle = {
+        rows: pyramid(values),
+        clues,
+        decimal
+      };
+
       qualifiesForTimedBonus = timed;
       startedAt = performance.now();
+
       renderPuzzle();
     }
 
@@ -413,7 +787,9 @@
     }
 
     function evaluate(showFeedback) {
-      if (transition !== null) return;
+      if (transition !== null) {
+        return;
+      }
 
       const fields = tiles.filter(tile => !tile.given);
 
@@ -426,13 +802,16 @@
         stopClock();
         clock.hidden = true;
         elapsed.textContent = time;
+
         totalPoints += earned;
         points.textContent = totalPoints + ' punts totals';
+
         lastResult.textContent = 'Última piràmide · ' + result;
         lastResult.hidden = false;
 
         solved++;
-        get('score').textContent = solved + (solved === 1 ? ' resolta' : ' resoltes');
+        get('score').textContent =
+          solved + (solved === 1 ? ' resolta' : ' resoltes');
 
         fields.forEach(({ element }) => {
           element.removeAttribute('aria-invalid');
@@ -443,22 +822,33 @@
 
         check.disabled = true;
         restart.disabled = true;
+
         announce('Correcte! ' + result, 'success');
 
         transition = setTimeout(() => {
           newPuzzle();
           announce('Piràmide ' + (solved + 1) + ' preparada.');
-          const firstInput = [...tiles].reverse().find(tile => !tile.given);
+
+          const firstInput = [...tiles]
+            .reverse()
+            .find(tile => !tile.given);
+
           firstInput?.element.focus({ preventScroll: true });
         }, 1500);
+
         return;
       }
 
-      if (!showFeedback) return;
+      if (!showFeedback) {
+        return;
+      }
 
       let errors = 0;
+
       fields.forEach(tile => {
-        const wrong = tile.element.value.trim() !== '' && !matches(tile);
+        const wrong =
+          tile.element.value.trim() !== '' && !matches(tile);
+
         if (wrong) {
           errors++;
           tile.element.setAttribute('aria-invalid', 'true');
@@ -467,12 +857,18 @@
         }
       });
 
-      announce(errors ? 'Revisa les caselles marcades.' : 'Encara hi ha caselles buides.', 'error');
+      announce(
+        errors
+          ? 'Revisa les caselles marcades.'
+          : 'Encara hi ha caselles buides.',
+        'error'
+      );
     }
 
     stage.addEventListener('input', event => {
       event.target.removeAttribute('aria-invalid');
       event.target.classList.remove('erased');
+
       announce('');
       evaluate(false);
     });
@@ -482,18 +878,33 @@
       evaluate(true);
     });
 
-    modes.forEach(button => button.addEventListener('click', () => {
-      if (mode === button.dataset.mode) return;
+    modes.forEach(button => {
+      button.addEventListener('click', () => {
+        if (mode === button.dataset.mode) {
+          return;
+        }
 
-      mode = button.dataset.mode;
-      modes.forEach(item => item.setAttribute('aria-pressed', String(item === button)));
-      newPuzzle();
-      announce('Piràmide nova preparada.');
-    }));
+        mode = button.dataset.mode;
+
+        modes.forEach(item => {
+          item.setAttribute(
+            'aria-pressed',
+            String(item === button)
+          );
+        });
+
+        newPuzzle();
+        announce('Piràmide nova preparada.');
+      });
+    });
 
     timedButton.addEventListener('click', () => {
       timed = !timed;
-      if (!timed) qualifiesForTimedBonus = false;
+
+      if (!timed) {
+        qualifiesForTimedBonus = false;
+      }
+
       timedButton.setAttribute('aria-pressed', String(timed));
 
       if (transition === null) {
@@ -502,71 +913,97 @@
         restart.hidden = !timed;
       }
 
-      announce(timed ? 'Contrarellotge activat.' : 'Contrarellotge desactivat.');
+      announce(
+        timed
+          ? 'Contrarellotge activat.'
+          : 'Contrarellotge desactivat.'
+      );
     });
 
     restart.addEventListener('click', () => {
       renderPuzzle();
-      announce('Pistes inicials recuperades. El compte enrere torna a 30 segons.');
+
+      announce(
+        'Pistes inicials recuperades. El compte enrere torna a 30 segons.'
+      );
     });
 
     displayBoard(get('example'), pyramid([4, 6, 5, 3]));
     newPuzzle();
-    const rankingForm = document.getElementById('ranking-form');
-    const playerName = document.getElementById('player-name');
-    const rankingList = document.getElementById('ranking-list');
-    const rankingStatus = document.getElementById('ranking-status');
+
+    const rankingForm = get('ranking-form');
+    const playerName = get('player-name');
+    const rankingList = get('ranking-list');
+    const rankingStatus = get('ranking-status');
     const rankingKey = 'maduka-piramides-classificacio';
-    
+
     function loadRanking() {
       return JSON.parse(localStorage.getItem(rankingKey) ?? '[]');
     }
-    
+
     function showRanking(entries) {
       rankingList.replaceChildren();
-    
+
       entries.forEach(({ name, score }) => {
         const item = document.createElement('li');
-        item.textContent = `${name} · ${score.toLocaleString('ca-ES')} punts`;
+
+        item.textContent =
+          `${name} · ${score.toLocaleString('ca-ES')} punts`;
+
         rankingList.append(item);
       });
     }
-    
+
     rankingForm.addEventListener('submit', event => {
       event.preventDefault();
-    
+
       const name = playerName.value.trim().replace(/\s+/g, ' ');
+
       if (!name || totalPoints === 0) {
-        rankingStatus.textContent = 'Escriu el nom i resol almenys una piràmide.';
+        rankingStatus.textContent =
+          'Escriu el nom i resol almenys una piràmide.';
         return;
       }
-    
+
       try {
         const entries = loadRanking();
         const key = name.toLocaleLowerCase('ca');
+
         const previous = entries.find(entry => entry.key === key);
-    
+
         if (previous && previous.score >= totalPoints) {
-          rankingStatus.textContent = 'Ja tens una puntuació igual o més alta.';
+          rankingStatus.textContent =
+            'Ja tens una puntuació igual o més alta.';
           return;
         }
-    
+
         const updated = entries.filter(entry => entry.key !== key);
-        updated.push({ key, name, score: totalPoints });
-        updated.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name, 'ca'));
-    
+
+        updated.push({
+          key,
+          name,
+          score: totalPoints
+        });
+
+        updated.sort((a, b) =>
+          b.score - a.score || a.name.localeCompare(b.name, 'ca')
+        );
+
         localStorage.setItem(rankingKey, JSON.stringify(updated));
+
         showRanking(updated);
         rankingStatus.textContent = 'Puntuació desada.';
       } catch {
-        rankingStatus.textContent = 'El navegador no ha pogut desar la classificació.';
+        rankingStatus.textContent =
+          'El navegador no ha pogut desar la classificació.';
       }
     });
-    
+
     try {
       showRanking(loadRanking());
     } catch {
-      rankingStatus.textContent = 'El navegador no ha pogut carregar la classificació.';
+      rankingStatus.textContent =
+        'El navegador no ha pogut carregar la classificació.';
     }
   </script>
 </body>

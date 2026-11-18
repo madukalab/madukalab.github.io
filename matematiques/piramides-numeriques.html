@@ -975,6 +975,8 @@
     let mode = 'base';
     let timed = false;
     let puzzleStarted = false;
+    let sessionStarted = false;
+    let pyramidStartedAt = 0;
     let qualifiesForTimedBonus = false;
     let solved = 0;
     let totalPoints = 0;
@@ -1156,27 +1158,29 @@
     }
 
     function updateClock() {
-      if (!puzzleStarted || transition !== null) {
+      if (!sessionStarted) {
         return;
       }
-
+    
       const now = performance.now();
-
+    
+      // El rellotge mostra el temps total de la partida.
       elapsed.textContent = formatTime(
         Math.floor((now - startedAt) / 1000)
       );
-
-      if (!timed) {
+    
+      // Durant el canvi de piràmide, el temps total continua avançant.
+      if (!puzzleStarted || transition !== null || !timed) {
         return;
       }
-
+    
       if (now >= deadline) {
         eraseNumber();
         deadline = now + intervalMs;
       }
-
+    
       const seconds = Math.ceil((deadline - now) / 1000);
-
+    
       countdown.textContent = formatTime(seconds);
       clock.dataset.urgent = String(seconds <= 5);
     }
@@ -1219,43 +1223,51 @@
       clearTimeout(transition);
       transition = null;
       stopClock();
-      puzzleStarted = false;
-
+    
+      puzzleStarted = sessionStarted;
+    
       const decimal =
         mode === 'decimal' || mode === 'decimal-mixed';
-
+    
       const mixed =
         mode === 'mixed' || mode === 'decimal-mixed';
-
+    
       const clues = mixed
         ? mixedClues[solved % mixedClues.length]
         : baseClues;
-
+    
       const base = nextBase();
-
-      // Es treballa amb dècimes enteres per evitar errors de suma decimal.
-      // Per exemple, 24 representa 2,4.
+    
       const values = decimal
         ? base.map(value => value * 10 + 1 + Math.floor(Math.random() * 9))
         : base;
-
+    
       puzzle = {
         rows: pyramid(values),
         clues,
         decimal
       };
-
-      qualifiesForTimedBonus = false;
-      elapsed.textContent = '0:00';
+    
+      qualifiesForTimedBonus = sessionStarted && timed;
+      pyramidStartedAt = performance.now();
+    
+      if (!sessionStarted) {
+        elapsed.textContent = '0:00';
+      }
+    
       countdown.textContent = '0:30';
       clock.dataset.urgent = 'false';
-
+    
       renderPuzzle();
-
-      puzzleForm.hidden = false;
-      startButton.hidden = false;
-
-      announce('Prem Comença per activar les caselles i el temps.');
+    
+      startButton.hidden = sessionStarted;
+    
+      if (sessionStarted) {
+        announce('');
+        focusFirstInput();
+      } else {
+        announce('Prem Comença per iniciar la partida.');
+      }
     }
 
     function focusFirstInput() {
@@ -1358,45 +1370,43 @@
 
       const fields = tiles.filter(tile => !tile.given);
 
-      if (fields.every(matches)) {
-        const duration = performance.now() - startedAt;
-        const time = formatTime(Math.floor(duration / 1000));
-        const earned = pointsFor(duration);
-        const result = time + ' · +' + earned + ' punts';
-
-        stopClock();
-        clock.hidden = true;
-        elapsed.textContent = time;
-
-        totalPoints += earned;
-        points.textContent = totalPoints + ' punts totals';
-
-        lastResult.textContent = 'Última piràmide · ' + result;
-        lastResult.hidden = false;
-
-        solved++;
-        get('score').textContent =
-          solved + (solved === 1 ? ' resolta' : ' resoltes');
-
-        fields.forEach(({ element }) => {
-          element.removeAttribute('aria-invalid');
-          element.classList.remove('erased');
-          element.classList.add('correct');
-          element.readOnly = true;
-        });
-
-        check.disabled = true;
-        restart.disabled = true;
-
-        announce('Correcte! ' + result, 'success');
-
-        transition = setTimeout(() => {
-          newPuzzle();
-          startButton.focus({ preventScroll: true });
-        }, 1500);
-
-        return;
-      }
+    if (fields.every(matches)) {
+      // Els punts depenen del temps d’aquesta piràmide.
+      const duration = performance.now() - pyramidStartedAt;
+      const time = formatTime(Math.floor(duration / 1000));
+      const earned = pointsFor(duration);
+      const result = time + ' · +' + earned + ' punts';
+    
+      clock.hidden = true;
+    
+      totalPoints += earned;
+      points.textContent = totalPoints + ' punts totals';
+    
+      lastResult.textContent = 'Última piràmide · ' + result;
+      lastResult.hidden = false;
+    
+      solved++;
+      get('score').textContent =
+        solved + (solved === 1 ? ' resolta' : ' resoltes');
+    
+      fields.forEach(({ element }) => {
+        element.removeAttribute('aria-invalid');
+        element.classList.remove('erased');
+        element.classList.add('correct');
+        element.readOnly = true;
+      });
+    
+      check.disabled = true;
+      restart.disabled = true;
+    
+      announce('Correcte! ' + result, 'success');
+    
+      transition = setTimeout(() => {
+        newPuzzle();
+      }, 1500);
+    
+      return;
+    }
 
       if (!showFeedback) {
         return;
@@ -1427,23 +1437,27 @@
     // Controls del joc
 
     startButton.addEventListener('click', () => {
-      if (puzzleStarted || transition !== null) {
+      if (sessionStarted) {
         return;
       }
-
+    
+      sessionStarted = true;
       puzzleStarted = true;
       qualifiesForTimedBonus = timed;
-      startedAt = performance.now();
-
+    
+      const now = performance.now();
+      startedAt = now;
+      pyramidStartedAt = now;
+    
       startButton.hidden = true;
       check.disabled = false;
-
+    
       tiles
         .filter(tile => !tile.given)
         .forEach(tile => {
           tile.element.readOnly = false;
         });
-
+    
       startClock();
       announce('');
       focusFirstInput();

@@ -708,6 +708,42 @@
       margin: 16px auto 0;
       text-align: center;
     }
+
+/* Primera posició */
+#ranking-list li:nth-child(1) {
+  background: #fff4cf;
+  border-radius: 10px 10px 0 0;
+}
+
+#ranking-list li:nth-child(1)::before {
+  content: "🥇";
+  font-size: 21px;
+}
+
+/* Segona posició */
+#ranking-list li:nth-child(2) {
+  background: #edf0f3;
+}
+
+#ranking-list li:nth-child(2)::before {
+  content: "🥈";
+  font-size: 21px;
+}
+
+/* Tercera posició */
+#ranking-list li:nth-child(3) {
+  background: #f5e7da;
+}
+
+#ranking-list li:nth-child(3)::before {
+  content: "🥉";
+  font-size: 21px;
+}
+
+/* Noms dels tres primers */
+#ranking-list li:nth-child(-n+3) strong {
+  font-weight: 900;
+}
     
   </style>
 </head>

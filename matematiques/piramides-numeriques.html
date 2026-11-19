@@ -744,6 +744,12 @@
 #ranking-list li:nth-child(-n+3) strong {
   font-weight: 900;
 }
+
+    #player-name[readonly],
+    #player-school[readonly] {
+      background: #edf2e4;
+      color: var(--muted);
+    }
     
   </style>
 </head>
@@ -1663,6 +1669,7 @@
     const rankingSubmit = rankingForm.querySelector('button[type="submit"]');
 
     let rankingBusy = false;
+    let registeredPlayer = null;
 
     const rankingMore = get('ranking-more');
     let rankingEntries = [];
@@ -1767,8 +1774,13 @@
         return;
       }
 
-      const name = playerName.value.trim().replace(/\s+/g, ' ');
-      const school = playerSchool.value.trim().replace(/\s+/g, ' ');
+      const name = registeredPlayer
+        ? registeredPlayer.name
+        : playerName.value.trim().replace(/\s+/g, ' ');
+      
+      const school = registeredPlayer
+        ? registeredPlayer.school
+        : playerSchool.value.trim().replace(/\s+/g, ' ');
 
       if (!name || !school || totalPoints <= 0) {
         rankingStatus.textContent =
@@ -1790,11 +1802,20 @@
           body: JSON.stringify({ name, school, score })
         });
 
-        showRanking(data.entries);
-
-        rankingStatus.textContent = data.improved
-          ? 'Puntuació registrada!'
-          : 'Ja tens una partida igual o millor registrada.';
+      registeredPlayer = { name, school };
+      
+      playerName.value = name;
+      playerSchool.value = school;
+      
+      playerName.readOnly = true;
+      playerSchool.readOnly = true;
+      
+      showRanking(data.entries);
+      
+      rankingStatus.textContent = data.improved
+        ? 'Puntuació registrada! Pots continuar sumant punts amb aquest àlies.'
+        : 'Ja tens una partida igual o millor registrada. Pots continuar jugant.';
+        
       } catch {
         rankingStatus.textContent =
           'No s’ha pogut confirmar el resultat. Pots tornar-lo a registrar.';

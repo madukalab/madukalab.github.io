@@ -702,6 +702,12 @@
         font-size: 15px;
       }
     }
+
+    #ranking-more {
+      display: block;
+      margin: 16px auto 0;
+      text-align: center;
+    }
     
   </style>
 </head>
@@ -818,6 +824,16 @@
           </button>
 
           <ol id="ranking-list"></ol>
+          <button
+          class="mode"
+          type="button"
+          id="ranking-more"
+          aria-expanded="false"
+          aria-controls="ranking-list"
+          hidden
+        >
+          Mostra més
+        </button>
         </div>
       </section>
 
@@ -1612,23 +1628,52 @@
 
     let rankingBusy = false;
 
-    function showRanking(entries) {
+    const rankingMore = get('ranking-more');
+    let rankingEntries = [];
+    let rankingExpanded = false;
+    
+    function renderRanking() {
       rankingList.replaceChildren();
-
-      entries.forEach(({ name, school, score }) => {
+    
+      const visibleEntries = rankingExpanded
+        ? rankingEntries
+        : rankingEntries.slice(0, 20);
+    
+      visibleEntries.forEach(({ name, school, score }) => {
         const item = document.createElement('li');
         const player = document.createElement('strong');
         const schoolLabel = document.createElement('div');
         const pointsLabel = document.createElement('div');
-
+    
         player.textContent = name;
         schoolLabel.textContent = school;
         pointsLabel.textContent =
           Number(score).toLocaleString('ca-ES') + ' punts';
-
+    
         item.append(player, schoolLabel, pointsLabel);
         rankingList.append(item);
       });
+    
+      rankingMore.hidden = rankingEntries.length <= 20;
+      rankingMore.textContent = rankingExpanded
+        ? 'Mostra menys'
+        : 'Mostra més';
+    
+      rankingMore.setAttribute(
+        'aria-expanded',
+        String(rankingExpanded)
+      );
+    }
+    
+    function showRanking(entries) {
+      rankingEntries = entries;
+      renderRanking();
+    }
+    
+    rankingMore.addEventListener('click', () => {
+      rankingExpanded = !rankingExpanded;
+      renderRanking();
+    });
     }
 
     async function requestRanking(options = {}) {

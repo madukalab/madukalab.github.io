@@ -897,6 +897,54 @@
         font-size: 10px;
       }
     }
+
+    .ranking-panel {
+      --ranking-columns:
+        26px
+        minmax(0, 1fr)
+        48px
+        minmax(0, 1.5fr)
+        105px;
+    }
+    
+    .ranking-head,
+    #ranking-list li {
+      display: grid;
+      grid-template-columns: var(--ranking-columns);
+      align-items: center;
+      gap: 12px;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    
+    /* Classe, escola i punts centrats */
+    .ranking-head span:nth-child(3),
+    .ranking-head span:nth-child(4),
+    .ranking-head span:nth-child(5),
+    #ranking-list li .ranking-grade,
+    #ranking-list li .ranking-school,
+    #ranking-list li .ranking-points {
+      text-align: center;
+    }
+    
+    @media (max-width: 480px) {
+      .ranking-panel {
+        --ranking-columns:
+          20px
+          minmax(0, 1fr)
+          32px
+          minmax(0, 1.2fr)
+          80px;
+      }
+    
+      .ranking-head,
+      #ranking-list li {
+        grid-template-columns: var(--ranking-columns);
+        gap: 5px;
+        padding-left: 4px;
+        padding-right: 4px;
+      }
+    }
   </style>
 </head>
 

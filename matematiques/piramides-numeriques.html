@@ -852,6 +852,51 @@
         padding: 12px 4px;
       }
     }
+
+    .ranking-head {
+      display: grid;
+      grid-template-columns:
+        26px
+        minmax(0, 1fr)
+        38px
+        minmax(0, 1.5fr)
+        auto;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+      padding: 12px 10px;
+      border-bottom: 2px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    
+    .ranking-head span:nth-child(3),
+    .ranking-head span:nth-child(4) {
+      text-align: center;
+    }
+    
+    .ranking-head span:last-child {
+      text-align: right;
+    }
+    
+    #ranking-list {
+      margin-top: 0;
+    }
+    
+    @media (max-width: 480px) {
+      .ranking-head {
+        grid-template-columns:
+          20px
+          minmax(0, 1fr)
+          28px
+          minmax(0, 1.2fr)
+          auto;
+        gap: 5px;
+        padding: 10px 4px;
+        font-size: 10px;
+      }
+    }
   </style>
 </head>
 
@@ -998,7 +1043,15 @@
             Actualitza el rànquing
           </button>
 
-          <ol id="ranking-list"></ol>
+          <div class="ranking-head" aria-hidden="true">
+            <span>Pos.</span>
+            <span>Alumne</span>
+            <span>Classe</span>
+            <span>Escola</span>
+            <span>Punts</span>
+          </div>
+
+<ol id="ranking-list"></ol>
 
           <button
             class="mode"

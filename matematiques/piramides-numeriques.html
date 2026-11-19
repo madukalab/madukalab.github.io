@@ -783,10 +783,39 @@
         transition: none;
       }
     }
+
+    body.entry-open {
+    overflow: hidden;
+    }
+    
+    .entry-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-y: auto;
+      background: rgba(247, 245, 235, .35);
+      -webkit-backdrop-filter: blur(7px);
+      backdrop-filter: blur(7px);
+    }
+    
+    .entry-overlay .entry-card {
+      flex-shrink: 0;
+      width: min(100%, 460px);
+      margin: auto;
+      padding: 28px;
+      border: 1px solid #d0d9c6;
+      border-radius: 22px;
+      background: var(--paper);
+      box-shadow: 0 24px 80px rgba(32, 56, 44, .18);
+    }
   </style>
 </head>
 
-<body>
+<body class="entry-open">
   <header class="site-header">
     <a
       class="site-logo"
@@ -805,7 +834,7 @@
 
   <!-- Pantalla d’entrada -->
 
-  <main id="entry-screen" class="wrap entry-screen">
+  <div id="entry-screen" class="entry-overlay">
     <section class="card entry-card" aria-labelledby="entry-title">
       <h1 id="entry-title">Qui jugarà?</h1>
 
@@ -851,11 +880,11 @@
         </button>
       </form>
     </section>
-  </main>
+  </div>
 
   <!-- Joc -->
 
-  <main id="game-screen" class="wrap" hidden>
+  <main id="game-screen" class="wrap" inert>
     <p id="player-summary"></p>
 
     <h1>Piràmides numèriques</h1>
@@ -1939,14 +1968,18 @@
         name + ' · ' + grade + ' · ' + school;
 
       get('entry-screen').hidden = true;
-      get('game-screen').hidden = false;
+      get('game-screen').inert = false;
+      document.body.classList.remove('entry-open');
+      
+      startButton.focus({ preventScroll: true });
+    });
 
+    // Prepara el joc del fons sense iniciar el temps.
       displayBoard(get('example'), pyramid([4, 6, 5, 3]));
       newPuzzle();
       refreshRanking();
-
-      startButton.focus({ preventScroll: true });
-    });
+      
+      get('entry-name').focus({ preventScroll: true });
   </script>
 </body>
 </html>

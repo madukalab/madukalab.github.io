@@ -812,6 +812,46 @@
       background: var(--paper);
       box-shadow: 0 24px 80px rgba(32, 56, 44, .18);
     }
+
+    #ranking-list li {
+      grid-template-columns:
+        26px
+        minmax(0, 1fr)
+        38px
+        minmax(0, 1.5fr)
+        auto;
+    }
+    
+    #ranking-list li .ranking-grade {
+      color: var(--ink);
+      font-weight: 700;
+      text-align: center;
+    }
+    
+    #ranking-list li .ranking-school {
+      color: var(--muted);
+      text-align: center;
+    }
+    
+    #ranking-list li .ranking-points {
+      color: var(--ink);
+      font-weight: 800;
+      text-align: right;
+      white-space: nowrap;
+    }
+    
+    @media (max-width: 480px) {
+      #ranking-list li {
+        grid-template-columns:
+          20px
+          minmax(0, 1fr)
+          28px
+          minmax(0, 1.2fr)
+          auto;
+        gap: 5px;
+        padding: 12px 4px;
+      }
+    }
   </style>
 </head>
 
@@ -1785,24 +1825,26 @@
         ? rankingEntries
         : rankingEntries.slice(0, 20);
 
-      visibleEntries.forEach(({ name, school, grade, score }) => {
-        const item = document.createElement('li');
-        const player = document.createElement('strong');
-        const schoolLabel = document.createElement('div');
-        const pointsLabel = document.createElement('div');
-
-        player.textContent = name;
-
-        schoolLabel.textContent = grade
-          ? school + ' · ' + grade
-          : school;
-
-        pointsLabel.textContent =
-          Number(score).toLocaleString('ca-ES') + ' punts';
-
-        item.append(player, schoolLabel, pointsLabel);
-        rankingList.append(item);
-      });
+        visibleEntries.forEach(({ name, grade, school, score }) => {
+          const item = document.createElement('li');
+          const player = document.createElement('strong');
+          const gradeLabel = document.createElement('div');
+          const schoolLabel = document.createElement('div');
+          const pointsLabel = document.createElement('div');
+        
+          gradeLabel.className = 'ranking-grade';
+          schoolLabel.className = 'ranking-school';
+          pointsLabel.className = 'ranking-points';
+        
+          player.textContent = name;
+          gradeLabel.textContent = grade || '—';
+          schoolLabel.textContent = school;
+          pointsLabel.textContent =
+            Number(score).toLocaleString('ca-ES') + ' punts';
+        
+          item.append(player, gradeLabel, schoolLabel, pointsLabel);
+          rankingList.append(item);
+        });
 
       rankingMore.hidden = rankingEntries.length <= 20;
 

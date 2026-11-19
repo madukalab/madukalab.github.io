@@ -646,14 +646,29 @@
         transition: none;
       }
     }
+
+    a.brand {
+      width: fit-content;
+      color: var(--ink);
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      text-decoration: none;
+    }
+    
   </style>
 </head>
 
 <body>
   <header>
-    <div class="wrap brand">
-      <span class="mark" aria-hidden="true">▴</span>
-      MADUKA <small>Matemàtiques</small>
+    <div class="wrap">
+      <a
+        class="brand"
+        href="https://madukalab.github.io/matematiques/"
+        aria-label="Torna a Matemàtiques de Maduka"
+      >
+        Maduka
+      </a>
     </div>
   </header>
 

@@ -1619,6 +1619,62 @@ body.race-paused .race-atmosphere::after {
     animation: none;
   }
 }
+
+    /* Elimina les línies mòbils del fons. */
+.race-streak,
+.mm93-speed-line {
+  display: none !important;
+}
+
+/* El so acompanya la moto, sense botó. */
+#engine-sound {
+  display: none !important;
+}
+
+/* Moviment suau de les caselles en el mode Márquez. */
+body.marquez-theme #stage .cell {
+  animation: marquez-cell-float 3.2s ease-in-out infinite;
+}
+
+body.marquez-theme #stage .row:nth-child(2) .cell {
+  animation-delay: -.8s;
+}
+
+body.marquez-theme #stage .row:nth-child(3) .cell {
+  animation-delay: -1.6s;
+}
+
+body.marquez-theme #stage .row:nth-child(4) .cell {
+  animation-delay: -2.4s;
+}
+
+/* La casella queda quieta quan l’alumne hi escriu. */
+body.marquez-theme #stage input.cell:focus {
+  animation: none;
+  transform: none;
+}
+
+/* Manté els efectes d’entrada del bonus. */
+body.marquez-theme #stage.special-93.is-arriving
+.row:first-child .cell {
+  animation: mm93-pop .7s ease-out;
+}
+
+@keyframes marquez-cell-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.marquez-theme #stage .cell {
+    animation: none !important;
+  }
+}
   </style>
 </head>
 
@@ -2460,15 +2516,15 @@ body.race-paused .race-atmosphere::after {
       timer = setInterval(updateClock, 100);
     }
 
-// SO DE MOTOR REAL I OPCIONAL
+// SO REAL AUTOMÀTIC QUAN PASSA LA MOTO
 
+// Es conserva aquesta referència perquè el control del mode
+// ja la utilitza. El botó queda sempre ocult amb el CSS.
 const soundButton = get('engine-sound');
 
 let engineSoundEnabled = false;
 let enginePlaybackId = 0;
 
-// Gravació real: "Motorbike 4", d’ezwa.
-// Font: Wikimedia Commons. Domini públic.
 const engineAudio = new Audio(
   'https://upload.wikimedia.org/wikipedia/commons/d/d9/Motorbike_4.ogg'
 );
@@ -2477,20 +2533,8 @@ engineAudio.preload = 'none';
 engineAudio.volume = 0.55;
 engineAudio.loop = false;
 
-function updateSoundButton() {
-  soundButton.setAttribute(
-    'aria-pressed',
-    String(engineSoundEnabled)
-  );
-
-  soundButton.textContent = engineSoundEnabled
-    ? 'So de motor: activat'
-    : 'So de motor: desactivat';
-}
-
 function stopEngine() {
   enginePlaybackId++;
-
   engineAudio.pause();
 
   try {
@@ -2499,11 +2543,7 @@ function stopEngine() {
 }
 
 async function playEngine() {
-  if (
-    !marquezEnabled ||
-    !engineSoundEnabled ||
-    document.hidden
-  ) {
+  if (!marquezEnabled || document.hidden) {
     return;
   }
 
@@ -2512,55 +2552,52 @@ async function playEngine() {
   const playbackId = enginePlaybackId;
 
   try {
-    // play() es crida directament quan es prem el botó.
-    // Això permet al navegador autoritzar el so.
     await engineAudio.play();
 
     if (
-      playbackId !== enginePlaybackId ||
-      !marquezEnabled ||
-      !engineSoundEnabled
+      playbackId === enginePlaybackId &&
+      (!marquezEnabled || document.hidden)
     ) {
-      return;
+      stopEngine();
     }
-  } catch (error) {
-    // Una pausa voluntària pot interrompre una càrrega pendent.
-    if (
-      playbackId !== enginePlaybackId ||
-      !marquezEnabled ||
-      !engineSoundEnabled
-    ) {
-      return;
-    }
-
-    engineSoundEnabled = false;
-    updateSoundButton();
-
-    soundButton.textContent =
-      error.name === 'NotAllowedError'
-        ? 'Prem per tornar a activar el so'
-        : 'So no disponible · torna-ho a provar';
-
-    announce(
-      error.name === 'NotAllowedError'
-        ? 'El navegador ha bloquejat el so. Torna a prémer el botó de so.'
-        : 'No s’ha pogut carregar la gravació del motor. Pots continuar jugant.'
-    );
+  } catch {
+    // Si el navegador bloqueja el so o falla la càrrega,
+    // el joc i l’animació continuen funcionant.
   }
 }
 
-soundButton.addEventListener('click', () => {
-  if (!marquezEnabled) return;
-
-  engineSoundEnabled = !engineSoundEnabled;
-
-  updateSoundButton();
-
-  if (engineSoundEnabled) {
-    // Reprodueix una mostra en activar-lo.
-    playEngine();
-  } else {
+/*
+ * Prepara l’àudio amb el clic d’activació del mode.
+ * La reproducció és silenciosa i es pausa abans de
+ * deixar-lo preparat per a la passada de la moto.
+ */
+marquezToggle.addEventListener('change', () => {
+  if (!marquezToggle.checked) {
     stopEngine();
+    return;
+  }
+
+  engineAudio.muted = true;
+
+  try {
+    const preparation = engineAudio.play();
+
+    Promise.resolve(preparation)
+      .then(() => {
+        engineAudio.pause();
+
+        try {
+          engineAudio.currentTime = 0;
+        } catch {}
+      })
+      .catch(() => {
+        // Es tornarà a intentar quan passi la moto.
+      })
+      .finally(() => {
+        engineAudio.muted = false;
+      });
+  } catch {
+    engineAudio.muted = false;
   }
 });
 

@@ -32,6 +32,10 @@
       margin: 0;
     }
 
+    body.entry-open {
+      overflow: hidden;
+    }
+
     button,
     input {
       font: inherit;
@@ -64,17 +68,10 @@
     }
 
     .logo {
+      color: #1d1d1f;
       font-size: 24px;
       font-weight: 800;
       letter-spacing: -1px;
-      text-decoration: none;
-      color: #1d1d1f;
-    }
-
-    .site-back {
-      color: #555;
-      font-size: 18px;
-      white-space: nowrap;
       text-decoration: none;
     }
 
@@ -183,16 +180,29 @@
       color: var(--ink);
     }
 
-    /* Entrada al joc */
+    /* Finestra inicial */
 
-    .entry-screen {
-      padding: 38px 0;
+    .entry-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-y: auto;
+      background: rgba(247, 245, 235, .35);
+      -webkit-backdrop-filter: blur(7px);
+      backdrop-filter: blur(7px);
     }
 
     .entry-card {
+      flex-shrink: 0;
       width: min(100%, 460px);
       margin: auto;
       padding: 28px;
+      border: 1px solid #d0d9c6;
+      box-shadow: 0 24px 80px rgba(32, 56, 44, .18);
     }
 
     .entry-card h1 {
@@ -617,6 +627,8 @@
     /* Classificació */
 
     .ranking-panel {
+      --ranking-columns:
+        26px minmax(0, 1fr) 48px minmax(0, 1.5fr) 105px;
       margin-top: 20px;
       padding-top: 20px;
       border-top: 1px solid var(--line);
@@ -635,8 +647,32 @@
       line-height: 1.5;
     }
 
+    .ranking-head,
+    #ranking-list li {
+      display: grid;
+      grid-template-columns: var(--ranking-columns);
+      align-items: center;
+      gap: 12px;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+
+    .ranking-head {
+      margin-top: 20px;
+      padding-top: 12px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .ranking-head span:nth-child(n+3) {
+      text-align: center;
+    }
+
     #ranking-list {
-      margin: 20px 0 0;
+      margin: 0;
       padding: 0;
       list-style: none;
       counter-reset: ranking;
@@ -644,11 +680,8 @@
 
     #ranking-list li {
       counter-increment: ranking;
-      display: grid;
-      grid-template-columns: 26px minmax(0, 1fr) minmax(0, 1.6fr) auto;
-      align-items: center;
-      gap: 12px;
-      padding: 15px 10px;
+      padding-top: 15px;
+      padding-bottom: 15px;
       border-bottom: 1px solid var(--line);
     }
 
@@ -671,16 +704,20 @@
       margin: 0;
       font-size: 13px;
       line-height: 1.4;
+      text-align: center;
       overflow-wrap: anywhere;
     }
 
-    #ranking-list li > div:first-of-type {
-      text-align: center;
+    #ranking-list .ranking-grade {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    #ranking-list .ranking-school {
       color: var(--muted);
     }
 
-    #ranking-list li > div:last-of-type {
-      text-align: right;
+    #ranking-list .ranking-points {
       color: var(--ink);
       font-weight: 800;
       font-variant-numeric: tabular-nums;
@@ -725,6 +762,138 @@
       text-align: center;
     }
 
+    /* Especial Marc Márquez 93 */
+
+    .special-93-notice {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+      padding: 14px 16px;
+      overflow: hidden;
+      border-radius: 14px;
+      background: #191919;
+      color: white;
+      animation: special93-arrive .5s ease-out;
+    }
+
+    .special-93-number {
+      flex-shrink: 0;
+      color: #ff3b30;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 44px;
+      font-style: italic;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -4px;
+    }
+
+    .special-93-notice > div {
+      display: grid;
+      gap: 5px;
+    }
+
+    .special-93-notice strong {
+      font-size: 16px;
+    }
+
+    .special-93-notice > div > span {
+      color: #e3e3e3;
+      font-size: 12px;
+    }
+
+    .special-93-bike {
+      margin-left: auto;
+      font-size: 30px;
+      animation: special93-bike .9s ease-in-out 3;
+    }
+
+    .stage.special-93 {
+      border: 2px solid #df3027;
+      background:
+        repeating-linear-gradient(
+          -35deg,
+          transparent 0 30px,
+          rgba(255, 255, 255, .04) 30px 34px
+        ),
+        linear-gradient(135deg, #252525, #101010);
+      box-shadow: 0 0 0 4px rgba(223, 48, 39, .08);
+      animation: special93-arrive .5s ease-out;
+    }
+
+    .stage.special-93 .given {
+      border-color: #e34a40;
+      background: #c92a24;
+      color: white;
+    }
+
+    .stage.special-93 input.cell {
+      border-color: #ff6559;
+      background: #fff8f4;
+      color: #202020;
+    }
+
+    .stage.special-93 input.cell:focus {
+      outline-color: #ffb951;
+    }
+
+    .stage.special-93 input.cell[aria-invalid="true"] {
+      border-color: #ffab43;
+      background: #ffe1ce;
+    }
+
+    .stage.special-93 .row:first-child .cell {
+      border-color: white;
+      background: white;
+      color: #d62820;
+      font-style: italic;
+      font-weight: 900;
+      animation: special93-pulse 1.4s ease-in-out 3;
+    }
+
+    .stage.special-93.special-93-finished {
+      border-color: #f3c650;
+      box-shadow: 0 0 24px rgba(243, 198, 80, .35);
+    }
+
+    .stage.special-93 input.cell.correct {
+      border-color: #f3c650;
+      background: #fff0b5;
+      color: #202020;
+    }
+
+    @keyframes special93-arrive {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes special93-bike {
+      0%, 100% {
+        transform: translateX(0) rotate(-5deg);
+      }
+
+      50% {
+        transform: translateX(-9px) rotate(5deg);
+      }
+    }
+
+    @keyframes special93-pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.08);
+      }
+    }
+
     footer {
       padding: 18px 0;
       color: var(--muted);
@@ -751,21 +920,23 @@
       .site-header {
         padding: 24px 20px;
       }
-
-      .logo {
-        font-size: 28px;
-      }
-
-      .site-back {
-        font-size: 15px;
-      }
     }
 
     @media (max-width: 480px) {
+      .ranking-panel {
+        --ranking-columns:
+          20px minmax(0, 1fr) 32px minmax(0, 1.2fr) 80px;
+      }
+
+      .ranking-head,
       #ranking-list li {
-        grid-template-columns: 20px minmax(0, 1fr) minmax(0, 1.3fr) auto;
-        gap: 6px;
-        padding: 12px 4px;
+        gap: 5px;
+        padding-left: 4px;
+        padding-right: 4px;
+      }
+
+      .ranking-head {
+        font-size: 10px;
       }
 
       #ranking-list li strong,
@@ -780,167 +951,12 @@
       .switch-thumb {
         transition: none;
       }
-    }
 
-    body.entry-open {
-    overflow: hidden;
-    }
-    
-    .entry-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      overflow-y: auto;
-      background: rgba(247, 245, 235, .35);
-      -webkit-backdrop-filter: blur(7px);
-      backdrop-filter: blur(7px);
-    }
-    
-    .entry-overlay .entry-card {
-      flex-shrink: 0;
-      width: min(100%, 460px);
-      margin: auto;
-      padding: 28px;
-      border: 1px solid #d0d9c6;
-      border-radius: 22px;
-      background: var(--paper);
-      box-shadow: 0 24px 80px rgba(32, 56, 44, .18);
-    }
-
-    #ranking-list li {
-      grid-template-columns:
-        26px
-        minmax(0, 1fr)
-        38px
-        minmax(0, 1.5fr)
-        auto;
-    }
-    
-    #ranking-list li .ranking-grade {
-      color: var(--ink);
-      font-weight: 700;
-      text-align: center;
-    }
-    
-    #ranking-list li .ranking-school {
-      color: var(--muted);
-      text-align: center;
-    }
-    
-    #ranking-list li .ranking-points {
-      color: var(--ink);
-      font-weight: 800;
-      text-align: right;
-      white-space: nowrap;
-    }
-    
-    @media (max-width: 480px) {
-      #ranking-list li {
-        grid-template-columns:
-          20px
-          minmax(0, 1fr)
-          28px
-          minmax(0, 1.2fr)
-          auto;
-        gap: 5px;
-        padding: 12px 4px;
-      }
-    }
-
-    .ranking-head {
-      display: grid;
-      grid-template-columns:
-        26px
-        minmax(0, 1fr)
-        38px
-        minmax(0, 1.5fr)
-        auto;
-      align-items: center;
-      gap: 12px;
-      margin-top: 20px;
-      padding: 12px 10px;
-      border-bottom: 2px solid var(--line);
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
-    }
-    
-    .ranking-head span:nth-child(3),
-    .ranking-head span:nth-child(4) {
-      text-align: center;
-    }
-    
-    .ranking-head span:last-child {
-      text-align: right;
-    }
-    
-    #ranking-list {
-      margin-top: 0;
-    }
-    
-    @media (max-width: 480px) {
-      .ranking-head {
-        grid-template-columns:
-          20px
-          minmax(0, 1fr)
-          28px
-          minmax(0, 1.2fr)
-          auto;
-        gap: 5px;
-        padding: 10px 4px;
-        font-size: 10px;
-      }
-    }
-
-    .ranking-panel {
-      --ranking-columns:
-        26px
-        minmax(0, 1fr)
-        48px
-        minmax(0, 1.5fr)
-        105px;
-    }
-    
-    .ranking-head,
-    #ranking-list li {
-      display: grid;
-      grid-template-columns: var(--ranking-columns);
-      align-items: center;
-      gap: 12px;
-      padding-left: 10px;
-      padding-right: 10px;
-    }
-    
-    /* Classe, escola i punts centrats */
-    .ranking-head span:nth-child(3),
-    .ranking-head span:nth-child(4),
-    .ranking-head span:nth-child(5),
-    #ranking-list li .ranking-grade,
-    #ranking-list li .ranking-school,
-    #ranking-list li .ranking-points {
-      text-align: center;
-    }
-    
-    @media (max-width: 480px) {
-      .ranking-panel {
-        --ranking-columns:
-          20px
-          minmax(0, 1fr)
-          32px
-          minmax(0, 1.2fr)
-          80px;
-      }
-    
-      .ranking-head,
-      #ranking-list li {
-        grid-template-columns: var(--ranking-columns);
-        gap: 5px;
-        padding-left: 4px;
-        padding-right: 4px;
+      .special-93-notice,
+      .special-93-bike,
+      .stage.special-93,
+      .stage.special-93 .row:first-child .cell {
+        animation: none;
       }
     }
   </style>
@@ -954,13 +970,17 @@
     >
       MADUKA
     </a>
-
   </header>
 
-  <!-- Pantalla d’entrada -->
+  <!-- Finestra de dades -->
 
   <div id="entry-screen" class="entry-overlay">
-    <section class="card entry-card" aria-labelledby="entry-title">
+    <section
+      class="card entry-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="entry-title"
+    >
       <h1 id="entry-title">Qui jugarà?</h1>
 
       <form id="entry-form">
@@ -1045,15 +1065,30 @@
 
         <form id="puzzle" novalidate>
           <div
+            id="special-93-notice"
+            class="special-93-notice"
+            hidden
+          >
+            <span class="special-93-number" aria-hidden="true">93</span>
+
+            <div>
+              <strong>Especial Marc Márquez</strong>
+              <span>Dues caselles · 193 punts extra</span>
+            </div>
+
+            <span class="special-93-bike" aria-hidden="true">🏍️</span>
+          </div>
+
+          <div
             class="stage"
             id="stage"
             role="group"
             aria-labelledby="puzzle-title"
           ></div>
 
-        <button class="primary" type="button" id="start">
-          Comença
-        </button>
+          <button class="primary" type="button" id="start">
+            Comença
+          </button>
 
           <div class="actions">
             <button class="primary" type="submit" id="check" disabled>
@@ -1091,7 +1126,7 @@
             <span>Punts</span>
           </div>
 
-<ol id="ranking-list"></ol>
+          <ol id="ranking-list"></ol>
 
           <button
             class="mode"
@@ -1252,6 +1287,18 @@
               El temps dedicat a la piràmide continua comptant.
             </p>
 
+            <h3>Especial Márquez 93</h3>
+            <p>
+              Quan arribis als <strong>1.000 punts</strong>,
+              la piràmide següent serà un repte especial
+              amb el <strong>93 al cim</strong>.
+            </p>
+            <p>
+              Completa les dues caselles i aconsegueix
+              <strong>193 punts extra</strong>.
+              Apareix una vegada per partida.
+            </p>
+
             <h3>Com es registra el resultat?</h3>
             <p>
               Prem <strong>Registra la puntuació</strong>.
@@ -1265,11 +1312,6 @@
             <p>
               Es mostren els 20 primers jugadors.
               Prem <strong>Mostra’n més</strong> per veure la resta.
-            </p>
-            <p>
-              El rànquing és compartit entre dispositius.
-              Prem <strong>Actualitza el rànquing</strong>
-              per veure els últims resultats.
             </p>
             <p>
               Per començar el torn d’un altre alumne,
@@ -1301,7 +1343,7 @@
   <script>
     const get = id => document.getElementById(id);
 
-    // Dades del jugador, fixades en entrar al joc.
+    // Dades del jugador.
 
     let playerProfile = null;
 
@@ -1321,7 +1363,7 @@
     const puzzleForm = get('puzzle');
     const modes = [...document.querySelectorAll('[data-mode]')];
 
-    // Configuració dels reptes.
+    // Configuració.
 
     const baseClues = ['0:0', '0:1', '0:2', '0:3'];
 
@@ -1346,6 +1388,7 @@
     let qualifiesForTimedBonus = false;
     let solved = 0;
     let totalPoints = 0;
+    let special93State = 'waiting';
     let startedAt = 0;
     let pyramidStartedAt = 0;
     let puzzle;
@@ -1577,7 +1620,19 @@
         puzzle.decimal
       );
 
-      get('puzzle-title').textContent = 'Piràmide ' + (solved + 1);
+      stage.classList.toggle(
+        'special-93',
+        Boolean(puzzle.special93)
+      );
+
+      stage.classList.remove('special-93-finished');
+
+      get('special-93-notice').hidden = !puzzle.special93;
+
+      get('puzzle-title').textContent = puzzle.special93
+        ? 'Especial Márquez 93'
+        : 'Piràmide ' + (solved + 1);
+
       check.disabled = !puzzleStarted;
       restart.disabled = false;
 
@@ -1591,28 +1646,54 @@
 
       puzzleStarted = sessionStarted;
 
-      const decimal =
-        mode === 'decimal' || mode === 'decimal-mixed';
+      const special93 =
+        special93State === 'active' ||
+        (special93State === 'waiting' && totalPoints >= 1000);
 
-      const mixed =
-        mode === 'mixed' || mode === 'decimal-mixed';
+      if (special93) {
+        special93State = 'active';
 
-      const clues = mixed
-        ? mixedClues[solved % mixedClues.length]
-        : baseClues;
+        puzzle = {
+          rows: pyramid([11, 11, 12, 13]),
 
-      const base = nextBase();
+          // Queden buides les caselles amb les respostes 23 i 45.
+          clues: [
+            '0:0', '0:1', '0:2', '0:3',
+            '1:0', '1:2',
+            '2:1',
+            '3:0'
+          ],
 
-      // Es treballa amb dècimes enteres per evitar errors de suma decimal.
-      const values = decimal
-        ? base.map(value => value * 10 + 1 + Math.floor(Math.random() * 9))
-        : base;
+          decimal: false,
+          special93: true
+        };
+      } else {
+        const decimal =
+          mode === 'decimal' || mode === 'decimal-mixed';
 
-      puzzle = {
-        rows: pyramid(values),
-        clues,
-        decimal
-      };
+        const mixed =
+          mode === 'mixed' || mode === 'decimal-mixed';
+
+        const clues = mixed
+          ? mixedClues[solved % mixedClues.length]
+          : baseClues;
+
+        const base = nextBase();
+
+        // Es calcula amb dècimes enteres per evitar errors de suma decimal.
+        const values = decimal
+          ? base.map(value =>
+              value * 10 + 1 + Math.floor(Math.random() * 9)
+            )
+          : base;
+
+        puzzle = {
+          rows: pyramid(values),
+          clues,
+          decimal,
+          special93: false
+        };
+      }
 
       qualifiesForTimedBonus = sessionStarted && timed;
       pyramidStartedAt = performance.now();
@@ -1628,7 +1709,12 @@
       startButton.hidden = sessionStarted;
 
       if (sessionStarted) {
-        announce('');
+        announce(
+          special93
+            ? 'Completa les dues caselles per aconseguir 193 punts extra!'
+            : ''
+        );
+
         focusFirstInput();
       } else {
         announce('Prem Comença per iniciar la partida.');
@@ -1738,15 +1824,24 @@
       if (fields.every(matches)) {
         const duration = performance.now() - pyramidStartedAt;
         const time = formatTime(Math.floor(duration / 1000));
-        const earned = pointsFor(duration);
+        const bonus = puzzle.special93 ? 193 : 0;
+        const earned = pointsFor(duration) + bonus;
         const result = time + ' · +' + earned + ' punts';
+
+        if (puzzle.special93) {
+          special93State = 'completed';
+          stage.classList.add('special-93-finished');
+        }
 
         clock.hidden = true;
 
         totalPoints += earned;
         points.textContent = totalPoints + ' punts totals';
 
-        lastResult.textContent = 'Última piràmide · ' + result;
+        lastResult.textContent =
+          'Última piràmide · ' + result +
+          (bonus ? ' · inclou 193 punts de bonus' : '');
+
         lastResult.hidden = false;
 
         solved++;
@@ -1763,7 +1858,12 @@
         check.disabled = true;
         restart.disabled = true;
 
-        announce('Correcte! ' + result, 'success');
+        announce(
+          bonus
+            ? '🏁 Gas! Bonus 93 aconseguit! +' + earned + ' punts en total.'
+            : 'Correcte! ' + result,
+          'success'
+        );
 
         transition = setTimeout(() => {
           newPuzzle();
@@ -1918,26 +2018,27 @@
         ? rankingEntries
         : rankingEntries.slice(0, 20);
 
-        visibleEntries.forEach(({ name, grade, school, score }) => {
-          const item = document.createElement('li');
-          const player = document.createElement('strong');
-          const gradeLabel = document.createElement('div');
-          const schoolLabel = document.createElement('div');
-          const pointsLabel = document.createElement('div');
-        
-          gradeLabel.className = 'ranking-grade';
-          schoolLabel.className = 'ranking-school';
-          pointsLabel.className = 'ranking-points';
-        
-          player.textContent = name;
-          gradeLabel.textContent = grade || '—';
-          schoolLabel.textContent = school;
-          pointsLabel.textContent =
-            Number(score).toLocaleString('ca-ES') + ' punts';
-        
-          item.append(player, gradeLabel, schoolLabel, pointsLabel);
-          rankingList.append(item);
-        });
+      visibleEntries.forEach(({ name, grade, school, score }) => {
+        const item = document.createElement('li');
+        const player = document.createElement('strong');
+        const gradeLabel = document.createElement('div');
+        const schoolLabel = document.createElement('div');
+        const pointsLabel = document.createElement('div');
+
+        gradeLabel.className = 'ranking-grade';
+        schoolLabel.className = 'ranking-school';
+        pointsLabel.className = 'ranking-points';
+
+        player.textContent = name;
+        gradeLabel.textContent = grade || '—';
+        schoolLabel.textContent = school;
+
+        pointsLabel.textContent =
+          Number(score).toLocaleString('ca-ES') + ' punts';
+
+        item.append(player, gradeLabel, schoolLabel, pointsLabel);
+        rankingList.append(item);
+      });
 
       rankingMore.hidden = rankingEntries.length <= 20;
 
@@ -2105,16 +2206,17 @@
       get('entry-screen').hidden = true;
       get('game-screen').inert = false;
       document.body.classList.remove('entry-open');
-      
+
       startButton.focus({ preventScroll: true });
     });
 
-    // Prepara el joc del fons sense iniciar el temps.
-      displayBoard(get('example'), pyramid([4, 6, 5, 3]));
-      newPuzzle();
-      refreshRanking();
-      
-      get('entry-name').focus({ preventScroll: true });
+    // Prepara el fons sense iniciar el temps.
+
+    displayBoard(get('example'), pyramid([4, 6, 5, 3]));
+    newPuzzle();
+    refreshRanking();
+
+    get('entry-name').focus({ preventScroll: true });
   </script>
 </body>
 </html>

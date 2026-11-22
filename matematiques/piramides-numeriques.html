@@ -787,7 +787,7 @@
       text-align: center;
     }
 
-    /* Efectes exclusius del mode Marc Márquez */
+    /* Efectes dels bonus Márquez */
 
     .special-93-notice {
       display: flex;
@@ -1166,6 +1166,330 @@
       font-size: 13px;
     }
 
+    /* Transformació completa del mode Marc Márquez */
+
+    body.marquez-theme {
+      color-scheme: dark;
+      --ink: #fff4ed;
+      --muted: #b9b4b5;
+      --line: #3c3033;
+      --paper: #181719;
+      --given: #3c282b;
+      color: var(--ink);
+      background:
+        radial-gradient(
+          ellipse at top right,
+          rgba(232, 34, 39, .19),
+          transparent 55%
+        ),
+        repeating-linear-gradient(
+          135deg,
+          #101012 0 12px,
+          #131315 12px 24px
+        );
+    }
+
+    body.marquez-theme :focus-visible {
+      outline-color: #ffbb54;
+    }
+
+    body.marquez-theme .site-header {
+      position: relative;
+      background: #101012;
+      border-bottom: 3px solid #ed3038;
+      box-shadow: 0 8px 35px rgba(0, 0, 0, .3);
+    }
+
+    body.marquez-theme .site-header::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: -3px;
+      width: 120px;
+      height: 12px;
+      background:
+        repeating-conic-gradient(
+          #eee 0 25%,
+          #161618 0 50%
+        ) 0 0 / 12px 12px;
+    }
+
+    body.marquez-theme .logo {
+      color: #ff454c;
+      font-style: italic;
+    }
+
+    body.marquez-theme .site-back {
+      color: #e7dedd;
+    }
+
+    body.marquez-theme h1 {
+      color: #fff6ee;
+      font-style: italic;
+      text-shadow: 3px 3px 0 #8e2029;
+    }
+
+    body.marquez-theme .card {
+      border-color: #443033;
+      border-radius: 16px;
+      background: linear-gradient(145deg, #211b1e, #151517);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, .26);
+    }
+
+    body.marquez-theme .layout > .card:first-child {
+      border-top: 4px solid #ed3038;
+    }
+
+    body.marquez-theme .card h2 {
+      color: #fff4ed;
+      font-style: italic;
+    }
+
+    body.marquez-theme .score {
+      border: 1px solid #5e333a;
+      border-radius: 6px;
+      background: #2b1d22;
+      color: #ffe1db;
+      font-variant-numeric: tabular-nums;
+    }
+
+    body.marquez-theme #points {
+      border-color: #ed3038;
+      background: #c8202e;
+      color: white;
+      font-weight: 900;
+    }
+
+    body.marquez-theme .clock {
+      border: 1px solid #413237;
+      border-radius: 8px;
+      background: #0c0d0f;
+      color: #ded5d6;
+    }
+
+    body.marquez-theme .elapsed-clock strong {
+      color: #fff5e9;
+      font-family: "Courier New", monospace;
+      font-size: 30px;
+      letter-spacing: 2px;
+    }
+
+    body.marquez-theme .clock[data-urgent="true"] {
+      border-color: #ff5b52;
+      background: #4d1b21;
+      color: #ffd3b1;
+    }
+
+    body.marquez-theme .stage {
+      border: 1px solid #69313a;
+      border-radius: 12px;
+      background:
+        linear-gradient(
+          135deg,
+          transparent 65%,
+          rgba(225, 42, 49, .12) 65% 75%,
+          transparent 75%
+        ),
+        linear-gradient(150deg, #252024, #0e1013);
+    }
+
+    body.marquez-theme .given {
+      border-color: #8b3943;
+      background: #51272f;
+      color: #fff2ed;
+    }
+
+    body.marquez-theme input.cell {
+      border-color: #8e525a;
+      background: #17171a;
+      color: #fff9f2;
+    }
+
+    body.marquez-theme input.cell:focus {
+      border-color: #ffb95a;
+      background: #2b2021;
+    }
+
+    body.marquez-theme input.cell[aria-invalid="true"] {
+      border-color: #ff9464;
+      background: #56242a;
+      color: white;
+    }
+
+    body.marquez-theme input.cell.correct {
+      border-color: #a9d681;
+      background: #233e2b;
+      color: #e7ffce;
+    }
+
+    body.marquez-theme input.cell.erased {
+      border-color: #ffbc64;
+      background: #4a3020;
+      color: #ffe7c3;
+    }
+
+    body.marquez-theme .primary {
+      border-color: #ff5b58;
+      border-radius: 7px;
+      background: linear-gradient(135deg, #ed3038, #b91829);
+      color: white;
+      box-shadow: 0 5px 14px rgba(175, 10, 30, .2);
+    }
+
+    body.marquez-theme .primary:hover:not(:disabled) {
+      background: #ff454c;
+    }
+
+    body.marquez-theme .mode,
+    body.marquez-theme .timed-toggle,
+    body.marquez-theme .marquez-mode-option {
+      border-color: #50353c;
+      border-radius: 9px;
+      background: #211a1f;
+      color: #fff4ed;
+    }
+
+    body.marquez-theme .level-option:hover {
+      border-color: #c9525e;
+      background: #35212a;
+    }
+
+    body.marquez-theme .level-option[aria-pressed="true"] {
+      border-color: #ff5059;
+      background: linear-gradient(120deg, #63232f, #312027);
+      box-shadow: inset 4px 0 0 #ff454c;
+    }
+
+    body.marquez-theme .level-description,
+    body.marquez-theme .timed-copy > span,
+    body.marquez-theme .marquez-mode-copy small {
+      color: #c6b8bd;
+    }
+
+    body.marquez-theme .level-points {
+      color: #ffc390;
+    }
+
+    body.marquez-theme .marquez-mode-option:has(input:checked) {
+      border-color: #ff454c;
+      background: #4a202a;
+    }
+
+    body.marquez-theme .switch-track {
+      background: #55434a;
+    }
+
+    body.marquez-theme .timed-toggle[aria-pressed="true"] .switch-track {
+      background: #ee3947;
+    }
+
+    body.marquez-theme aside details > summary {
+      color: #f4e2e1;
+    }
+
+    body.marquez-theme aside details > summary::after {
+      color: #ff8588;
+    }
+
+    body.marquez-theme aside details > summary:hover {
+      background: #35212a;
+    }
+
+    body.marquez-theme .status[data-tone="success"] {
+      color: #bce99d;
+    }
+
+    body.marquez-theme .status[data-tone="error"] {
+      color: #ffad90;
+    }
+
+    body.marquez-theme .game-info th {
+      background: #38232c;
+      color: #fff4ed;
+    }
+
+    body.marquez-theme .text-input {
+      border-color: #76505b;
+      background: #111215;
+      color: #fff4ed;
+    }
+
+    body.marquez-theme .grade-choice {
+      border-color: #76505b;
+    }
+
+    body.marquez-theme .grade-choice:has(input:checked) {
+      background: #572331;
+    }
+
+    body.marquez-theme #ranking-list li:nth-child(1) {
+      background: #46351d;
+    }
+
+    body.marquez-theme #ranking-list li:nth-child(2) {
+      background: #30343e;
+    }
+
+    body.marquez-theme #ranking-list li:nth-child(3) {
+      background: #452b23;
+    }
+
+    body.marquez-theme #ranking-list .ranking-points {
+      color: #ffc49b;
+    }
+
+    body.marquez-theme footer {
+      margin-top: 24px;
+      border-top: 1px solid #563039;
+    }
+
+    /* Contrast específic del repte bonus dins del tema fosc */
+
+    body.marquez-theme #stage.special-93 {
+      border: 2px solid #ff3b30;
+      background:
+        repeating-linear-gradient(
+          -35deg,
+          transparent 0 26px,
+          rgba(255, 255, 255, .05) 26px 30px
+        ),
+        linear-gradient(135deg, #292929, #101010);
+    }
+
+    body.marquez-theme #stage.special-93 .given {
+      border-color: #e34a40;
+      background: #c92a24;
+      color: white;
+    }
+
+    body.marquez-theme #stage.special-93 input.cell {
+      border-color: #ff6559;
+      background: #fff8f4;
+      color: #202020;
+    }
+
+    body.marquez-theme #stage.special-93 .row:first-child .cell {
+      border-color: white;
+      background: white;
+      color: #d62820;
+    }
+
+    body.marquez-theme #stage.special-93 input.cell[aria-invalid="true"] {
+      border-color: #ffab43;
+      background: #ffe1ce;
+      color: #202020;
+    }
+
+    body.marquez-theme #stage.special-93 input.cell.correct {
+      border-color: #f3c650;
+      background: #fff0b5;
+      color: #202020;
+    }
+
+    body.marquez-theme #stage.special-93.special-93-finished {
+      border-color: #f3c650;
+    }
+
     /* Adaptació a mòbil */
 
     @media (max-width: 700px) {
@@ -1520,7 +1844,7 @@
         <label class="marquez-mode-option">
           <span class="marquez-mode-copy">
             <strong>Mode Marc Márquez</strong>
-            <small>Reptes sorpresa i bonus del 93</small>
+            <small>Ambient de cursa i bonus sorpresa del 93</small>
           </span>
 
           <input id="marquez-mode" type="checkbox">
@@ -1600,9 +1924,14 @@
             <h3>Mode Marc Márquez</h3>
 
             <p>
-              Activa la casella si vols reptes sorpresa del 93.
-              Durant la partida apareixeran piràmides especials
-              amb efectes de moto, fum i moviment.
+              Activa la casella per transformar tota la pàgina
+              en un ambient de cursa.
+            </p>
+
+            <p>
+              Cada cert nombre de punts apareixerà
+              una piràmide especial del 93
+              amb moto, fum i moviment.
             </p>
 
             <p>
@@ -1660,7 +1989,7 @@
     MADUKA · Materials educatius oberts
   </footer>
 
-  <!-- Efecte de moto del mode opcional -->
+  <!-- Animació de moto -->
 
   <div
     id="special-93-screen-effect"
@@ -1746,7 +2075,7 @@
     let timer = null;
     let deadline = 0;
 
-    // El mode Marc Márquez comença desactivat.
+    // Mode Marc Márquez.
 
     let marquezEnabled = false;
     let special93Active = false;
@@ -1755,9 +2084,8 @@
     let special93EffectTimer = null;
     let special93SmokeTimer = null;
 
-    // Reinicia els controls opcionals en carregar la pàgina.
-
     marquezToggle.checked = false;
+    document.body.classList.remove('marquez-theme');
     timedButton.setAttribute('aria-pressed', 'false');
 
     // Construcció de les piràmides.
@@ -1863,7 +2191,7 @@
       return cells;
     }
 
-    // Missatges, temps i puntuació.
+    // Missatges, rellotge i puntuació.
 
     function announce(message, tone = '') {
       status.textContent = message;
@@ -1966,7 +2294,7 @@
       timer = setInterval(updateClock, 100);
     }
 
-    // Efectes del mode Marc Márquez.
+    // Efectes opcionals.
 
     function randomSpecial93Gap() {
       return 1200 + Math.floor(Math.random() * 1301);
@@ -1992,10 +2320,8 @@
       }
 
       stopSpecial93Effects();
-
       specialEffect.hidden = false;
 
-      // Reinicia les animacions en cada nou especial.
       void specialEffect.offsetWidth;
 
       specialEffect.classList.add('is-running');
@@ -2091,7 +2417,7 @@
 
         const base = nextBase();
 
-        // Es treballa amb dècimes enteres per evitar errors decimals.
+        // Es calcula amb dècimes enteres per evitar errors decimals.
         const values = decimal
           ? base.map(value =>
               value * 10 + 1 + Math.floor(Math.random() * 9)
@@ -2241,6 +2567,7 @@
 
         if (special) {
           special93Active = false;
+
           nextSpecial93At =
             totalPoints + earned + randomSpecial93Gap();
 
@@ -2411,6 +2738,14 @@
     marquezToggle.addEventListener('change', () => {
       marquezEnabled = marquezToggle.checked;
 
+      document.body.classList.toggle(
+        'marquez-theme',
+        marquezEnabled
+      );
+
+      document.querySelector('meta[name="theme-color"]').content =
+        marquezEnabled ? '#101012' : '#20382c';
+
       if (marquezEnabled) {
         nextSpecial93At = totalPoints + randomSpecial93Gap();
 
@@ -2443,6 +2778,7 @@
     const rankingStatus = get('ranking-status');
     const rankingRefresh = get('ranking-refresh');
     const rankingMore = get('ranking-more');
+
     const rankingSubmit =
       rankingForm.querySelector('button[type="submit"]');
 
@@ -2681,7 +3017,7 @@
       startButton.focus({ preventScroll: true });
     });
 
-    // Manté el focus dins de la finestra mentre es demanen les dades.
+    // Manté el focus dins de la finestra inicial.
 
     get('entry-screen').addEventListener('keydown', event => {
       if (event.key !== 'Tab') {
@@ -2709,7 +3045,7 @@
       }
     });
 
-    // Prepara el joc del fons sense iniciar el rellotge.
+    // Prepara el joc sense iniciar el rellotge.
 
     displayBoard(get('example'), pyramid([4, 6, 5, 3]));
     newPuzzle();

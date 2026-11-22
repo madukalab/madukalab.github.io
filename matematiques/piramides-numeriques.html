@@ -20,32 +20,12 @@
       --given: #dce9c6;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    [hidden] {
-      display: none !important;
-    }
-
-    body {
-      margin: 0;
-    }
-
-    body.entry-open {
-      overflow: hidden;
-    }
-
-    button,
-    input,
-    select {
-      font: inherit;
-    }
-
-    button,
-    summary {
-      cursor: pointer;
-    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; }
+    body.entry-open { overflow: hidden; }
+    button, input, select { font: inherit; }
+    button, summary { cursor: pointer; }
 
     :focus-visible {
       outline: 3px solid #8553a5;
@@ -57,7 +37,7 @@
       margin: auto;
     }
 
-    /* Capçalera */
+    /* CAPÇALERA */
 
     .site-header {
       display: flex;
@@ -83,11 +63,9 @@
       text-decoration: none;
     }
 
-    .site-header a:hover {
-      opacity: .7;
-    }
+    .site-header a:hover { opacity: .7; }
 
-    /* Distribució */
+    /* DISTRIBUCIÓ */
 
     h1 {
       margin: 14px 0 10px;
@@ -117,13 +95,9 @@
       background: var(--paper);
     }
 
-    .card h2 {
-      margin: 0;
-      font-size: 20px;
-    }
+    .card h2 { margin: 0; font-size: 20px; }
 
-    .board-head,
-    .actions {
+    .board-head, .actions {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
@@ -135,9 +109,7 @@
       margin-bottom: 14px;
     }
 
-    .actions {
-      margin-top: 15px;
-    }
+    .actions { margin-top: 15px; }
 
     .score {
       padding: 6px 10px;
@@ -146,10 +118,9 @@
       font-size: 14px;
     }
 
-    /* Botons i camps */
+    /* BOTONS I CAMPS */
 
-    .primary,
-    .mode {
+    .primary, .mode {
       padding: 10px 14px;
       border-radius: 10px;
       font-weight: 800;
@@ -188,7 +159,7 @@
       color: var(--ink);
     }
 
-    /* Finestra inicial */
+    /* FINESTRA INICIAL */
 
     .entry-overlay {
       position: fixed;
@@ -219,13 +190,9 @@
       letter-spacing: -.04em;
     }
 
-    #entry-form {
-      display: grid;
-      gap: 12px;
-    }
+    #entry-form { display: grid; gap: 12px; }
 
-    #entry-form > label,
-    .grade-field legend {
+    #entry-form > label, .grade-field legend {
       font-size: 14px;
       font-weight: 700;
     }
@@ -238,10 +205,7 @@
       border: 0;
     }
 
-    .grade-field legend {
-      margin-bottom: 10px;
-      padding: 0;
-    }
+    .grade-field legend { margin-bottom: 10px; padding: 0; }
 
     .grade-choice {
       display: flex;
@@ -260,21 +224,9 @@
       background: #e3edd0;
     }
 
-    .grade-choice input {
-      margin: 0;
-      accent-color: #527343;
-    }
-
-    #entry-status {
-      margin: 0;
-      color: #943828;
-      font-size: 13px;
-    }
-
-    #entry-form .primary {
-      margin-top: 4px;
-      padding: 13px;
-    }
+    .grade-choice input { margin: 0; accent-color: #527343; }
+    #entry-status { margin: 0; color: #943828; font-size: 13px; }
+    #entry-form .primary { margin-top: 4px; padding: 13px; }
 
     #player-summary {
       margin: 22px 0 0;
@@ -283,7 +235,7 @@
       overflow-wrap: anywhere;
     }
 
-    /* Rellotges */
+    /* RELLOTGES */
 
     .clock {
       display: flex;
@@ -297,9 +249,7 @@
       font-size: 14px;
     }
 
-    .elapsed-clock {
-      justify-content: center;
-    }
+    .elapsed-clock { justify-content: center; }
 
     .clock strong {
       font-size: 22px;
@@ -311,7 +261,7 @@
       color: #843627;
     }
 
-    /* Piràmide */
+    /* PIRÀMIDE */
 
     #start {
       width: 100%;
@@ -365,49 +315,25 @@
       background: #fff1e7;
     }
 
-    input.cell.correct {
-      border-color: #599344;
-      background: #ecf6db;
-    }
+    input.cell.correct { border-color: #599344; background: #ecf6db; }
+    input.cell.erased { border-color: #a85c25; background: #fff1d7; }
 
-    input.cell.erased {
-      border-color: #a85c25;
-      background: #fff1d7;
-    }
+    /* MISSATGES */
 
-    /* Missatges */
-
-    .status,
-    aside p {
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .status {
-      min-height: 2.8em;
-      margin: 12px 0 0;
-    }
-
-    .status[data-tone="error"] {
-      color: #943828;
-    }
+    .status, aside p { color: var(--muted); line-height: 1.5; }
+    .status { min-height: 2.8em; margin: 12px 0 0; }
+    .status[data-tone="error"] { color: #943828; }
 
     .status[data-tone="success"] {
       color: #316331;
       font-weight: 800;
     }
 
-    .help {
-      font-size: 14px;
-    }
+    .help { font-size: 14px; }
 
-    /* Nivells */
+    /* NIVELLS */
 
-    .level-list {
-      display: grid;
-      gap: 8px;
-      margin: 18px 0;
-    }
+    .level-list { display: grid; gap: 8px; margin: 18px 0; }
 
     .level-option {
       display: grid;
@@ -438,9 +364,7 @@
       gap: 8px;
     }
 
-    .level-heading strong {
-      font-size: 16px;
-    }
+    .level-heading strong { font-size: 16px; }
 
     .level-points {
       color: #587149;
@@ -456,10 +380,9 @@
       line-height: 1.4;
     }
 
-    /* Opcions voluntàries */
+    /* OPCIONS VOLUNTÀRIES */
 
-    .timed-toggle,
-    .marquez-mode-option {
+    .timed-toggle, .marquez-mode-option {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -472,19 +395,10 @@
       background: var(--paper);
     }
 
-    .timed-copy,
-    .marquez-mode-copy {
-      display: grid;
-      gap: 5px;
-    }
+    .timed-copy, .marquez-mode-copy { display: grid; gap: 5px; }
+    .timed-copy strong, .marquez-mode-copy strong { font-size: 15px; }
 
-    .timed-copy strong,
-    .marquez-mode-copy strong {
-      font-size: 15px;
-    }
-
-    .timed-copy > span,
-    .marquez-mode-copy small {
+    .timed-copy > span, .marquez-mode-copy small {
       color: var(--muted);
       font-size: 12px;
       font-weight: 400;
@@ -520,9 +434,7 @@
       transform: translateX(17px);
     }
 
-    .marquez-mode-option {
-      cursor: pointer;
-    }
+    .marquez-mode-option { cursor: pointer; }
 
     .marquez-mode-option:has(input:checked) {
       border-color: #c92a24;
@@ -536,7 +448,13 @@
       accent-color: #c92a24;
     }
 
-    /* Informació */
+    .sound-toggle {
+      width: 100%;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    /* INFORMACIÓ */
 
     aside details {
       margin: 0;
@@ -557,9 +475,7 @@
       list-style: none;
     }
 
-    aside details > summary::-webkit-details-marker {
-      display: none;
-    }
+    aside details > summary::-webkit-details-marker { display: none; }
 
     aside details > summary::after {
       content: "+";
@@ -568,13 +484,8 @@
       font-weight: 400;
     }
 
-    aside details[open] > summary::after {
-      content: "−";
-    }
-
-    aside details > summary:hover {
-      background: #f0f4e7;
-    }
+    aside details[open] > summary::after { content: "−"; }
+    aside details > summary:hover { background: #f0f4e7; }
 
     aside details > p {
       margin: 0 4px 14px;
@@ -595,22 +506,8 @@
       font-size: 14px;
     }
 
-    .game-info h3:first-child {
-      margin-top: 2px;
-    }
-
-    .game-info p {
-      margin: 0 0 10px;
-    }
-
-    .game-info ul {
-      margin: 0 0 12px;
-      padding-left: 19px;
-    }
-
-    .game-info li {
-      margin-bottom: 5px;
-    }
+    .game-info h3:first-child { margin-top: 2px; }
+    .game-info p { margin: 0 0 10px; }
 
     .game-info table {
       width: 100%;
@@ -619,28 +516,19 @@
       font-size: 13px;
     }
 
-    .game-info th,
-    .game-info td {
+    .game-info th, .game-info td {
       padding: 7px 8px;
       border-bottom: 1px solid var(--line);
       text-align: left;
     }
 
-    .game-info th {
-      background: #edf2e4;
-      color: var(--ink);
-    }
+    .game-info th { background: #edf2e4; color: var(--ink); }
 
-    .game-info th:last-child,
-    .game-info td:last-child {
+    .game-info th:last-child, .game-info td:last-child {
       text-align: right;
     }
 
-    .example {
-      display: grid;
-      gap: 4px;
-      margin: 12px 0 16px;
-    }
+    .example { display: grid; gap: 4px; margin: 12px 0 16px; }
 
     .example .cell {
       width: 36px;
@@ -649,7 +537,7 @@
       font-size: 14px;
     }
 
-    /* Classificació */
+    /* CLASSIFICACIÓ */
 
     .ranking-panel {
       --ranking-columns:
@@ -659,21 +547,11 @@
       border-top: 1px solid var(--line);
     }
 
-    .ranking-panel h2 {
-      margin-bottom: 16px;
-    }
+    .ranking-panel h2 { margin-bottom: 16px; }
+    #ranking-form .primary { width: 100%; }
+    #ranking-status { color: var(--muted); line-height: 1.5; }
 
-    #ranking-form .primary {
-      width: 100%;
-    }
-
-    #ranking-status {
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .ranking-head,
-    #ranking-list li {
+    .ranking-head, #ranking-list li {
       display: grid;
       grid-template-columns: var(--ranking-columns);
       align-items: center;
@@ -692,9 +570,7 @@
       font-weight: 800;
     }
 
-    .ranking-head span:nth-child(n+3) {
-      text-align: center;
-    }
+    .ranking-head span:nth-child(n+3) { text-align: center; }
 
     #ranking-list {
       margin: 0;
@@ -738,9 +614,7 @@
       font-weight: 700;
     }
 
-    #ranking-list .ranking-school {
-      color: var(--muted);
-    }
+    #ranking-list .ranking-school { color: var(--muted); }
 
     #ranking-list .ranking-points {
       color: var(--ink);
@@ -759,27 +633,21 @@
       font-size: 21px;
     }
 
-    #ranking-list li:nth-child(2) {
-      background: #edf0f3;
-    }
+    #ranking-list li:nth-child(2) { background: #edf0f3; }
 
     #ranking-list li:nth-child(2)::before {
       content: "🥈";
       font-size: 21px;
     }
 
-    #ranking-list li:nth-child(3) {
-      background: #f5e7da;
-    }
+    #ranking-list li:nth-child(3) { background: #f5e7da; }
 
     #ranking-list li:nth-child(3)::before {
       content: "🥉";
       font-size: 21px;
     }
 
-    #ranking-list li:nth-child(-n+3) strong {
-      font-weight: 900;
-    }
+    #ranking-list li:nth-child(-n+3) strong { font-weight: 900; }
 
     #ranking-more {
       display: block;
@@ -787,7 +655,7 @@
       text-align: center;
     }
 
-    /* Efectes dels bonus Márquez */
+    /* PIRÀMIDE ESPECIAL */
 
     .special-93-notice {
       display: flex;
@@ -811,29 +679,12 @@
       letter-spacing: -4px;
     }
 
-    .special-93-notice > div {
-      display: grid;
-      gap: 5px;
-    }
+    .special-93-notice > div { display: grid; gap: 5px; }
+    .special-93-notice strong { font-size: 16px; }
+    .special-93-notice > div > span { color: #ddd; font-size: 12px; }
 
-    .special-93-notice strong {
-      font-size: 16px;
-    }
-
-    .special-93-notice > div > span {
-      color: #ddd;
-      font-size: 12px;
-    }
-
-    .special-93-shell {
-      position: relative;
-      isolation: isolate;
-    }
-
-    .special-93-shell .stage {
-      position: relative;
-      z-index: 1;
-    }
+    .special-93-shell { position: relative; isolation: isolate; }
+    .special-93-shell .stage { position: relative; z-index: 1; }
 
     #stage.special-93 {
       border: 2px solid #ff3b30;
@@ -863,9 +714,7 @@
       color: #202020;
     }
 
-    #stage.special-93 input.cell:focus {
-      outline-color: #ffb951;
-    }
+    #stage.special-93 input.cell:focus { outline-color: #ffb951; }
 
     #stage.special-93 input.cell[aria-invalid="true"] {
       border-color: #ffab43;
@@ -895,6 +744,8 @@
       color: #202020;
     }
 
+    /* FUM */
+
     .mm93-smoke {
       display: none;
       position: absolute;
@@ -905,17 +756,9 @@
       pointer-events: none;
     }
 
-    .special-93-shell.is-smoking .mm93-smoke {
-      display: block;
-    }
-
-    .mm93-smoke-left {
-      left: 0;
-    }
-
-    .mm93-smoke-right {
-      right: 0;
-    }
+    .special-93-shell.is-smoking .mm93-smoke { display: block; }
+    .mm93-smoke-left { left: 0; }
+    .mm93-smoke-right { right: 0; }
 
     .mm93-smoke span {
       position: absolute;
@@ -935,13 +778,10 @@
       animation: mm93-smoke 1.5s ease-out 4;
     }
 
-    .mm93-smoke span:nth-child(2) {
-      animation-delay: .4s;
-    }
+    .mm93-smoke span:nth-child(2) { animation-delay: .4s; }
+    .mm93-smoke span:nth-child(3) { animation-delay: .8s; }
 
-    .mm93-smoke span:nth-child(3) {
-      animation-delay: .8s;
-    }
+    /* MOTO QUE TRAVESSA LA PANTALLA */
 
     .mm93-screen-effect {
       position: fixed;
@@ -955,39 +795,21 @@
       position: absolute;
       top: 35%;
       left: 0;
-      width: 190px;
-      height: 110px;
-      transform: translateX(-260px);
+      width: 310px;
+      height: 180px;
+      transform: translateX(-430px);
     }
 
     .mm93-screen-effect.is-running .mm93-rider {
       animation: mm93-cross 2s cubic-bezier(.2, .6, .5, 1) forwards;
     }
 
-    .mm93-rider-bike {
+    .mm93-bike-art {
       position: absolute;
-      right: 0;
-      bottom: 0;
-      font-size: 86px;
-      line-height: 1;
-      transform: scaleX(-1);
-    }
-
-    .mm93-rider-number {
-      position: absolute;
-      top: -5px;
-      right: 12px;
-      z-index: 2;
-      padding: 4px 10px;
-      border: 2px solid white;
-      border-radius: 8px;
-      background: #df3027;
-      color: white;
-      font-family: Arial, sans-serif;
-      font-size: 31px;
-      font-style: italic;
-      font-weight: 900;
-      transform: rotate(-8deg);
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 20px #f3293355);
     }
 
     .mm93-road-smoke {
@@ -1013,9 +835,7 @@
       width: 55vw;
       height: 3px;
       background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(235, 50, 40, .8)
+        90deg, transparent, rgba(235, 50, 40, .8)
       );
       opacity: 0;
     }
@@ -1057,34 +877,77 @@
       animation: mm93-title 2.6s ease-out forwards;
     }
 
+    /* CELEBRACIÓ */
+
+    .bonus-celebration {
+      position: fixed;
+      inset: 0;
+      z-index: 910;
+      pointer-events: none;
+    }
+
+    .bonus-finish {
+      position: absolute;
+      top: 55%;
+      left: 50%;
+      width: min(90vw, 430px);
+      transform: translate(-50%, -50%);
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      padding: 22px;
+      border: 2px solid #ffc85a;
+      border-radius: 18px;
+      background: #151315f5;
+      color: white;
+      box-shadow: 0 0 60px #f02b3655;
+      text-align: center;
+    }
+
+    .bonus-finish > span {
+      font-size: 54px;
+      animation: bonus-flag .6s ease-in-out 3 alternate;
+    }
+
+    .bonus-finish strong {
+      font-size: clamp(19px, 4vw, 28px);
+      font-style: italic;
+    }
+
+    .bonus-finish small {
+      color: #ffcf6a;
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .bonus-flying-points {
+      position: absolute;
+      top: 35%;
+      left: calc(50% - 75px);
+      width: 150px;
+      color: #ffdc82;
+      text-align: center;
+      font-size: 38px;
+      font-weight: 900;
+      text-shadow: 0 3px 12px black;
+    }
+
+    .bonus-score-pop {
+      animation: bonus-score-pop .5s ease-out;
+    }
+
+    /* ANIMACIONS */
+
     @keyframes mm93-cross {
-      0% {
-        transform: translateX(-260px) rotate(-5deg);
-      }
-
-      45% {
-        transform: translateX(calc(45vw - 95px)) rotate(-10deg);
-      }
-
-      100% {
-        transform: translateX(calc(100vw + 260px)) rotate(-4deg);
-      }
+      0% { transform: translateX(-430px) rotate(-8deg); }
+      40% { transform: translateX(38vw) rotate(0deg); }
+      100% { transform: translateX(calc(100vw + 430px)) rotate(4deg); }
     }
 
     @keyframes mm93-speed {
-      0% {
-        opacity: 0;
-        transform: translateX(0);
-      }
-
-      20% {
-        opacity: 1;
-      }
-
-      100% {
-        opacity: 0;
-        transform: translateX(170vw);
-      }
+      0% { opacity: 0; transform: translateX(0); }
+      20% { opacity: 1; }
+      100% { opacity: 0; transform: translateX(170vw); }
     }
 
     @keyframes mm93-title {
@@ -1092,12 +955,10 @@
         opacity: 0;
         transform: translate(-50%, 15px) scale(.9);
       }
-
       25%, 75% {
         opacity: 1;
         transform: translate(-50%, 0) scale(1);
       }
-
       100% {
         opacity: 0;
         transform: translate(-50%, -10px);
@@ -1105,58 +966,35 @@
     }
 
     @keyframes mm93-shake {
-      0%, 100% {
-        transform: translate(0, 0);
-      }
-
-      15% {
-        transform: translate(-5px, 2px) rotate(-.6deg);
-      }
-
-      30% {
-        transform: translate(5px, -2px) rotate(.6deg);
-      }
-
-      45% {
-        transform: translate(-4px, 1px) rotate(-.4deg);
-      }
-
-      60% {
-        transform: translate(4px, -1px) rotate(.4deg);
-      }
-
-      80% {
-        transform: translate(-2px, 0);
-      }
+      0%, 100% { transform: translate(0, 0); }
+      15% { transform: translate(-5px, 2px) rotate(-.6deg); }
+      30% { transform: translate(5px, -2px) rotate(.6deg); }
+      45% { transform: translate(-4px, 1px) rotate(-.4deg); }
+      60% { transform: translate(4px, -1px) rotate(.4deg); }
+      80% { transform: translate(-2px, 0); }
     }
 
     @keyframes mm93-pop {
-      0% {
-        transform: scale(.85) rotate(-8deg);
-      }
-
-      55% {
-        transform: scale(1.15) rotate(4deg);
-      }
-
-      100% {
-        transform: scale(1);
-      }
+      0% { transform: scale(.85) rotate(-8deg); }
+      55% { transform: scale(1.15) rotate(4deg); }
+      100% { transform: scale(1); }
     }
 
     @keyframes mm93-smoke {
-      0% {
-        opacity: 0;
-        transform: translateY(10px) scale(.4);
-      }
+      0% { opacity: 0; transform: translateY(10px) scale(.4); }
+      20% { opacity: .8; }
+      100% { opacity: 0; transform: translateY(-90px) scale(2.5); }
+    }
 
-      20% {
-        opacity: .8;
-      }
+    @keyframes bonus-flag {
+      from { transform: rotate(-16deg); }
+      to { transform: rotate(16deg); }
+    }
 
-      100% {
-        opacity: 0;
-        transform: translateY(-90px) scale(2.5);
+    @keyframes bonus-score-pop {
+      50% {
+        transform: scale(1.2);
+        box-shadow: 0 0 25px #ffd36c;
       }
     }
 
@@ -1166,7 +1004,7 @@
       font-size: 13px;
     }
 
-    /* Transformació completa del mode Marc Márquez */
+    /* TRANSFORMACIÓ COMPLETA DEL MODE MÁRQUEZ */
 
     body.marquez-theme {
       color-scheme: dark;
@@ -1176,22 +1014,17 @@
       --paper: #181719;
       --given: #3c282b;
       color: var(--ink);
-      background:
-        radial-gradient(
-          ellipse at top right,
-          rgba(232, 34, 39, .19),
-          transparent 55%
-        ),
-        repeating-linear-gradient(
-          135deg,
-          #101012 0 12px,
-          #131315 12px 24px
-        );
+      background-color: #101012;
+      background-image:
+        linear-gradient(#0a0a0c55, #0a0a0ca6),
+        url("./marquez-93.png");
+      background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
     }
 
-    body.marquez-theme :focus-visible {
-      outline-color: #ffbb54;
-    }
+    body.marquez-theme :focus-visible { outline-color: #ffbb54; }
 
     body.marquez-theme .site-header {
       position: relative;
@@ -1208,20 +1041,12 @@
       width: 120px;
       height: 12px;
       background:
-        repeating-conic-gradient(
-          #eee 0 25%,
-          #161618 0 50%
-        ) 0 0 / 12px 12px;
+        repeating-conic-gradient(#eee 0 25%, #161618 0 50%)
+        0 0 / 12px 12px;
     }
 
-    body.marquez-theme .logo {
-      color: #ff454c;
-      font-style: italic;
-    }
-
-    body.marquez-theme .site-back {
-      color: #e7dedd;
-    }
+    body.marquez-theme .logo { color: #ff454c; font-style: italic; }
+    body.marquez-theme .site-back { color: #e7dedd; }
 
     body.marquez-theme h1 {
       color: #fff6ee;
@@ -1366,42 +1191,24 @@
       color: #c6b8bd;
     }
 
-    body.marquez-theme .level-points {
-      color: #ffc390;
-    }
+    body.marquez-theme .level-points { color: #ffc390; }
 
     body.marquez-theme .marquez-mode-option:has(input:checked) {
       border-color: #ff454c;
       background: #4a202a;
     }
 
-    body.marquez-theme .switch-track {
-      background: #55434a;
-    }
+    body.marquez-theme .switch-track { background: #55434a; }
 
     body.marquez-theme .timed-toggle[aria-pressed="true"] .switch-track {
       background: #ee3947;
     }
 
-    body.marquez-theme aside details > summary {
-      color: #f4e2e1;
-    }
-
-    body.marquez-theme aside details > summary::after {
-      color: #ff8588;
-    }
-
-    body.marquez-theme aside details > summary:hover {
-      background: #35212a;
-    }
-
-    body.marquez-theme .status[data-tone="success"] {
-      color: #bce99d;
-    }
-
-    body.marquez-theme .status[data-tone="error"] {
-      color: #ffad90;
-    }
+    body.marquez-theme aside details > summary { color: #f4e2e1; }
+    body.marquez-theme aside details > summary::after { color: #ff8588; }
+    body.marquez-theme aside details > summary:hover { background: #35212a; }
+    body.marquez-theme .status[data-tone="success"] { color: #bce99d; }
+    body.marquez-theme .status[data-tone="error"] { color: #ffad90; }
 
     body.marquez-theme .game-info th {
       background: #38232c;
@@ -1414,36 +1221,23 @@
       color: #fff4ed;
     }
 
-    body.marquez-theme .grade-choice {
-      border-color: #76505b;
-    }
+    body.marquez-theme .grade-choice { border-color: #76505b; }
 
     body.marquez-theme .grade-choice:has(input:checked) {
       background: #572331;
     }
 
-    body.marquez-theme #ranking-list li:nth-child(1) {
-      background: #46351d;
-    }
-
-    body.marquez-theme #ranking-list li:nth-child(2) {
-      background: #30343e;
-    }
-
-    body.marquez-theme #ranking-list li:nth-child(3) {
-      background: #452b23;
-    }
-
-    body.marquez-theme #ranking-list .ranking-points {
-      color: #ffc49b;
-    }
+    body.marquez-theme #ranking-list li:nth-child(1) { background: #46351d; }
+    body.marquez-theme #ranking-list li:nth-child(2) { background: #30343e; }
+    body.marquez-theme #ranking-list li:nth-child(3) { background: #452b23; }
+    body.marquez-theme #ranking-list .ranking-points { color: #ffc49b; }
 
     body.marquez-theme footer {
       margin-top: 24px;
       border-top: 1px solid #563039;
     }
 
-    /* Contrast específic del repte bonus dins del tema fosc */
+    /* CONTRAST DEL BONUS */
 
     body.marquez-theme #stage.special-93 {
       border: 2px solid #ff3b30;
@@ -1490,30 +1284,24 @@
       border-color: #f3c650;
     }
 
-    /* Adaptació a mòbil */
+    /* ADAPTACIÓ A MÒBIL */
 
     @media (max-width: 700px) {
-      .layout {
-        grid-template-columns: 1fr;
+      .layout { grid-template-columns: 1fr; }
+      .card { padding: 15px; }
+      .entry-card { padding: 24px; }
+
+      body.marquez-theme {
+        background-position: 70% center;
+        background-attachment: scroll;
       }
 
-      .card {
-        padding: 15px;
-      }
-
-      .entry-card {
-        padding: 24px;
-      }
+      .mm93-rider { width: 250px; height: 145px; }
     }
 
     @media (max-width: 600px) {
-      .site-header {
-        padding: 24px 20px;
-      }
-
-      .site-back {
-        font-size: 14px;
-      }
+      .site-header { padding: 24px 20px; }
+      .site-back { font-size: 14px; }
     }
 
     @media (max-width: 480px) {
@@ -1522,86 +1310,50 @@
           20px minmax(0, 1fr) 32px minmax(0, 1.2fr) 80px;
       }
 
-      .ranking-head,
-      #ranking-list li {
+      .ranking-head, #ranking-list li {
         gap: 5px;
         padding-left: 4px;
         padding-right: 4px;
       }
 
-      .ranking-head {
-        font-size: 10px;
-      }
+      .ranking-head { font-size: 10px; }
 
-      #ranking-list li strong,
-      #ranking-list li > div {
+      #ranking-list li strong, #ranking-list li > div {
         font-size: 12px;
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .level-option,
-      .switch-track,
-      .switch-thumb {
+      .level-option, .switch-track, .switch-thumb {
         transition: none;
       }
 
       #stage.special-93,
       #stage.special-93 .row:first-child .cell,
       .mm93-smoke span,
-      .mm93-screen-effect * {
+      .mm93-screen-effect *,
+      .bonus-finish > span,
+      .bonus-score-pop {
         animation: none !important;
       }
 
-      .mm93-smoke {
-        display: none !important;
-      }
+      .mm93-smoke { display: none !important; }
     }
-    
-  /* Fons exclusiu del mode Marc Márquez */
-    body.marquez-theme {
-      background-color: #101012;
-      background-image:
-        linear-gradient(
-          rgba(10, 10, 12, 0.35),
-          rgba(10, 10, 12, 0.65)
-        ),
-        url("./marquez-93.png");
-      background-position: center;
-      background-size: cover;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-    }
-    
-    /* Adaptació per a mòbils */
-    @media (max-width: 700px) {
-      body.marquez-theme {
-        background-position: 70% center;
-        background-attachment: scroll;
-      }
-    }
-    
   </style>
 </head>
 
 <body class="entry-open">
   <header class="site-header" id="site-header" inert>
-    <a
-      class="logo"
-      href="https://madukalab.github.io/matematiques/"
-    >
+    <a class="logo" href="https://madukalab.github.io/matematiques/">
       MADUKA
     </a>
 
-    <a
-      class="site-back"
-      href="https://madukalab.github.io/matematiques/"
-    >
+    <a class="site-back" href="https://madukalab.github.io/matematiques/">
       ← Matemàtiques
     </a>
   </header>
 
-  <!-- Finestra inicial -->
+  <!-- ENTRADA AL JOC -->
 
   <div id="entry-screen" class="entry-overlay">
     <section
@@ -1614,7 +1366,6 @@
 
       <form id="entry-form">
         <label for="entry-name">Àlies</label>
-
         <input
           class="text-input"
           id="entry-name"
@@ -1639,7 +1390,6 @@
         </fieldset>
 
         <label for="entry-school">Escola</label>
-
         <input
           class="text-input"
           id="entry-school"
@@ -1651,14 +1401,12 @@
 
         <p id="entry-status" role="status"></p>
 
-        <button class="primary" type="submit">
-          Entra al joc
-        </button>
+        <button class="primary" type="submit">Entra al joc</button>
       </form>
     </section>
   </div>
 
-  <!-- Joc -->
+  <!-- JOC -->
 
   <main id="game-screen" class="wrap" inert>
     <p id="player-summary"></p>
@@ -1695,19 +1443,13 @@
         </div>
 
         <form id="puzzle" novalidate>
-          <div
-            id="special-93-notice"
-            class="special-93-notice"
-            hidden
-          >
+          <div id="special-93-notice" class="special-93-notice" hidden>
             <span class="special-93-number" aria-hidden="true">93</span>
 
             <div>
-              <strong>Especial Marc Márquez</strong>
-              <span>Dues caselles · 193 punts extra</span>
+              <strong>PIRÀMIDE 93 · +1093 punts extra</strong>
+              <span>Completa les sis caselles del repte especial</span>
             </div>
-
-            <span aria-hidden="true">🏍️</span>
           </div>
 
           <div id="special-93-shell" class="special-93-shell">
@@ -1719,15 +1461,11 @@
             ></div>
 
             <div class="mm93-smoke mm93-smoke-left" aria-hidden="true">
-              <span></span>
-              <span></span>
-              <span></span>
+              <span></span><span></span><span></span>
             </div>
 
             <div class="mm93-smoke mm93-smoke-right" aria-hidden="true">
-              <span></span>
-              <span></span>
-              <span></span>
+              <span></span><span></span><span></span>
             </div>
           </div>
 
@@ -1874,6 +1612,16 @@
           <input id="marquez-mode" type="checkbox">
         </label>
 
+        <button
+          class="mode sound-toggle"
+          type="button"
+          id="engine-sound"
+          aria-pressed="false"
+          hidden
+        >
+          So de motor: desactivat
+        </button>
+
         <details class="help">
           <summary>Info</summary>
 
@@ -1887,19 +1635,18 @@
 
             <p>
               Cada casella és la suma de les dues que té just a sota.
-              Completa els buits. Les caselles verdes són les pistes.
+              Completa els buits. Les caselles de color són les pistes.
             </p>
 
             <p>
               Pots moure’t entre els buits amb les
-              <strong>quatre fletxes del teclat</strong>
-              o amb la tecla Tab.
+              <strong>quatre fletxes del teclat</strong> o amb Tab.
             </p>
 
             <p>
-              Quan resolguis una piràmide, se’n generarà
-              una altra automàticament.
-              El rellotge mostra el temps total de la partida.
+              Quan resolguis una piràmide, se’n generarà una altra
+              automàticament. El rellotge mostra el temps total
+              de la partida.
             </p>
 
             <h3>Com es guanyen punts?</h3>
@@ -1927,21 +1674,20 @@
             <h3>Contrarellotge</h3>
 
             <p>
-              Si l’actives, cada 30 segons s’esborra
-              una pista o una resposta a l’atzar.
+              Si l’actives, cada 30 segons s’esborra una pista
+              o una resposta a l’atzar.
             </p>
 
             <p>
-              Si el mantens activat des del començament
-              de la piràmide, guanyes un <strong>25 % extra</strong>.
-              Si l’actives a mitja piràmide,
-              el bonus estarà disponible a la següent.
+              Si el mantens activat des del començament de la piràmide,
+              guanyes un <strong>25 % extra</strong>.
+              Si l’actives a mitja piràmide, el bonus estarà
+              disponible a la següent.
             </p>
 
             <p>
-              Amb <strong>Reinicia la piràmide</strong>
-              recuperes les pistes inicials i el compte enrere
-              torna a 30 segons.
+              Amb <strong>Reinicia la piràmide</strong> recuperes
+              les pistes inicials i el compte enrere torna a 30 segons.
               El temps dedicat a la piràmide continua comptant.
             </p>
 
@@ -1953,18 +1699,24 @@
             </p>
 
             <p>
-              Cada cert nombre de punts apareixerà
-              una piràmide especial del 93
-              amb moto, fum i moviment.
+              Cada cert nombre de punts apareixerà una piràmide
+              especial del 93 amb moto, fum i moviment.
             </p>
 
             <p>
-              Completa les dues caselles del repte especial
-              i aconsegueix <strong>193 punts extra</strong>.
+              Completa les sis caselles del repte especial
+              i aconsegueix <strong>1093 punts extra</strong>,
+              a més dels punts habituals.
             </p>
 
             <p>
-              Si desactives aquest mode durant un especial,
+              Pots activar el so amb el botó
+              <strong>So de motor</strong>.
+              Inicialment està desactivat.
+            </p>
+
+            <p>
+              Si desactives el mode durant un especial,
               es prepararà una piràmide normal del nivell seleccionat.
             </p>
 
@@ -1972,8 +1724,8 @@
 
             <p>
               Prem <strong>Registra la puntuació</strong>.
-              S’enviaran els punts amb les dades
-              que has introduït en entrar.
+              S’enviaran els punts amb les dades que has introduït
+              en entrar.
             </p>
 
             <p>
@@ -2013,7 +1765,7 @@
     MADUKA · Materials educatius oberts
   </footer>
 
-  <!-- Animació de moto -->
+  <!-- MOTO IL·LUSTRADA -->
 
   <div
     id="special-93-screen-effect"
@@ -2025,8 +1777,107 @@
 
     <div class="mm93-rider">
       <div class="mm93-road-smoke"></div>
-      <span class="mm93-rider-number">93</span>
-      <span class="mm93-rider-bike">🏍️</span>
+
+      <svg
+        class="mm93-bike-art"
+        viewBox="0 0 360 200"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="bike-red" x2="0.8" y2="1">
+            <stop stop-color="#ff5145"/>
+            <stop offset="1" stop-color="#a50020"/>
+          </linearGradient>
+        </defs>
+
+        <ellipse
+          cx="180" cy="181" rx="151" ry="9"
+          fill="#000" opacity=".4"
+        />
+
+        <g fill="#16171c" stroke="#757780" stroke-width="5">
+          <circle cx="75" cy="151" r="39"/>
+          <circle cx="286" cy="151" r="39"/>
+        </g>
+
+        <g fill="#b9bbc0" stroke="#35363c" stroke-width="5">
+          <circle cx="75" cy="151" r="20"/>
+          <circle cx="286" cy="151" r="20"/>
+        </g>
+
+        <path
+          d="M76 151L145 95L220 140L286 151L257 81"
+          fill="none" stroke="#d3ac59" stroke-width="10"
+        />
+
+        <path
+          d="M40 103L23 79L105 84L140 60L218 69L272 95L309 119L251 132L214 164L152 157L119 117Z"
+          fill="url(#bike-red)" stroke="#650c1c" stroke-width="3"
+        />
+
+        <path
+          d="M155 113L237 101L257 128L214 158L168 149Z"
+          fill="#22232a"
+        />
+
+        <path
+          d="M239 75L248 47L272 66L280 93Z"
+          fill="#b8d9e6" opacity=".8"
+        />
+
+        <path
+          d="M280 95L323 111L307 118L272 111"
+          fill="#ef343b" stroke="#faf0e9" stroke-width="3"
+        />
+
+        <path
+          d="M135 84Q110 62 130 42L175 22L209 51L194 70L152 71"
+          fill="#ed2436" stroke="#890e24" stroke-width="3"
+        />
+
+        <path
+          d="M179 57L216 79L250 81"
+          fill="none" stroke="#ed2436"
+          stroke-width="20" stroke-linecap="round"
+        />
+
+        <path
+          d="M143 74L181 104L149 135L169 146"
+          fill="none" stroke="#e72a38"
+          stroke-width="22" stroke-linecap="round"
+        />
+
+        <path
+          d="M158 141L180 149"
+          stroke="#202127" stroke-width="12"
+          stroke-linecap="round"
+        />
+
+        <ellipse
+          cx="208" cy="31" rx="28" ry="25"
+          fill="#f63b33" stroke="#fff0e7" stroke-width="3"
+        />
+
+        <path d="M211 20L235 24L233 39L207 39Z" fill="#151720"/>
+
+        <path
+          d="M188 18L201 8L212 18"
+          fill="none" stroke="#202127" stroke-width="4"
+        />
+
+        <path d="M134 48L163 37" stroke="#fff5ef" stroke-width="8"/>
+
+        <text
+          x="204" y="130"
+          text-anchor="middle"
+          fill="white"
+          font-family="Arial,sans-serif"
+          font-weight="900"
+          font-style="italic"
+          font-size="31"
+        >93</text>
+      </svg>
     </div>
 
     <div class="mm93-screen-title">
@@ -2035,10 +1886,29 @@
     </div>
   </div>
 
+  <!-- CELEBRACIÓ DEL BONUS -->
+
+  <div
+    id="bonus-celebration"
+    class="bonus-celebration"
+    aria-hidden="true"
+    hidden
+  >
+    <div class="bonus-finish">
+      <span>🏁</span>
+      <strong>REPTE 93 COMPLETAT!</strong>
+      <small>+1093 punts extra</small>
+    </div>
+
+    <span id="bonus-flying-points" class="bonus-flying-points">
+      +1093
+    </span>
+  </div>
+
   <script>
     const get = id => document.getElementById(id);
 
-    // Elements del joc.
+    // ELEMENTS DEL JOC
 
     const stage = get('stage');
     const status = get('status');
@@ -2058,7 +1928,7 @@
     const specialEffect = get('special-93-screen-effect');
     const modes = [...document.querySelectorAll('[data-mode]')];
 
-    // Configuració.
+    // CONFIGURACIÓ
 
     const baseClues = ['0:0', '0:1', '0:2', '0:3'];
 
@@ -2081,7 +1951,7 @@
     const intervalMs = 30000;
     const used = new Set();
 
-    // Estat de la partida.
+    // ESTAT DE LA PARTIDA
 
     let playerProfile = null;
     let mode = 'base';
@@ -2099,7 +1969,7 @@
     let timer = null;
     let deadline = 0;
 
-    // Mode Marc Márquez.
+    // MODE MARC MÁRQUEZ
 
     let marquezEnabled = false;
     let special93Active = false;
@@ -2112,7 +1982,7 @@
     document.body.classList.remove('marquez-theme');
     timedButton.setAttribute('aria-pressed', 'false');
 
-    // Construcció de les piràmides.
+    // CONSTRUCCIÓ DE PIRÀMIDES
 
     function pyramid(base) {
       const rows = [base];
@@ -2129,9 +1999,7 @@
     }
 
     function nextBase() {
-      if (used.size === 6561) {
-        used.clear();
-      }
+      if (used.size === 6561) used.clear();
 
       let base;
 
@@ -2215,7 +2083,7 @@
       return cells;
     }
 
-    // Missatges, rellotge i puntuació.
+    // MISSATGES, RELLOTGE I PUNTS
 
     function announce(message, tone = '') {
       status.textContent = message;
@@ -2224,7 +2092,6 @@
 
     function formatTime(seconds) {
       const minutes = Math.floor(seconds / 60);
-
       return minutes + ':' + String(seconds % 60).padStart(2, '0');
     }
 
@@ -2246,7 +2113,8 @@
 
     function eraseNumber() {
       const candidates = tiles.filter(tile =>
-        tile.given || /^\d+(?:[,.]\d+)?$/.test(tile.element.value.trim())
+        tile.given ||
+        /^\d+(?:[,.]\d+)?$/.test(tile.element.value.trim())
       );
 
       if (candidates.length === 0) {
@@ -2276,9 +2144,7 @@
     }
 
     function updateClock() {
-      if (!sessionStarted) {
-        return;
-      }
+      if (!sessionStarted) return;
 
       const now = performance.now();
 
@@ -2286,9 +2152,7 @@
         Math.floor((now - startedAt) / 1000)
       );
 
-      if (!puzzleStarted || transition !== null || !timed) {
-        return;
-      }
+      if (!puzzleStarted || transition !== null || !timed) return;
 
       if (now >= deadline) {
         eraseNumber();
@@ -2309,22 +2173,216 @@
       clock.hidden = !timed || !running;
       restart.hidden = !timed || !running;
 
-      if (!sessionStarted) {
-        return;
-      }
+      if (!sessionStarted) return;
 
       deadline = performance.now() + intervalMs;
       updateClock();
       timer = setInterval(updateClock, 100);
     }
 
-    // Efectes opcionals.
+    // SO DE MOTOR OPCIONAL
+    // Se sintetitza al navegador, sense fitxers d’àudio externs.
+
+    const soundButton = get('engine-sound');
+
+    let engineSoundEnabled = false;
+    let audioContext = null;
+    let activeEngine = null;
+
+    function stopEngine() {
+      if (!activeEngine) return;
+
+      try {
+        activeEngine.stop();
+      } catch {}
+
+      activeEngine = null;
+    }
+
+    async function prepareAudio() {
+      const AudioEngine =
+        window.AudioContext || window.webkitAudioContext;
+
+      if (!AudioEngine) throw new Error('Àudio no disponible');
+
+      audioContext ||= new AudioEngine();
+
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+    }
+
+    function playEngine() {
+      if (
+        !marquezEnabled ||
+        !engineSoundEnabled ||
+        audioContext?.state !== 'running'
+      ) {
+        return;
+      }
+
+      stopEngine();
+
+      const oscillator = audioContext.createOscillator();
+      const volume = audioContext.createGain();
+      const filter = audioContext.createBiquadFilter();
+      const now = audioContext.currentTime;
+
+      oscillator.type = 'sawtooth';
+
+      oscillator.frequency.setValueAtTime(65, now);
+      oscillator.frequency.exponentialRampToValueAtTime(190, now + .7);
+      oscillator.frequency.exponentialRampToValueAtTime(95, now + 1.1);
+      oscillator.frequency.exponentialRampToValueAtTime(250, now + 1.7);
+      oscillator.frequency.exponentialRampToValueAtTime(55, now + 2.2);
+
+      filter.type = 'lowpass';
+      filter.frequency.value = 750;
+
+      volume.gain.setValueAtTime(0, now);
+      volume.gain.linearRampToValueAtTime(.07, now + .15);
+      volume.gain.linearRampToValueAtTime(.04, now + 1.7);
+      volume.gain.linearRampToValueAtTime(0, now + 2.3);
+
+      oscillator
+        .connect(filter)
+        .connect(volume)
+        .connect(audioContext.destination);
+
+      activeEngine = oscillator;
+
+      oscillator.onended = () => {
+        oscillator.disconnect();
+        filter.disconnect();
+        volume.disconnect();
+
+        if (activeEngine === oscillator) {
+          activeEngine = null;
+        }
+      };
+
+      oscillator.start(now);
+      oscillator.stop(now + 2.35);
+    }
+
+    soundButton.addEventListener('click', async () => {
+      if (!marquezEnabled) return;
+
+      engineSoundEnabled = !engineSoundEnabled;
+
+      soundButton.setAttribute(
+        'aria-pressed',
+        String(engineSoundEnabled)
+      );
+
+      soundButton.textContent = engineSoundEnabled
+        ? 'So de motor: activat'
+        : 'So de motor: desactivat';
+
+      if (!engineSoundEnabled) {
+        stopEngine();
+        return;
+      }
+
+      try {
+        await prepareAudio();
+
+        if (engineSoundEnabled && marquezEnabled) {
+          playEngine();
+        }
+      } catch {
+        engineSoundEnabled = false;
+        soundButton.setAttribute('aria-pressed', 'false');
+        soundButton.textContent = 'So de motor: no disponible';
+      }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopEngine();
+    });
+
+    // CELEBRACIÓ I PUNTS QUE VIATGEN FINS AL MARCADOR
+
+    const celebration = get('bonus-celebration');
+    const flyingPoints = get('bonus-flying-points');
+
+    let celebrationTimer = null;
+    let flyingAnimation = null;
+
+    function stopCelebration() {
+      clearTimeout(celebrationTimer);
+
+      flyingAnimation?.cancel();
+      flyingAnimation = null;
+
+      celebration.hidden = true;
+      points.classList.remove('bonus-score-pop');
+    }
+
+    function celebrateSpecial93() {
+      if (!marquezEnabled) return;
+
+      stopCelebration();
+      celebration.hidden = false;
+
+      const reduced = window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches;
+
+      if (!reduced && typeof flyingPoints.animate === 'function') {
+        const from = flyingPoints.getBoundingClientRect();
+        const to = points.getBoundingClientRect();
+
+        const distanceX =
+          to.left + to.width / 2 - from.left - from.width / 2;
+
+        const distanceY =
+          to.top + to.height / 2 - from.top - from.height / 2;
+
+        flyingAnimation = flyingPoints.animate(
+          [
+            {
+              transform: 'translate(0, 0) scale(1)',
+              opacity: 1
+            },
+            {
+              transform: 'translate(0, -30px) scale(1.2)',
+              opacity: 1,
+              offset: .2
+            },
+            {
+              transform:
+                `translate(${distanceX}px, ${distanceY}px) scale(.4)`,
+              opacity: 0
+            }
+          ],
+          {
+            duration: 1250,
+            easing: 'ease-in-out',
+            fill: 'forwards'
+          }
+        );
+
+        flyingAnimation.onfinish = () => {
+          if (marquezEnabled) {
+            points.classList.add('bonus-score-pop');
+          }
+        };
+      }
+
+      celebrationTimer = setTimeout(stopCelebration, 2300);
+    }
+
+    // EFECTES D’ENTRADA DEL BONUS
 
     function randomSpecial93Gap() {
       return 1200 + Math.floor(Math.random() * 1301);
     }
 
     function stopSpecial93Effects() {
+      stopEngine();
+      stopCelebration();
+
       clearTimeout(special93EffectTimer);
       clearTimeout(special93SmokeTimer);
 
@@ -2335,15 +2393,19 @@
     }
 
     function playSpecial93Intro() {
-      if (!marquezEnabled) {
-        return;
-      }
-
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        return;
-      }
+      if (!marquezEnabled) return;
 
       stopSpecial93Effects();
+      playEngine();
+
+      if (
+        window.matchMedia(
+          '(prefers-reduced-motion: reduce)'
+        ).matches
+      ) {
+        return;
+      }
+
       specialEffect.hidden = false;
 
       void specialEffect.offsetWidth;
@@ -2363,7 +2425,7 @@
       }, 7000);
     }
 
-    // Preparació dels reptes.
+    // PREPARACIÓ DELS REPTES
 
     function renderPuzzle() {
       tiles = displayBoard(
@@ -2397,6 +2459,7 @@
     function newPuzzle() {
       clearTimeout(transition);
       transition = null;
+
       stopClock();
       stopSpecial93Effects();
 
@@ -2414,16 +2477,15 @@
 
         special93Active = true;
 
+        // Base donada. Sis buits als tres pisos superiors.
+        // 11, 11, 12, 13
+        // 22, 23, 25
+        // 45, 48
+        // 93
+
         puzzle = {
           rows: pyramid([11, 11, 12, 13]),
-
-          clues: [
-            '0:0', '0:1', '0:2', '0:3',
-            '1:0', '1:2',
-            '2:1',
-            '3:0'
-          ],
-
+          clues: [...baseClues],
           decimal: false,
           special93: true,
           levelMode: mode
@@ -2441,7 +2503,8 @@
 
         const base = nextBase();
 
-        // Es calcula amb dècimes enteres per evitar errors decimals.
+        // Càlcul amb dècimes enteres per evitar errors decimals.
+
         const values = decimal
           ? base.map(value =>
               value * 10 + 1 + Math.floor(Math.random() * 9)
@@ -2473,7 +2536,7 @@
       if (sessionStarted) {
         announce(
           special
-            ? '🏍️ Completa el repte del 93 i guanya 193 punts extra!'
+            ? 'Completa el repte del 93 i guanya 1093 punts extra!'
             : ''
         );
 
@@ -2491,7 +2554,7 @@
       firstInput?.element.focus({ preventScroll: true });
     }
 
-    // Navegació amb les fletxes.
+    // NAVEGACIÓ AMB LES FLETXES
 
     function moveFocus(event) {
       const directions = [
@@ -2513,9 +2576,7 @@
         tile.element === event.target
       );
 
-      if (!current || current.given) {
-        return;
-      }
+      if (!current || current.given) return;
 
       event.preventDefault();
 
@@ -2560,23 +2621,22 @@
       }
     }
 
-    // Comprovació de les respostes.
+    // COMPROVACIÓ DE RESPOSTES
 
     function matches(tile) {
       const answer = tile.element.value.trim();
 
       if (tile.decimal) {
-        return /^\d+(?:[,.]\d+)?$/.test(answer)
-          && Number(answer.replace(',', '.')) === tile.value / 10;
+        return /^\d+(?:[,.]\d+)?$/.test(answer) &&
+          Number(answer.replace(',', '.')) === tile.value / 10;
       }
 
-      return /^\d+$/.test(answer) && Number(answer) === tile.value;
+      return /^\d+$/.test(answer) &&
+        Number(answer) === tile.value;
     }
 
     function evaluate(showFeedback) {
-      if (!puzzleStarted || transition !== null) {
-        return;
-      }
+      if (!puzzleStarted || transition !== null) return;
 
       const fields = tiles.filter(tile => !tile.given);
 
@@ -2585,7 +2645,7 @@
         const time = formatTime(Math.floor(duration / 1000));
 
         const special = marquezEnabled && puzzle.special93;
-        const bonus = special ? 193 : 0;
+        const bonus = special ? 1093 : 0;
         const earned = pointsFor(duration) + bonus;
         const result = time + ' · +' + earned + ' punts';
 
@@ -2605,7 +2665,7 @@
 
         lastResult.textContent =
           'Última piràmide · ' + result +
-          (bonus ? ' · inclou 193 punts de bonus' : '');
+          (bonus ? ' · inclou 1093 punts extra' : '');
 
         lastResult.hidden = false;
 
@@ -2626,21 +2686,24 @@
 
         announce(
           bonus
-            ? '🏁 Gas! Bonus 93 aconseguit! +' + earned + ' punts en total.'
+            ? '🏁 Gas! Bonus 93 aconseguit! +' +
+              earned + ' punts en total.'
             : 'Correcte! ' + result,
           'success'
         );
 
+        if (special) {
+          celebrateSpecial93();
+        }
+
         transition = setTimeout(() => {
           newPuzzle();
-        }, 1500);
+        }, special ? 2600 : 1500);
 
         return;
       }
 
-      if (!showFeedback) {
-        return;
-      }
+      if (!showFeedback) return;
 
       let errors = 0;
 
@@ -2664,12 +2727,10 @@
       );
     }
 
-    // Controls del joc.
+    // CONTROLS DEL JOC
 
     startButton.addEventListener('click', () => {
-      if (!playerProfile || sessionStarted) {
-        return;
-      }
+      if (!playerProfile || sessionStarted) return;
 
       sessionStarted = true;
       puzzleStarted = true;
@@ -2711,9 +2772,7 @@
 
     modes.forEach(button => {
       button.addEventListener('click', () => {
-        if (mode === button.dataset.mode) {
-          return;
-        }
+        if (mode === button.dataset.mode) return;
 
         mode = button.dataset.mode;
 
@@ -2746,14 +2805,13 @@
     });
 
     restart.addEventListener('click', () => {
-      if (!puzzleStarted || transition !== null) {
-        return;
-      }
+      if (!puzzleStarted || transition !== null) return;
 
       renderPuzzle();
 
       announce(
-        'Pistes inicials recuperades. El compte enrere torna a 30 segons.'
+        'Pistes inicials recuperades. ' +
+        'El compte enrere torna a 30 segons.'
       );
 
       focusFirstInput();
@@ -2761,6 +2819,13 @@
 
     marquezToggle.addEventListener('change', () => {
       marquezEnabled = marquezToggle.checked;
+      soundButton.hidden = !marquezEnabled;
+
+      if (!marquezEnabled) {
+        engineSoundEnabled = false;
+        soundButton.setAttribute('aria-pressed', 'false');
+        soundButton.textContent = 'So de motor: desactivat';
+      }
 
       document.body.classList.toggle(
         'marquez-theme',
@@ -2793,9 +2858,10 @@
       announce('Mode normal activat.');
     });
 
-    // Classificació compartida.
+    // CLASSIFICACIÓ COMPARTIDA
 
-    const rankingUrl = 'https://script.google.com/macros/s/AKfycbx2ZnkJoNADzC7sBuChCE-r8rM7kWGsoMWG9RFl3ngeTcihUcjdTPHMPgqDiqz-2vrk/exec';
+    const rankingUrl =
+      'https://script.google.com/macros/s/AKfycbx2ZnkJoNADzC7sBuChCE-r8rM7kWGsoMWG9RFl3ngeTcihUcjdTPHMPgqDiqz-2vrk/exec';
 
     const rankingForm = get('ranking-form');
     const rankingList = get('ranking-list');
@@ -2905,9 +2971,7 @@
     }
 
     async function refreshRanking() {
-      if (rankingBusy) {
-        return;
-      }
+      if (rankingBusy) return;
 
       setRankingBusy(true);
       rankingStatus.textContent = 'Carregant la classificació…';
@@ -2931,9 +2995,7 @@
     rankingForm.addEventListener('submit', async event => {
       event.preventDefault();
 
-      if (rankingBusy) {
-        return;
-      }
+      if (rankingBusy) return;
 
       if (!playerProfile || totalPoints <= 0) {
         rankingStatus.textContent =
@@ -2968,7 +3030,8 @@
           : 'Ja tens una partida igual o millor registrada.';
       } catch {
         rankingStatus.textContent =
-          'No s’ha pogut confirmar el resultat. Pots tornar-lo a registrar.';
+          'No s’ha pogut confirmar el resultat. ' +
+          'Pots tornar-lo a registrar.';
       } finally {
         setRankingBusy(false);
       }
@@ -2981,20 +3044,16 @@
       renderRanking();
     });
 
-    // Entrada al joc.
+    // ENTRADA AL JOC
 
     get('entry-form').addEventListener('submit', event => {
       event.preventDefault();
 
-      if (playerProfile) {
-        return;
-      }
+      if (playerProfile) return;
 
       const form = event.currentTarget;
 
-      if (!form.reportValidity()) {
-        return;
-      }
+      if (!form.reportValidity()) return;
 
       const name = get('entry-name').value
         .normalize('NFKC')
@@ -3041,12 +3100,10 @@
       startButton.focus({ preventScroll: true });
     });
 
-    // Manté el focus dins de la finestra inicial.
+    // FOCUS DE LA FINESTRA INICIAL
 
     get('entry-screen').addEventListener('keydown', event => {
-      if (event.key !== 'Tab') {
-        return;
-      }
+      if (event.key !== 'Tab') return;
 
       const focusable = [
         ...get('entry-screen').querySelectorAll(
@@ -3069,7 +3126,7 @@
       }
     });
 
-    // Prepara el joc sense iniciar el rellotge.
+    // PREPARACIÓ INICIAL SENSE ACTIVAR EL RELLOTGE
 
     displayBoard(get('example'), pyramid([4, 6, 5, 3]));
     newPuzzle();

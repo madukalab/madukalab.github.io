@@ -1339,6 +1339,286 @@
 
       .mm93-smoke { display: none !important; }
     }
+
+    /* ==========================================
+   AMBIENT DINÀMIC DEL MODE MARC MÁRQUEZ
+   ========================================== */
+
+.race-atmosphere {
+  display: none;
+}
+
+body.marquez-theme {
+  isolation: isolate;
+}
+
+body.marquez-theme .race-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* El joc queda per damunt dels efectes. */
+body.marquez-theme #game-screen,
+body.marquez-theme #site-header,
+body.marquez-theme #site-footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* Resplendor vermella al fons. */
+.race-atmosphere::before {
+  content: "";
+  position: absolute;
+  inset: -15%;
+  background:
+    radial-gradient(
+      ellipse at 95% 45%,
+      rgba(255, 30, 45, .26),
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse at 0% 90%,
+      rgba(190, 15, 35, .16),
+      transparent 40%
+    );
+  animation: race-glow 7s ease-in-out infinite alternate;
+}
+
+/* Un 93 subtil que respira darrere dels panells. */
+.race-watermark {
+  position: absolute;
+  right: 2%;
+  top: 17%;
+  color: rgba(255, 255, 255, .055);
+  font-family: Arial, sans-serif;
+  font-size: clamp(160px, 33vw, 520px);
+  font-style: italic;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -.09em;
+  text-shadow: 0 0 45px rgba(255, 35, 50, .22);
+  animation: race-number-glow 6s ease-in-out infinite alternate;
+}
+
+/* Fum lleuger als laterals. */
+.race-fog {
+  position: absolute;
+  bottom: -170px;
+  width: clamp(140px, 24vw, 340px);
+  height: clamp(190px, 35vw, 420px);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(220, 220, 225, .19),
+      rgba(140, 140, 150, .07) 45%,
+      transparent 72%
+    );
+  filter: blur(20px);
+  opacity: 0;
+  animation: race-fog-rise 12s linear infinite;
+}
+
+.race-fog-left {
+  left: -80px;
+  --fog-drift: 45px;
+}
+
+.race-fog-right {
+  right: -80px;
+  --fog-drift: -45px;
+  animation-delay: -6s;
+}
+
+.race-fog-left.race-fog-second {
+  left: -30px;
+  animation-duration: 16s;
+  animation-delay: -8s;
+}
+
+.race-fog-right.race-fog-second {
+  right: -30px;
+  animation-duration: 15s;
+  animation-delay: -3s;
+}
+
+/* Línies de velocitat: només passen de tant en tant. */
+.race-streak {
+  position: absolute;
+  left: -70vw;
+  top: 24%;
+  width: 55vw;
+  height: 2px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 55, 65, .75),
+      rgba(255, 220, 210, .85)
+    );
+  box-shadow: 0 0 12px rgba(255, 40, 55, .45);
+  opacity: 0;
+  transform: rotate(-12deg);
+  animation: race-streak-pass 13s linear infinite;
+}
+
+.race-streak:nth-of-type(2) {
+  top: 61%;
+  width: 40vw;
+  animation-duration: 19s;
+  animation-delay: -7s;
+}
+
+.race-streak:nth-of-type(3) {
+  top: 83%;
+  width: 65vw;
+  animation-duration: 17s;
+  animation-delay: -11s;
+}
+
+/* Ressò de llum en resoldre una piràmide. */
+.race-atmosphere.race-success::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 5px solid rgba(255, 80, 75, .65);
+  box-shadow:
+    inset 0 0 65px rgba(255, 35, 50, .3),
+    inset 0 0 130px rgba(255, 35, 50, .12);
+  animation: race-success-light .65s ease-out forwards;
+}
+
+body.marquez-theme #points.race-points-hit {
+  animation: race-points-hit .55s ease-out;
+}
+
+/* Entrada més intensa del bonus. */
+body.marquez-theme .race-atmosphere.race-bonus-entry {
+  animation: race-bonus-light 1.1s ease-out;
+}
+
+body.marquez-theme .race-atmosphere.race-bonus-entry .race-fog {
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(235, 235, 240, .34),
+      rgba(180, 90, 95, .12) 45%,
+      transparent 72%
+    );
+}
+
+body.marquez-theme #stage.special-93.is-arriving {
+  animation: mm93-shake .8s ease-out;
+}
+
+/* Pausa les effets quan la pestanya no és visible. */
+body.race-paused .race-atmosphere,
+body.race-paused .race-atmosphere *,
+body.race-paused .race-atmosphere::before,
+body.race-paused .race-atmosphere::after {
+  animation-play-state: paused !important;
+}
+
+@keyframes race-glow {
+  from {
+    opacity: .45;
+    transform: scale(1);
+  }
+  to {
+    opacity: .9;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes race-number-glow {
+  from {
+    opacity: .45;
+    text-shadow: 0 0 15px rgba(255, 35, 50, .1);
+  }
+  to {
+    opacity: 1;
+    text-shadow: 0 0 60px rgba(255, 35, 50, .4);
+  }
+}
+
+@keyframes race-fog-rise {
+  0% {
+    opacity: 0;
+    transform: translate(0, 60px) scale(.7);
+  }
+  20% {
+    opacity: .65;
+  }
+  70% {
+    opacity: .3;
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(var(--fog-drift), -65vh)
+      scale(1.65);
+  }
+}
+
+@keyframes race-streak-pass {
+  0%, 83% {
+    opacity: 0;
+    transform: translateX(0) rotate(-12deg);
+  }
+  85% {
+    opacity: .85;
+  }
+  94%, 100% {
+    opacity: 0;
+    transform: translateX(190vw) rotate(-12deg);
+  }
+}
+
+@keyframes race-success-light {
+  from { opacity: .85; }
+  to { opacity: 0; }
+}
+
+@keyframes race-points-hit {
+  0%, 100% { transform: scale(1); }
+  45% {
+    transform: scale(1.15);
+    box-shadow: 0 0 24px rgba(255, 190, 80, .65);
+  }
+}
+
+@keyframes race-bonus-light {
+  0%, 100% { filter: brightness(1); }
+  30% { filter: brightness(1.8); }
+}
+
+/* Menys cost gràfic en pantalles petites. */
+@media (max-width: 700px) {
+  .race-fog {
+    width: 170px;
+    height: 260px;
+    filter: blur(14px);
+  }
+
+  .race-fog-second {
+    display: none;
+  }
+}
+
+/* Respecta qui prefereix reduir les animacions. */
+@media (prefers-reduced-motion: reduce) {
+  body.marquez-theme .race-atmosphere {
+    display: none;
+  }
+
+  body.marquez-theme #points.race-points-hit {
+    animation: none;
+  }
+}
   </style>
 </head>
 
@@ -2180,126 +2460,115 @@
       timer = setInterval(updateClock, 100);
     }
 
-    // SO DE MOTOR OPCIONAL
-    // Se sintetitza al navegador, sense fitxers d’àudio externs.
+// SO DE MOTOR REAL I OPCIONAL
 
-    const soundButton = get('engine-sound');
+const soundButton = get('engine-sound');
 
-    let engineSoundEnabled = false;
-    let audioContext = null;
-    let activeEngine = null;
+let engineSoundEnabled = false;
+let enginePlaybackId = 0;
 
-    function stopEngine() {
-      if (!activeEngine) return;
+// Gravació real: "Motorbike 4", d’ezwa.
+// Font: Wikimedia Commons. Domini públic.
+const engineAudio = new Audio(
+  'https://upload.wikimedia.org/wikipedia/commons/d/d9/Motorbike_4.ogg'
+);
 
-      try {
-        activeEngine.stop();
-      } catch {}
+engineAudio.preload = 'none';
+engineAudio.volume = 0.55;
+engineAudio.loop = false;
 
-      activeEngine = null;
+function updateSoundButton() {
+  soundButton.setAttribute(
+    'aria-pressed',
+    String(engineSoundEnabled)
+  );
+
+  soundButton.textContent = engineSoundEnabled
+    ? 'So de motor: activat'
+    : 'So de motor: desactivat';
+}
+
+function stopEngine() {
+  enginePlaybackId++;
+
+  engineAudio.pause();
+
+  try {
+    engineAudio.currentTime = 0;
+  } catch {}
+}
+
+async function playEngine() {
+  if (
+    !marquezEnabled ||
+    !engineSoundEnabled ||
+    document.hidden
+  ) {
+    return;
+  }
+
+  stopEngine();
+
+  const playbackId = enginePlaybackId;
+
+  try {
+    // play() es crida directament quan es prem el botó.
+    // Això permet al navegador autoritzar el so.
+    await engineAudio.play();
+
+    if (
+      playbackId !== enginePlaybackId ||
+      !marquezEnabled ||
+      !engineSoundEnabled
+    ) {
+      return;
+    }
+  } catch (error) {
+    // Una pausa voluntària pot interrompre una càrrega pendent.
+    if (
+      playbackId !== enginePlaybackId ||
+      !marquezEnabled ||
+      !engineSoundEnabled
+    ) {
+      return;
     }
 
-    async function prepareAudio() {
-      const AudioEngine =
-        window.AudioContext || window.webkitAudioContext;
+    engineSoundEnabled = false;
+    updateSoundButton();
 
-      if (!AudioEngine) throw new Error('Àudio no disponible');
+    soundButton.textContent =
+      error.name === 'NotAllowedError'
+        ? 'Prem per tornar a activar el so'
+        : 'So no disponible · torna-ho a provar';
 
-      audioContext ||= new AudioEngine();
+    announce(
+      error.name === 'NotAllowedError'
+        ? 'El navegador ha bloquejat el so. Torna a prémer el botó de so.'
+        : 'No s’ha pogut carregar la gravació del motor. Pots continuar jugant.'
+    );
+  }
+}
 
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-      }
-    }
+soundButton.addEventListener('click', () => {
+  if (!marquezEnabled) return;
 
-    function playEngine() {
-      if (
-        !marquezEnabled ||
-        !engineSoundEnabled ||
-        audioContext?.state !== 'running'
-      ) {
-        return;
-      }
+  engineSoundEnabled = !engineSoundEnabled;
 
-      stopEngine();
+  updateSoundButton();
 
-      const oscillator = audioContext.createOscillator();
-      const volume = audioContext.createGain();
-      const filter = audioContext.createBiquadFilter();
-      const now = audioContext.currentTime;
+  if (engineSoundEnabled) {
+    // Reprodueix una mostra en activar-lo.
+    playEngine();
+  } else {
+    stopEngine();
+  }
+});
 
-      oscillator.type = 'sawtooth';
-
-      oscillator.frequency.setValueAtTime(65, now);
-      oscillator.frequency.exponentialRampToValueAtTime(190, now + .7);
-      oscillator.frequency.exponentialRampToValueAtTime(95, now + 1.1);
-      oscillator.frequency.exponentialRampToValueAtTime(250, now + 1.7);
-      oscillator.frequency.exponentialRampToValueAtTime(55, now + 2.2);
-
-      filter.type = 'lowpass';
-      filter.frequency.value = 750;
-
-      volume.gain.setValueAtTime(0, now);
-      volume.gain.linearRampToValueAtTime(.07, now + .15);
-      volume.gain.linearRampToValueAtTime(.04, now + 1.7);
-      volume.gain.linearRampToValueAtTime(0, now + 2.3);
-
-      oscillator
-        .connect(filter)
-        .connect(volume)
-        .connect(audioContext.destination);
-
-      activeEngine = oscillator;
-
-      oscillator.onended = () => {
-        oscillator.disconnect();
-        filter.disconnect();
-        volume.disconnect();
-
-        if (activeEngine === oscillator) {
-          activeEngine = null;
-        }
-      };
-
-      oscillator.start(now);
-      oscillator.stop(now + 2.35);
-    }
-
-    soundButton.addEventListener('click', async () => {
-      if (!marquezEnabled) return;
-
-      engineSoundEnabled = !engineSoundEnabled;
-
-      soundButton.setAttribute(
-        'aria-pressed',
-        String(engineSoundEnabled)
-      );
-
-      soundButton.textContent = engineSoundEnabled
-        ? 'So de motor: activat'
-        : 'So de motor: desactivat';
-
-      if (!engineSoundEnabled) {
-        stopEngine();
-        return;
-      }
-
-      try {
-        await prepareAudio();
-
-        if (engineSoundEnabled && marquezEnabled) {
-          playEngine();
-        }
-      } catch {
-        engineSoundEnabled = false;
-        soundButton.setAttribute('aria-pressed', 'false');
-        soundButton.textContent = 'So de motor: no disponible';
-      }
-    });
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) stopEngine();
-    });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopEngine();
+  }
+});
 
     // CELEBRACIÓ I PUNTS QUE VIATGEN FINS AL MARCADOR
 
@@ -3134,5 +3403,162 @@
 
     get('entry-name').focus({ preventScroll: true });
   </script>
+
+  <script>
+  (() => {
+    'use strict';
+
+    // Evita crear els efectes dues vegades.
+    if (document.getElementById('race-atmosphere')) {
+      return;
+    }
+
+    const atmosphere = document.createElement('div');
+
+    atmosphere.id = 'race-atmosphere';
+    atmosphere.className = 'race-atmosphere';
+    atmosphere.setAttribute('aria-hidden', 'true');
+
+    atmosphere.innerHTML = `
+      <div class="race-watermark">93</div>
+
+      <div class="race-fog race-fog-left"></div>
+      <div class="race-fog race-fog-right"></div>
+
+      <div class="race-fog race-fog-left race-fog-second"></div>
+      <div class="race-fog race-fog-right race-fog-second"></div>
+
+      <span class="race-streak"></span>
+      <span class="race-streak"></span>
+      <span class="race-streak"></span>
+    `;
+
+    document.body.prepend(atmosphere);
+
+    let successTimer = null;
+    let bonusTimer = null;
+
+    function reducedMotion() {
+      return window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches;
+    }
+
+    function clearRaceEffects() {
+      clearTimeout(successTimer);
+      clearTimeout(bonusTimer);
+
+      atmosphere.classList.remove(
+        'race-success',
+        'race-bonus-entry'
+      );
+
+      points.classList.remove('race-points-hit');
+    }
+
+    function showSuccessEffect() {
+      if (
+        !marquezEnabled ||
+        document.hidden ||
+        reducedMotion()
+      ) {
+        return;
+      }
+
+      clearTimeout(successTimer);
+
+      atmosphere.classList.remove('race-success');
+      points.classList.remove('race-points-hit');
+
+      // Reinicia les animacions encara que hi hagi encerts seguits.
+      void atmosphere.offsetWidth;
+
+      atmosphere.classList.add('race-success');
+      points.classList.add('race-points-hit');
+
+      successTimer = setTimeout(() => {
+        atmosphere.classList.remove('race-success');
+        points.classList.remove('race-points-hit');
+      }, 750);
+    }
+
+    function showBonusAtmosphere() {
+      if (
+        !marquezEnabled ||
+        document.hidden ||
+        reducedMotion()
+      ) {
+        return;
+      }
+
+      clearTimeout(bonusTimer);
+
+      atmosphere.classList.remove('race-bonus-entry');
+
+      void atmosphere.offsetWidth;
+
+      atmosphere.classList.add('race-bonus-entry');
+
+      bonusTimer = setTimeout(() => {
+        atmosphere.classList.remove('race-bonus-entry');
+      }, 1600);
+    }
+
+    // Conserva la comprovació original i afegeix l’efecte
+    // només quan s’ha resolt una piràmide.
+    const originalEvaluate = evaluate;
+
+    evaluate = function(showFeedback) {
+      const solvedBefore = solved;
+
+      originalEvaluate(showFeedback);
+
+      if (solved > solvedBefore && marquezEnabled) {
+        showSuccessEffect();
+      }
+    };
+
+    // Conserva la moto, el fum i el so del bonus original.
+    const originalSpecialIntro = playSpecial93Intro;
+
+    playSpecial93Intro = function() {
+      originalSpecialIntro();
+
+      if (marquezEnabled) {
+        showBonusAtmosphere();
+      }
+    };
+
+    // Neteja els efectes breus quan es prepara una altra piràmide.
+    const originalNewPuzzle = newPuzzle;
+
+    newPuzzle = function() {
+      clearRaceEffects();
+      originalNewPuzzle();
+    };
+
+    marquezToggle.addEventListener('change', () => {
+      if (!marquezEnabled) {
+        clearRaceEffects();
+      }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      document.body.classList.toggle(
+        'race-paused',
+        document.hidden
+      );
+
+      if (document.hidden) {
+        clearRaceEffects();
+      }
+    });
+
+    document.body.classList.toggle(
+      'race-paused',
+      document.hidden
+    );
+  })();
+</script>
 </body>
 </html>

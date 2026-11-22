@@ -37,7 +37,8 @@
     }
 
     button,
-    input {
+    input,
+    select {
       font: inherit;
     }
 
@@ -75,6 +76,13 @@
       text-decoration: none;
     }
 
+    .site-back {
+      color: #555;
+      font-size: 16px;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
     .site-header a:hover {
       opacity: .7;
     }
@@ -82,7 +90,7 @@
     /* Distribució */
 
     h1 {
-      margin: 30px 0 10px;
+      margin: 14px 0 10px;
       font-size: clamp(38px, 7vw, 73px);
       letter-spacing: -.07em;
       line-height: 1;
@@ -201,7 +209,7 @@
       width: min(100%, 460px);
       margin: auto;
       padding: 28px;
-      border: 1px solid #d0d9c6;
+      border-color: #d0d9c6;
       box-shadow: 0 24px 80px rgba(32, 56, 44, .18);
     }
 
@@ -273,10 +281,6 @@
       color: var(--muted);
       font-size: 14px;
       overflow-wrap: anywhere;
-    }
-
-    #game-screen h1 {
-      margin-top: 14px;
     }
 
     /* Rellotges */
@@ -452,31 +456,36 @@
       line-height: 1.4;
     }
 
-    /* Contrarellotge */
+    /* Opcions voluntàries */
 
-    .timed-toggle {
+    .timed-toggle,
+    .marquez-mode-option {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 14px;
       width: 100%;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
       padding: 14px;
       border: 1px solid #d4ddcc;
       border-radius: 13px;
+      background: var(--paper);
     }
 
-    .timed-copy {
+    .timed-copy,
+    .marquez-mode-copy {
       display: grid;
       gap: 5px;
     }
 
-    .timed-copy strong {
+    .timed-copy strong,
+    .marquez-mode-copy strong {
       font-size: 15px;
     }
 
-    .timed-copy > span {
-      color: #61715d;
+    .timed-copy > span,
+    .marquez-mode-copy small {
+      color: var(--muted);
       font-size: 12px;
       font-weight: 400;
       line-height: 1.4;
@@ -509,6 +518,22 @@
 
     .timed-toggle[aria-pressed="true"] .switch-thumb {
       transform: translateX(17px);
+    }
+
+    .marquez-mode-option {
+      cursor: pointer;
+    }
+
+    .marquez-mode-option:has(input:checked) {
+      border-color: #c92a24;
+      background: #fff0ed;
+    }
+
+    #marquez-mode {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      accent-color: #c92a24;
     }
 
     /* Informació */
@@ -762,25 +787,23 @@
       text-align: center;
     }
 
-    /* Especial Marc Márquez 93 */
+    /* Efectes exclusius del mode Marc Márquez */
 
     .special-93-notice {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 14px;
       margin-bottom: 12px;
       padding: 14px 16px;
-      overflow: hidden;
       border-radius: 14px;
       background: #191919;
       color: white;
-      animation: special93-arrive .5s ease-out;
     }
 
     .special-93-number {
-      flex-shrink: 0;
-      color: #ff3b30;
-      font-family: Arial, Helvetica, sans-serif;
+      color: #ff4438;
+      font-family: Arial, sans-serif;
       font-size: 44px;
       font-style: italic;
       font-weight: 900;
@@ -798,99 +821,342 @@
     }
 
     .special-93-notice > div > span {
-      color: #e3e3e3;
+      color: #ddd;
       font-size: 12px;
     }
 
-    .special-93-bike {
-      margin-left: auto;
-      font-size: 30px;
-      animation: special93-bike .9s ease-in-out 3;
+    .special-93-shell {
+      position: relative;
+      isolation: isolate;
     }
 
-    .stage.special-93 {
-      border: 2px solid #df3027;
+    .special-93-shell .stage {
+      position: relative;
+      z-index: 1;
+    }
+
+    #stage.special-93 {
+      border: 2px solid #ff3b30;
       background:
         repeating-linear-gradient(
           -35deg,
-          transparent 0 30px,
-          rgba(255, 255, 255, .04) 30px 34px
+          transparent 0 26px,
+          rgba(255, 255, 255, .05) 26px 30px
         ),
-        linear-gradient(135deg, #252525, #101010);
-      box-shadow: 0 0 0 4px rgba(223, 48, 39, .08);
-      animation: special93-arrive .5s ease-out;
+        linear-gradient(135deg, #292929, #101010);
+      box-shadow: 0 8px 25px rgba(170, 20, 20, .2);
     }
 
-    .stage.special-93 .given {
+    #stage.special-93.is-arriving {
+      animation: mm93-shake .65s ease-out;
+    }
+
+    #stage.special-93 .given {
       border-color: #e34a40;
       background: #c92a24;
       color: white;
     }
 
-    .stage.special-93 input.cell {
+    #stage.special-93 input.cell {
       border-color: #ff6559;
       background: #fff8f4;
       color: #202020;
     }
 
-    .stage.special-93 input.cell:focus {
+    #stage.special-93 input.cell:focus {
       outline-color: #ffb951;
     }
 
-    .stage.special-93 input.cell[aria-invalid="true"] {
+    #stage.special-93 input.cell[aria-invalid="true"] {
       border-color: #ffab43;
       background: #ffe1ce;
     }
 
-    .stage.special-93 .row:first-child .cell {
+    #stage.special-93 .row:first-child .cell {
       border-color: white;
       background: white;
       color: #d62820;
       font-style: italic;
-      font-weight: 900;
-      animation: special93-pulse 1.4s ease-in-out 3;
+      box-shadow: 0 0 20px rgba(255, 70, 55, .5);
     }
 
-    .stage.special-93.special-93-finished {
+    #stage.special-93.is-arriving .row:first-child .cell {
+      animation: mm93-pop .7s ease-out;
+    }
+
+    #stage.special-93.special-93-finished {
       border-color: #f3c650;
-      box-shadow: 0 0 24px rgba(243, 198, 80, .35);
+      box-shadow: 0 0 30px rgba(243, 198, 80, .4);
     }
 
-    .stage.special-93 input.cell.correct {
+    #stage.special-93 input.cell.correct {
       border-color: #f3c650;
       background: #fff0b5;
       color: #202020;
     }
 
-    @keyframes special93-arrive {
-      from {
+    .mm93-smoke {
+      display: none;
+      position: absolute;
+      bottom: 12px;
+      z-index: 2;
+      width: 45px;
+      height: 90px;
+      pointer-events: none;
+    }
+
+    .special-93-shell.is-smoking .mm93-smoke {
+      display: block;
+    }
+
+    .mm93-smoke-left {
+      left: 0;
+    }
+
+    .mm93-smoke-right {
+      right: 0;
+    }
+
+    .mm93-smoke span {
+      position: absolute;
+      bottom: 0;
+      left: 5px;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(230, 230, 230, .9),
+        rgba(160, 160, 160, .3) 55%,
+        transparent 75%
+      );
+      opacity: 0;
+      filter: blur(5px);
+      animation: mm93-smoke 1.5s ease-out 4;
+    }
+
+    .mm93-smoke span:nth-child(2) {
+      animation-delay: .4s;
+    }
+
+    .mm93-smoke span:nth-child(3) {
+      animation-delay: .8s;
+    }
+
+    .mm93-screen-effect {
+      position: fixed;
+      inset: 0;
+      z-index: 900;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .mm93-rider {
+      position: absolute;
+      top: 35%;
+      left: 0;
+      width: 190px;
+      height: 110px;
+      transform: translateX(-260px);
+    }
+
+    .mm93-screen-effect.is-running .mm93-rider {
+      animation: mm93-cross 2s cubic-bezier(.2, .6, .5, 1) forwards;
+    }
+
+    .mm93-rider-bike {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      font-size: 86px;
+      line-height: 1;
+      transform: scaleX(-1);
+    }
+
+    .mm93-rider-number {
+      position: absolute;
+      top: -5px;
+      right: 12px;
+      z-index: 2;
+      padding: 4px 10px;
+      border: 2px solid white;
+      border-radius: 8px;
+      background: #df3027;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: 31px;
+      font-style: italic;
+      font-weight: 900;
+      transform: rotate(-8deg);
+    }
+
+    .mm93-road-smoke {
+      position: absolute;
+      bottom: 5px;
+      left: -110px;
+      width: 210px;
+      height: 65px;
+      border-radius: 50%;
+      background: radial-gradient(
+        ellipse,
+        rgba(210, 210, 210, .85),
+        rgba(170, 170, 170, .25) 50%,
+        transparent 75%
+      );
+      filter: blur(10px);
+    }
+
+    .mm93-speed-line {
+      position: absolute;
+      top: 43%;
+      left: -60vw;
+      width: 55vw;
+      height: 3px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(235, 50, 40, .8)
+      );
+      opacity: 0;
+    }
+
+    .mm93-screen-effect.is-running .mm93-speed-line {
+      animation: mm93-speed .8s ease-out 2;
+    }
+
+    .mm93-screen-title {
+      position: absolute;
+      top: 54%;
+      left: 50%;
+      display: grid;
+      gap: 5px;
+      width: max-content;
+      max-width: calc(100% - 32px);
+      padding: 13px 24px;
+      border-radius: 14px;
+      background: rgba(20, 20, 20, .94);
+      color: white;
+      text-align: center;
+      opacity: 0;
+    }
+
+    .mm93-screen-title strong {
+      color: #ff4438;
+      font-size: clamp(32px, 7vw, 55px);
+      font-style: italic;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .mm93-screen-title span {
+      font-size: clamp(12px, 3vw, 16px);
+      font-weight: 800;
+    }
+
+    .mm93-screen-effect.is-running .mm93-screen-title {
+      animation: mm93-title 2.6s ease-out forwards;
+    }
+
+    @keyframes mm93-cross {
+      0% {
+        transform: translateX(-260px) rotate(-5deg);
+      }
+
+      45% {
+        transform: translateX(calc(45vw - 95px)) rotate(-10deg);
+      }
+
+      100% {
+        transform: translateX(calc(100vw + 260px)) rotate(-4deg);
+      }
+    }
+
+    @keyframes mm93-speed {
+      0% {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateX(0);
       }
 
-      to {
+      20% {
         opacity: 1;
-        transform: translateY(0);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateX(170vw);
       }
     }
 
-    @keyframes special93-bike {
-      0%, 100% {
-        transform: translateX(0) rotate(-5deg);
+    @keyframes mm93-title {
+      0%, 12% {
+        opacity: 0;
+        transform: translate(-50%, 15px) scale(.9);
       }
 
-      50% {
-        transform: translateX(-9px) rotate(5deg);
+      25%, 75% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -10px);
       }
     }
 
-    @keyframes special93-pulse {
+    @keyframes mm93-shake {
       0%, 100% {
+        transform: translate(0, 0);
+      }
+
+      15% {
+        transform: translate(-5px, 2px) rotate(-.6deg);
+      }
+
+      30% {
+        transform: translate(5px, -2px) rotate(.6deg);
+      }
+
+      45% {
+        transform: translate(-4px, 1px) rotate(-.4deg);
+      }
+
+      60% {
+        transform: translate(4px, -1px) rotate(.4deg);
+      }
+
+      80% {
+        transform: translate(-2px, 0);
+      }
+    }
+
+    @keyframes mm93-pop {
+      0% {
+        transform: scale(.85) rotate(-8deg);
+      }
+
+      55% {
+        transform: scale(1.15) rotate(4deg);
+      }
+
+      100% {
         transform: scale(1);
       }
+    }
 
-      50% {
-        transform: scale(1.08);
+    @keyframes mm93-smoke {
+      0% {
+        opacity: 0;
+        transform: translateY(10px) scale(.4);
+      }
+
+      20% {
+        opacity: .8;
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(-90px) scale(2.5);
       }
     }
 
@@ -919,6 +1185,10 @@
     @media (max-width: 600px) {
       .site-header {
         padding: 24px 20px;
+      }
+
+      .site-back {
+        font-size: 14px;
       }
     }
 
@@ -952,27 +1222,38 @@
         transition: none;
       }
 
-      .special-93-notice,
-      .special-93-bike,
-      .stage.special-93,
-      .stage.special-93 .row:first-child .cell {
-        animation: none;
+      #stage.special-93,
+      #stage.special-93 .row:first-child .cell,
+      .mm93-smoke span,
+      .mm93-screen-effect * {
+        animation: none !important;
+      }
+
+      .mm93-smoke {
+        display: none !important;
       }
     }
   </style>
 </head>
 
 <body class="entry-open">
-  <header class="site-header">
+  <header class="site-header" id="site-header" inert>
     <a
       class="logo"
       href="https://madukalab.github.io/matematiques/"
     >
       MADUKA
     </a>
+
+    <a
+      class="site-back"
+      href="https://madukalab.github.io/matematiques/"
+    >
+      ← Matemàtiques
+    </a>
   </header>
 
-  <!-- Finestra de dades -->
+  <!-- Finestra inicial -->
 
   <div id="entry-screen" class="entry-overlay">
     <section
@@ -985,6 +1266,7 @@
 
       <form id="entry-form">
         <label for="entry-name">Àlies</label>
+
         <input
           class="text-input"
           id="entry-name"
@@ -1009,6 +1291,7 @@
         </fieldset>
 
         <label for="entry-school">Escola</label>
+
         <input
           class="text-input"
           id="entry-school"
@@ -1076,15 +1359,29 @@
               <span>Dues caselles · 193 punts extra</span>
             </div>
 
-            <span class="special-93-bike" aria-hidden="true">🏍️</span>
+            <span aria-hidden="true">🏍️</span>
           </div>
 
-          <div
-            class="stage"
-            id="stage"
-            role="group"
-            aria-labelledby="puzzle-title"
-          ></div>
+          <div id="special-93-shell" class="special-93-shell">
+            <div
+              class="stage"
+              id="stage"
+              role="group"
+              aria-labelledby="puzzle-title"
+            ></div>
+
+            <div class="mm93-smoke mm93-smoke-left" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+
+            <div class="mm93-smoke mm93-smoke-right" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
 
           <button class="primary" type="button" id="start">
             Comença
@@ -1220,24 +1517,37 @@
           </span>
         </button>
 
+        <label class="marquez-mode-option">
+          <span class="marquez-mode-copy">
+            <strong>Mode Marc Márquez</strong>
+            <small>Reptes sorpresa i bonus del 93</small>
+          </span>
+
+          <input id="marquez-mode" type="checkbox">
+        </label>
+
         <details class="help">
           <summary>Info</summary>
 
           <div class="game-info">
             <h3>Com es juga?</h3>
+
             <p>
               Tria el nivell i prem <strong>Comença</strong>
               una sola vegada per iniciar la partida.
             </p>
+
             <p>
               Cada casella és la suma de les dues que té just a sota.
               Completa els buits. Les caselles verdes són les pistes.
             </p>
+
             <p>
               Pots moure’t entre els buits amb les
               <strong>quatre fletxes del teclat</strong>
               o amb la tecla Tab.
             </p>
+
             <p>
               Quan resolguis una piràmide, se’n generarà
               una altra automàticament.
@@ -1245,6 +1555,7 @@
             </p>
 
             <h3>Com es guanyen punts?</h3>
+
             <p>
               Els punts depenen del temps dedicat a cada piràmide.
               Com més ràpid la resolguis, més punts obtindràs.
@@ -1265,21 +1576,20 @@
               </tbody>
             </table>
 
-            <h3>Què fa el Contrarellotge?</h3>
-            <ul>
-              <li>L’actives voluntàriament amb l’interruptor.</li>
-              <li>Cada 30 segons s’esborra una pista o una resposta.</li>
-              <li>Has de tornar a completar la casella esborrada.</li>
-            </ul>
+            <h3>Contrarellotge</h3>
+
             <p>
-              Si està activat des del començament de la piràmide
-              i el mantens fins al final, guanyes
-              un <strong>25 % extra de punts</strong>.
+              Si l’actives, cada 30 segons s’esborra
+              una pista o una resposta a l’atzar.
             </p>
+
             <p>
+              Si el mantens activat des del començament
+              de la piràmide, guanyes un <strong>25 % extra</strong>.
               Si l’actives a mitja piràmide,
               el bonus estarà disponible a la següent.
             </p>
+
             <p>
               Amb <strong>Reinicia la piràmide</strong>
               recuperes les pistes inicials i el compte enrere
@@ -1287,32 +1597,42 @@
               El temps dedicat a la piràmide continua comptant.
             </p>
 
-            <h3>Especial Márquez 93</h3>
+            <h3>Mode Marc Márquez</h3>
+
             <p>
-              Quan arribis als <strong>1.000 punts</strong>,
-              la piràmide següent serà un repte especial
-              amb el <strong>93 al cim</strong>.
+              Activa la casella si vols reptes sorpresa del 93.
+              Durant la partida apareixeran piràmides especials
+              amb efectes de moto, fum i moviment.
             </p>
+
             <p>
-              Completa les dues caselles i aconsegueix
-              <strong>193 punts extra</strong>.
-              Apareix una vegada per partida.
+              Completa les dues caselles del repte especial
+              i aconsegueix <strong>193 punts extra</strong>.
+            </p>
+
+            <p>
+              Si desactives aquest mode durant un especial,
+              es prepararà una piràmide normal del nivell seleccionat.
             </p>
 
             <h3>Com es registra el resultat?</h3>
+
             <p>
               Prem <strong>Registra la puntuació</strong>.
-              S’enviaran els punts amb l’àlies, la classe
-              i l’escola que has introduït en entrar.
+              S’enviaran els punts amb les dades
+              que has introduït en entrar.
             </p>
+
             <p>
               Es conserva la millor partida de cada àlies i escola.
               Pots continuar jugant i registrar un resultat superior.
             </p>
+
             <p>
               Es mostren els 20 primers jugadors.
               Prem <strong>Mostra’n més</strong> per veure la resta.
             </p>
+
             <p>
               Per començar el torn d’un altre alumne,
               registra el resultat i recarrega la pàgina.
@@ -1336,16 +1656,34 @@
     </div>
   </main>
 
-  <footer class="wrap">
+  <footer class="wrap" id="site-footer" inert>
     MADUKA · Materials educatius oberts
   </footer>
 
+  <!-- Efecte de moto del mode opcional -->
+
+  <div
+    id="special-93-screen-effect"
+    class="mm93-screen-effect"
+    aria-hidden="true"
+    hidden
+  >
+    <div class="mm93-speed-line"></div>
+
+    <div class="mm93-rider">
+      <div class="mm93-road-smoke"></div>
+      <span class="mm93-rider-number">93</span>
+      <span class="mm93-rider-bike">🏍️</span>
+    </div>
+
+    <div class="mm93-screen-title">
+      <strong>GAS!</strong>
+      <span>ESPECIAL MÁRQUEZ 93</span>
+    </div>
+  </div>
+
   <script>
     const get = id => document.getElementById(id);
-
-    // Dades del jugador.
-
-    let playerProfile = null;
 
     // Elements del joc.
 
@@ -1361,6 +1699,10 @@
     const restart = get('restart');
     const startButton = get('start');
     const puzzleForm = get('puzzle');
+    const marquezToggle = get('marquez-mode');
+    const specialNotice = get('special-93-notice');
+    const specialShell = get('special-93-shell');
+    const specialEffect = get('special-93-screen-effect');
     const modes = [...document.querySelectorAll('[data-mode]')];
 
     // Configuració.
@@ -1376,19 +1718,26 @@
       ['0:1', '0:2', '0:3', '3:0']
     ];
 
-    const intervalMs = 30_000;
+    const levelMultipliers = {
+      base: 1,
+      mixed: 1.25,
+      decimal: 1.5,
+      'decimal-mixed': 2
+    };
+
+    const intervalMs = 30000;
     const used = new Set();
 
     // Estat de la partida.
 
+    let playerProfile = null;
     let mode = 'base';
     let timed = false;
-    let puzzleStarted = false;
     let sessionStarted = false;
+    let puzzleStarted = false;
     let qualifiesForTimedBonus = false;
     let solved = 0;
     let totalPoints = 0;
-    let special93State = 'waiting';
     let startedAt = 0;
     let pyramidStartedAt = 0;
     let puzzle;
@@ -1397,7 +1746,21 @@
     let timer = null;
     let deadline = 0;
 
-    // Construcció de la piràmide.
+    // El mode Marc Márquez comença desactivat.
+
+    let marquezEnabled = false;
+    let special93Active = false;
+    let nextSpecial93At = Infinity;
+    let special93IntroPlayed = false;
+    let special93EffectTimer = null;
+    let special93SmokeTimer = null;
+
+    // Reinicia els controls opcionals en carregar la pàgina.
+
+    marquezToggle.checked = false;
+    timedButton.setAttribute('aria-pressed', 'false');
+
+    // Construcció de les piràmides.
 
     function pyramid(base) {
       const rows = [base];
@@ -1514,15 +1877,8 @@
     }
 
     function pointsFor(milliseconds) {
-      const levelMultipliers = {
-        base: 1,
-        mixed: 1.25,
-        decimal: 1.5,
-        'decimal-mixed': 2
-      };
-
-      const speedPoints = 1000 / (1 + milliseconds / 30_000);
-      const levelMultiplier = levelMultipliers[mode];
+      const speedPoints = 1000 / (1 + milliseconds / 30000);
+      const levelMultiplier = levelMultipliers[puzzle.levelMode];
       const timedMultiplier = qualifiesForTimedBonus ? 1.25 : 1;
 
       return Math.max(
@@ -1610,6 +1966,53 @@
       timer = setInterval(updateClock, 100);
     }
 
+    // Efectes del mode Marc Márquez.
+
+    function randomSpecial93Gap() {
+      return 1200 + Math.floor(Math.random() * 1301);
+    }
+
+    function stopSpecial93Effects() {
+      clearTimeout(special93EffectTimer);
+      clearTimeout(special93SmokeTimer);
+
+      specialEffect.hidden = true;
+      specialEffect.classList.remove('is-running');
+      specialShell.classList.remove('is-smoking');
+      stage.classList.remove('is-arriving');
+    }
+
+    function playSpecial93Intro() {
+      if (!marquezEnabled) {
+        return;
+      }
+
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+      }
+
+      stopSpecial93Effects();
+
+      specialEffect.hidden = false;
+
+      // Reinicia les animacions en cada nou especial.
+      void specialEffect.offsetWidth;
+
+      specialEffect.classList.add('is-running');
+      specialShell.classList.add('is-smoking');
+      stage.classList.add('is-arriving');
+
+      special93EffectTimer = setTimeout(() => {
+        specialEffect.hidden = true;
+        specialEffect.classList.remove('is-running');
+        stage.classList.remove('is-arriving');
+      }, 2800);
+
+      special93SmokeTimer = setTimeout(() => {
+        specialShell.classList.remove('is-smoking');
+      }, 7000);
+    }
+
     // Preparació dels reptes.
 
     function renderPuzzle() {
@@ -1620,16 +2023,13 @@
         puzzle.decimal
       );
 
-      stage.classList.toggle(
-        'special-93',
-        Boolean(puzzle.special93)
-      );
+      const special = marquezEnabled && puzzle.special93;
 
+      stage.classList.toggle('special-93', special);
       stage.classList.remove('special-93-finished');
+      specialNotice.hidden = !special;
 
-      get('special-93-notice').hidden = !puzzle.special93;
-
-      get('puzzle-title').textContent = puzzle.special93
+      get('puzzle-title').textContent = special
         ? 'Especial Márquez 93'
         : 'Piràmide ' + (solved + 1);
 
@@ -1637,26 +2037,36 @@
       restart.disabled = false;
 
       startClock();
+
+      if (special && !special93IntroPlayed) {
+        special93IntroPlayed = true;
+        playSpecial93Intro();
+      }
     }
 
     function newPuzzle() {
       clearTimeout(transition);
       transition = null;
       stopClock();
+      stopSpecial93Effects();
 
       puzzleStarted = sessionStarted;
 
-      const special93 =
-        special93State === 'active' ||
-        (special93State === 'waiting' && totalPoints >= 1000);
+      const special =
+        marquezEnabled &&
+        sessionStarted &&
+        (special93Active || totalPoints >= nextSpecial93At);
 
-      if (special93) {
-        special93State = 'active';
+      if (special) {
+        if (!special93Active) {
+          special93IntroPlayed = false;
+        }
+
+        special93Active = true;
 
         puzzle = {
           rows: pyramid([11, 11, 12, 13]),
 
-          // Queden buides les caselles amb les respostes 23 i 45.
           clues: [
             '0:0', '0:1', '0:2', '0:3',
             '1:0', '1:2',
@@ -1665,7 +2075,8 @@
           ],
 
           decimal: false,
-          special93: true
+          special93: true,
+          levelMode: mode
         };
       } else {
         const decimal =
@@ -1680,7 +2091,7 @@
 
         const base = nextBase();
 
-        // Es calcula amb dècimes enteres per evitar errors de suma decimal.
+        // Es treballa amb dècimes enteres per evitar errors decimals.
         const values = decimal
           ? base.map(value =>
               value * 10 + 1 + Math.floor(Math.random() * 9)
@@ -1691,7 +2102,8 @@
           rows: pyramid(values),
           clues,
           decimal,
-          special93: false
+          special93: false,
+          levelMode: mode
         };
       }
 
@@ -1710,8 +2122,8 @@
 
       if (sessionStarted) {
         announce(
-          special93
-            ? 'Completa les dues caselles per aconseguir 193 punts extra!'
+          special
+            ? '🏍️ Completa el repte del 93 i guanya 193 punts extra!'
             : ''
         );
 
@@ -1777,22 +2189,19 @@
           )[0];
       } else {
         const step = event.key === 'ArrowUp' ? 1 : -1;
-
-        const candidates = editable.filter(tile =>
-          (tile.floor - current.floor) * step > 0
-        );
-
         const currentX = current.col + current.floor / 2;
 
-        candidates.sort((a, b) =>
-          Math.abs(a.floor - current.floor) -
-          Math.abs(b.floor - current.floor) ||
-          Math.abs(a.col + a.floor / 2 - currentX) -
-          Math.abs(b.col + b.floor / 2 - currentX) ||
-          a.col - b.col
-        );
-
-        target = candidates[0];
+        target = editable
+          .filter(tile =>
+            (tile.floor - current.floor) * step > 0
+          )
+          .sort((a, b) =>
+            Math.abs(a.floor - current.floor) -
+            Math.abs(b.floor - current.floor) ||
+            Math.abs(a.col + a.floor / 2 - currentX) -
+            Math.abs(b.col + b.floor / 2 - currentX) ||
+            a.col - b.col
+          )[0];
       }
 
       if (target) {
@@ -1824,12 +2233,17 @@
       if (fields.every(matches)) {
         const duration = performance.now() - pyramidStartedAt;
         const time = formatTime(Math.floor(duration / 1000));
-        const bonus = puzzle.special93 ? 193 : 0;
+
+        const special = marquezEnabled && puzzle.special93;
+        const bonus = special ? 193 : 0;
         const earned = pointsFor(duration) + bonus;
         const result = time + ' · +' + earned + ' punts';
 
-        if (puzzle.special93) {
-          special93State = 'completed';
+        if (special) {
+          special93Active = false;
+          nextSpecial93At =
+            totalPoints + earned + randomSpecial93Gap();
+
           stage.classList.add('special-93-finished');
         }
 
@@ -1845,6 +2259,7 @@
         lastResult.hidden = false;
 
         solved++;
+
         get('score').textContent =
           solved + (solved === 1 ? ' resolta' : ' resoltes');
 
@@ -1910,6 +2325,7 @@
       qualifiesForTimedBonus = timed;
 
       const now = performance.now();
+
       startedAt = now;
       pyramidStartedAt = now;
 
@@ -1971,14 +2387,10 @@
       timedButton.setAttribute('aria-pressed', String(timed));
       startClock();
 
-      const message = timed
-        ? 'Contrarellotge activat.'
-        : 'Contrarellotge desactivat.';
-
       announce(
-        sessionStarted
-          ? message
-          : message + ' Prem Comença quan estiguis a punt.'
+        timed
+          ? 'Contrarellotge activat.'
+          : 'Contrarellotge desactivat.'
       );
     });
 
@@ -1996,6 +2408,32 @@
       focusFirstInput();
     });
 
+    marquezToggle.addEventListener('change', () => {
+      marquezEnabled = marquezToggle.checked;
+
+      if (marquezEnabled) {
+        nextSpecial93At = totalPoints + randomSpecial93Gap();
+
+        announce(
+          'Mode Marc Márquez activat. Hi haurà reptes sorpresa!'
+        );
+
+        return;
+      }
+
+      nextSpecial93At = Infinity;
+      special93Active = false;
+      special93IntroPlayed = false;
+
+      stopSpecial93Effects();
+
+      if (puzzle?.special93) {
+        newPuzzle();
+      }
+
+      announce('Mode normal activat.');
+    });
+
     // Classificació compartida.
 
     const rankingUrl = 'https://script.google.com/macros/s/AKfycbx2ZnkJoNADzC7sBuChCE-r8rM7kWGsoMWG9RFl3ngeTcihUcjdTPHMPgqDiqz-2vrk/exec';
@@ -2005,7 +2443,8 @@
     const rankingStatus = get('ranking-status');
     const rankingRefresh = get('ranking-refresh');
     const rankingMore = get('ranking-more');
-    const rankingSubmit = rankingForm.querySelector('button[type="submit"]');
+    const rankingSubmit =
+      rankingForm.querySelector('button[type="submit"]');
 
     let rankingBusy = false;
     let rankingEntries = [];
@@ -2036,7 +2475,13 @@
         pointsLabel.textContent =
           Number(score).toLocaleString('ca-ES') + ' punts';
 
-        item.append(player, gradeLabel, schoolLabel, pointsLabel);
+        item.append(
+          player,
+          gradeLabel,
+          schoolLabel,
+          pointsLabel
+        );
+
         rankingList.append(item);
       });
 
@@ -2053,27 +2498,44 @@
     }
 
     function showRanking(entries) {
-      rankingEntries = entries;
+      rankingEntries = [...entries].sort((a, b) =>
+        Number(b.score) - Number(a.score) ||
+        String(a.name).localeCompare(String(b.name), 'ca')
+      );
+
       renderRanking();
     }
 
     async function requestRanking(options = {}) {
-      const response = await fetch(rankingUrl, {
-        ...options,
-        cache: 'no-store'
-      });
+      const controller = new AbortController();
 
-      if (!response.ok) {
-        throw new Error('No s’ha pogut connectar amb la classificació.');
+      const timeout = setTimeout(() => {
+        controller.abort();
+      }, 30000);
+
+      try {
+        const response = await fetch(rankingUrl, {
+          ...options,
+          cache: 'no-store',
+          signal: controller.signal
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            'No s’ha pogut connectar amb la classificació.'
+          );
+        }
+
+        const data = await response.json();
+
+        if (data.ok === false || !Array.isArray(data.entries)) {
+          throw new Error(data.error || 'Resposta incorrecta.');
+        }
+
+        return data;
+      } finally {
+        clearTimeout(timeout);
       }
-
-      const data = await response.json();
-
-      if (data.ok === false || !Array.isArray(data.entries)) {
-        throw new Error(data.error || 'Resposta incorrecta.');
-      }
-
-      return data;
     }
 
     function setRankingBusy(busy) {
@@ -2188,7 +2650,13 @@
         .querySelector('input[name="grade"]:checked')
         ?.value;
 
-      if (!name || !school || !['5è', '6è'].includes(grade)) {
+      if (
+        !name ||
+        name.length > 30 ||
+        !school ||
+        school.length > 80 ||
+        !['5è', '6è'].includes(grade)
+      ) {
         get('entry-status').textContent =
           'Completa l’àlies, la classe i l’escola.';
         return;
@@ -2205,12 +2673,43 @@
 
       get('entry-screen').hidden = true;
       get('game-screen').inert = false;
+      get('site-header').inert = false;
+      get('site-footer').inert = false;
+
       document.body.classList.remove('entry-open');
 
       startButton.focus({ preventScroll: true });
     });
 
-    // Prepara el fons sense iniciar el temps.
+    // Manté el focus dins de la finestra mentre es demanen les dades.
+
+    get('entry-screen').addEventListener('keydown', event => {
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const focusable = [
+        ...get('entry-screen').querySelectorAll(
+          'input, select, button, a[href]'
+        )
+      ].filter(element => !element.disabled);
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (
+        !event.shiftKey &&
+        document.activeElement === last
+      ) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+
+    // Prepara el joc del fons sense iniciar el rellotge.
 
     displayBoard(get('example'), pyramid([4, 6, 5, 3]));
     newPuzzle();

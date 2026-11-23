@@ -20,6 +20,8 @@ canvas{width:100%;display:block}.bar{display:flex;justify-content:space-between;
 <main class="wrap">
 <h1>Pugem esglaons!</h1>
 <p class="intro">Ajuda en MAT a arribar a dalt sumant salts d’1 o de 2 esglaons. Cada vegada que trobis una manera nova de pujar, suma 1 al recompte.</p>
+<button class="primary" id="start-game" type="button">Comença</button>
+<div id="game" hidden>
 <nav id="levels" aria-label="Tria el nombre d’esglaons"></nav>
 <div class="layout">
 <section class="card" aria-labelledby="level-title">
@@ -35,19 +37,13 @@ canvas{width:100%;display:block}.bar{display:flex;justify-content:space-between;
 </section>
 </div>
 <section class="card summary"><h2>La teva taula</h2><table><thead><tr><th scope="col">Esglaons</th><th scope="col">Sumes trobades</th><th scope="col">Total trobat</th></tr></thead><tbody id="summary"></tbody></table></section>
+</div>
 <footer>PCMAT · Tasca diagnòstica</footer>
 </main>
 <script>
 const get = id => document.getElementById(id);
 const totals = [1, 2, 3, 5, 8, 13];
-const key = 'pcmat-pugem-esglaons-v1';
-let saved = [];
-try { saved = JSON.parse(localStorage.getItem(key)) || []; } catch {}
-const discoveries = totals.map((_, i) => new Set(
-  (Array.isArray(saved[i]) ? saved[i] : []).filter(route =>
-    typeof route === 'string' && /^[12]+$/.test(route) &&
-    [...route].reduce((sum, jump) => sum + Number(jump), 0) === i + 1)
-));
+const discoveries = totals.map(() => new Set());
 let level = 1;
 let route = [];
 let message = '';
@@ -77,7 +73,6 @@ function move(jump) {
       message = 'Ja havies trobat aquesta manera. El recompte continua a ' + found.size + '.';
     } else {
       found.add(path);
-      try { localStorage.setItem(key, JSON.stringify(discoveries.map(set => [...set]))); } catch {}
       const tally = (found.size - 1) + ' + 1 = ' + found.size;
       message = 'Una manera nova! ' + tally + (found.size === totals[level - 1]
         ? '. Has completat l’escala!' : '.');
@@ -205,7 +200,11 @@ get('one').addEventListener('click', () => move(1));
 get('two').addEventListener('click', () => move(2));
 get('restart').addEventListener('click', () => { restart(); get('one').focus({preventScroll:true}); });
 get('undo').addEventListener('click', undo);
-render();
-</script>
+get('start-game').addEventListener('click', () => {
+  get('game').hidden = false;
+  get('start-game').hidden = true;
+  render();
+  get('one').focus();
+});</script>
 </body>
 </html>

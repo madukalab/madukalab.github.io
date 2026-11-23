@@ -20,16 +20,8 @@
     [hidden] { display: none !important; }
     body { margin: 0; }
     p { line-height: 1.5; }
-
-    button {
-      font: inherit;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      cursor: default;
-      opacity: .48;
-    }
+    button { font: inherit; cursor: pointer; }
+    button:disabled { cursor: default; opacity: .48; }
 
     button:focus-visible {
       outline: 3px solid #cf651f;
@@ -37,11 +29,7 @@
     }
 
     header { border-bottom: 1px solid var(--line); }
-
-    .wrap {
-      width: min(1120px, calc(100% - 36px));
-      margin: auto;
-    }
+    .wrap { width: min(1120px, calc(100% - 36px)); margin: auto; }
 
     .brand {
       display: flex;
@@ -62,11 +50,7 @@
       font-size: 24px;
     }
 
-    .brand small {
-      color: #52675c;
-      font-size: 13px;
-      font-weight: 600;
-    }
+    .brand small { color: #52675c; font-size: 13px; font-weight: 600; }
 
     h1 {
       margin: 24px 0 5px;
@@ -75,17 +59,8 @@
       letter-spacing: -.065em;
     }
 
-    .intro {
-      margin: 0 0 20px;
-      color: #40574c;
-    }
-
-    nav, .moves {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
+    .intro { margin: 0 0 20px; color: #40574c; }
+    nav, .moves { display: flex; flex-wrap: wrap; gap: 8px; }
     nav { margin-bottom: 16px; }
 
     nav button, .secondary {
@@ -112,12 +87,7 @@
       font-weight: 800;
     }
 
-    .jump2 {
-      border-color: #acc47d;
-      background: var(--lime);
-      color: var(--green);
-    }
-
+    .jump2 { border-color: #acc47d; background: var(--lime); color: var(--green); }
     #start-game { margin: 12px 0 4px; }
 
     .layout {
@@ -134,10 +104,7 @@
       background: #fffdf6;
     }
 
-    .card h2 {
-      margin: 0;
-      font-size: 21px;
-    }
+    .card h2 { margin: 0; font-size: 21px; }
 
     .bar {
       display: flex;
@@ -161,33 +128,11 @@
       background: linear-gradient(#e8f0d6, #f1f2db 75%, #e2e8c7);
     }
 
-    canvas {
-      display: block;
-      width: 100%;
-    }
-
-    .route {
-      margin: 12px 0 4px;
-      font-weight: 800;
-    }
-
-    .feedback {
-      min-height: 25px;
-      margin: 0 0 10px;
-      color: #425c4e;
-    }
-
-    .keyboard {
-      margin: 10px 0 0;
-      color: #40574c;
-      font-size: 14px;
-    }
-
-    .count {
-      margin: 7px 0;
-      color: #435e4e;
-      font-size: 15px;
-    }
+    canvas { display: block; width: 100%; }
+    .route { margin: 12px 0 4px; font-weight: 800; }
+    .feedback { min-height: 25px; margin: 0 0 10px; color: #425c4e; }
+    .keyboard { margin: 10px 0 0; color: #40574c; font-size: 14px; }
+    .count { margin: 7px 0; color: #435e4e; font-size: 15px; }
 
     .routes, .sum-list {
       display: grid;
@@ -199,43 +144,18 @@
     }
 
     .routes { margin-top: 10px; }
-
-    .routes li {
-      padding: 5px 8px;
-      border-radius: 8px;
-      background: #eaf0d7;
-      font-weight: 750;
-    }
-
-    .sum-list li + li {
-      padding-top: 6px;
-      border-top: 1px solid var(--line);
-    }
-
+    .routes li { padding: 5px 8px; border-radius: 8px; background: #eaf0d7; font-weight: 750; }
+    .sum-list li + li { padding-top: 6px; border-top: 1px solid var(--line); }
     .summary { margin: 16px 0; }
     .summary h2 { margin-bottom: 8px; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-    }
-
-    th, td {
-      padding: 8px 5px;
-      border-top: 1px solid var(--line);
-      vertical-align: top;
-    }
-
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 8px 5px; border-top: 1px solid var(--line); vertical-align: top; }
     th:last-child, td:last-child { text-align: right; }
     td:first-child { width: 90px; }
     td:nth-child(2) { overflow-wrap: anywhere; }
 
-    footer {
-      padding: 8px 0 22px;
-      color: #52675c;
-      font-size: 14px;
-    }
+    footer { padding: 8px 0 22px; color: #52675c; font-size: 14px; }
 
     @media (max-width: 720px) {
       .layout { grid-template-columns: 1fr; }
@@ -272,7 +192,7 @@
           </div>
 
           <div class="scene">
-            <canvas id="stairs" width="1200" height="580" aria-hidden="true"></canvas>
+            <canvas id="stairs" width="1200" height="680" aria-hidden="true"></canvas>
           </div>
 
           <button class="primary" id="start-game" type="button">Comença</button>
@@ -288,8 +208,9 @@
           </div>
 
           <p class="keyboard">
-            <kbd>←</kbd> / <kbd>→</kbd> per caminar i dirigir el salt.
-            <kbd>Espai</kbd> per saltar. Aterra un o dos esglaons més amunt per sumar el salt.
+            Prem <kbd>Espai</kbd> per saltar. Fes servir <kbd>←</kbd> i <kbd>→</kbd>
+            per caminar i dirigir el salt. Per pujar dos esglaons de cop,
+            mantén <kbd>→</kbd> mentre ets a l’aire.
           </p>
         </section>
 
@@ -326,11 +247,17 @@
     const get = id => document.getElementById(id);
     const totals = [1, 2, 3, 5, 8, 13];
     const discoveries = totals.map(() => new Set());
-    const ctx = get('stairs').getContext('2d');
+    const canvas = get('stairs');
+    const ctx = canvas.getContext('2d');
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
     const held = new Set();
+
     const floor = 213;
+    const skyPadding = 100;
     const gravity = 1050;
+    const jumpSpeed = 490;
+    const walkSpeed = 165;
+    const airSpeed = 285;
 
     let started = false;
     let level = 1;
@@ -450,9 +377,7 @@
 
       get('summary').innerHTML = discoveries.map((paths, index) => {
         const size = index + 1;
-        const sums = [...paths]
-          .map(path => `<li>${equation(path, size)}</li>`)
-          .join('');
+        const sums = [...paths].map(path => `<li>${equation(path, size)}</li>`).join('');
         const list = sums ? `<ul class="sum-list" role="list">${sums}</ul>` : '—';
         const mark = paths.size === totals[index] ? ' ✓' : '';
 
@@ -529,13 +454,13 @@
 
       const step = position();
       const direction = Number(held.has('ArrowRight')) - Number(held.has('ArrowLeft'));
-      const targetSpeed = direction * (flight ? 245 : 165);
+      const targetSpeed = direction * (flight ? airSpeed : walkSpeed);
       velocityX += (targetSpeed - velocityX) * (1 - Math.exp(-17 * dt));
 
       if (flight) {
         const previousY = flight.y;
+        flight.y += flight.velocityY * dt + .5 * gravity * dt * dt;
         flight.velocityY += gravity * dt;
-        flight.y += flight.velocityY * dt;
 
         const lastStep = Math.min(step + 2, level);
         let limit = rightEdge(lastStep) - 2;
@@ -602,11 +527,11 @@
     }
 
     function draw(step, lift, offset = walkOffset, airborne = null) {
-      ctx.setTransform(2, 0, 0, 2, 0, 100);
-      ctx.clearRect(0, -50, 600, 290);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.setTransform(2, 0, 0, 2, 0, skyPadding * 2);
 
       const width = stairWidth();
-      const rise = Math.min(33, 124 / level);
       const origin = stairOrigin();
       const visited = new Set();
       let sum = 0;
@@ -642,7 +567,7 @@
       ctx.save();
       ctx.translate(
         airborne ? airborne.x : x + offset,
-        airborne ? airborne.y : Math.max(73, floor - step * rise - lift)
+        airborne ? airborne.y : stairHeight(step) - lift
       );
 
       oval('#dd7835', -19, -17, 16, 9);
@@ -711,7 +636,7 @@
         flight = {
           x: centerX(step) + walkOffset,
           y: stairHeight(step),
-          velocityY: -420
+          velocityY: -jumpSpeed
         };
 
         if (!held.size) velocityX = 0;

@@ -123,8 +123,8 @@
     .layout {
       display: grid;
       grid-template-columns: minmax(0, 1.8fr) minmax(250px, 1fr);
-      gap: 16px;
       align-items: start;
+      gap: 16px;
     }
 
     .card {
@@ -281,16 +281,15 @@
           <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
 
           <div class="moves">
-            <button class="primary" id="one" type="button" disabled>↑ Puja 1</button>
-            <button class="primary jump2" id="two" type="button" disabled>↑ Puja 2</button>
-            <button class="secondary" id="undo" type="button" disabled>Desfés el salt</button>
-            <button class="secondary" id="restart" type="button" disabled>Torna a baix</button>
+            <button class="primary" id="one" type="button">↑ Puja 1</button>
+            <button class="primary jump2" id="two" type="button">↑ Puja 2</button>
+            <button class="secondary" id="undo" type="button">Desfés el salt</button>
+            <button class="secondary" id="restart" type="button">Torna a baix</button>
           </div>
 
           <p class="keyboard">
-            <kbd>→</kbd> / <kbd>↑</kbd> o <kbd>Espai</kbd>: puja 1.
-            <kbd>Maj</kbd> + <kbd>Espai</kbd>: puja 2.
-            <kbd>←</kbd> / <kbd>↓</kbd>: desfés el salt o torna a baix.
+            <kbd>←</kbd> / <kbd>→</kbd>: camina.
+            <kbd>Espai</kbd>: toca per saltar 1 esglaó o mantén premut i deixa anar per saltar-ne 2.
           </p>
         </section>
 
@@ -329,12 +328,15 @@
     const discoveries = totals.map(() => new Set());
     const ctx = get('stairs').getContext('2d');
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    const longPressMs = 260;
 
     let started = false;
     let level = 1;
     let route = [];
     let message = '';
-    let frame;
+    let frame = null;
+    let walkOffset = 0;
+    let spacePressedAt = null;
 
     function position() {
       return route.reduce((sum, jump) => sum + jump, 0);
@@ -346,6 +348,8 @@
 
     function restart() {
       route = [];
+      walkOffset = 0;
+      spacePressedAt = null;
       message = '';
       render();
     }
@@ -355,6 +359,9 @@
       const step = previous + jump;
       if (step > level) return;
 
+      spacePressedAt = null;
+      const previousOffset = walkOffset;
+      walkOffset = 0;
       route.push(jump);
       message = '';
 
@@ -374,7 +381,7 @@
         }
       }
 
-      render(previous);
+      render(previous, previousOffset);
 
       if (step === level) {
         get('restart').focus({ preventScroll: true });
@@ -387,6 +394,8 @@
       if (!route.length || position() === level) return;
 
       route.pop();
+      walkOffset = 0;
+      spacePressedAt = null;
       message = '';
       render();
 
@@ -395,7 +404,7 @@
       }
     }
 
-    function render(previous = position()) {
+    function render(previous = position(), previousOffset = walkOffset) {
       const step = position();
       const found = discoveries[level - 1];
       const complete = found.size === totals[level - 1];
@@ -429,6 +438,7 @@
       get('count').textContent = complete
         ? `${found.size} · Escala completada`
         : `${found.size} ${countLabel}`;
+
       get('routes').innerHTML = [...found]
         .map(path => `<li>${equation(path, level)}</li>`)
         .join('');
@@ -445,7 +455,8 @@
         return `<tr><th scope="row">${size}</th><td>${list}</td><td>${paths.size}${mark}</td></tr>`;
       }).join('');
 
-      cancelAnimationFrame(frame);
+      if (frame !== null) cancelAnimationFrame(frame);
+      frame = null;
 
       if (previous === step || reducedMotion.matches) {
         draw(step, 0);
@@ -458,9 +469,10 @@
         const progress = Math.min(1, (time - startTime) / 320);
         const animatedStep = previous + (step - previous) * progress;
         const lift = Math.sin(Math.PI * progress) * 32;
+        const offset = previousOffset * (1 - progress);
 
-        draw(animatedStep, lift);
-        if (progress < 1) frame = requestAnimationFrame(animate);
+        draw(animatedStep, lift, offset);
+        frame = progress < 1 ? requestAnimationFrame(animate) : null;
       }
 
       frame = requestAnimationFrame(animate);
@@ -483,11 +495,29 @@
       ctx.fill();
     }
 
-    function draw(step, lift) {
+    function stairWidth() {
+      return Math.min(93, 438 / level);
+    }
+
+    function walk(direction) {
+      if (frame !== null) return;
+
+      const step = position();
+      const width = stairWidth();
+      const origin = (600 - width * level) / 2 + 17;
+      const halfWalkableStep = width / 2 - 12;
+      const minOffset = step === 0 ? 38 - (origin - 40) : -halfWalkableStep;
+      const maxOffset = step === 0 ? 22 : halfWalkableStep;
+
+      walkOffset = Math.min(maxOffset, Math.max(minOffset, walkOffset + direction * 9));
+      draw(step, 0);
+    }
+
+    function draw(step, lift, offset = walkOffset) {
       ctx.setTransform(2, 0, 0, 2, 0, 0);
       ctx.clearRect(0, 0, 600, 240);
 
-      const width = Math.min(93, 438 / level);
+      const width = stairWidth();
       const rise = Math.min(33, 124 / level);
       const origin = (600 - width * level) / 2 + 17;
       const floor = 213;
@@ -523,7 +553,7 @@
         : origin + (step - .5) * width;
 
       ctx.save();
-      ctx.translate(x, floor - step * rise - lift);
+      ctx.translate(x + offset, Math.max(73, floor - step * rise - lift));
 
       oval('#dd7835', -19, -17, 16, 9);
       oval('#fff9eb', -29, -18, 7, 7);
@@ -576,26 +606,39 @@
           event.altKey || event.ctrlKey || event.metaKey) return;
 
       const target = event.target;
-      if (target.isContentEditable || target.closest('input, textarea, select, a[href]')) return;
+      if (target.isContentEditable || target.closest?.('input, textarea, select, a[href]')) return;
 
-      const forward = event.key === 'ArrowRight' || event.key === 'ArrowUp';
-      const backward = event.key === 'ArrowLeft' || event.key === 'ArrowDown';
       const space = event.code === 'Space' || event.key === ' ';
-      if (!forward && !backward && !space) return;
+      const direction = event.key === 'ArrowLeft' ? -1 : Number(event.key === 'ArrowRight');
+      if (!direction && !space) return;
 
       event.preventDefault();
-      if (event.repeat) return;
 
-      if (backward) {
-        if (position() === level) {
-          restart();
-          get('one').focus({ preventScroll: true });
-        } else {
-          undo();
-        }
-      } else {
-        move(space && event.shiftKey ? 2 : 1);
+      if (direction) {
+        walk(direction);
+      } else if (!event.repeat && frame === null && position() < level) {
+        spacePressedAt = event.timeStamp;
       }
+    });
+
+    document.addEventListener('keyup', event => {
+      if ((event.code !== 'Space' && event.key !== ' ') || spacePressedAt === null) return;
+
+      event.preventDefault();
+      const jump = event.timeStamp - spacePressedAt >= longPressMs ? 2 : 1;
+      spacePressedAt = null;
+
+      if (position() + jump > level) {
+        message = 'Queda un esglaó. Fes un toc curt a la barra espaiadora.';
+        render();
+        return;
+      }
+
+      move(jump);
+    });
+
+    window.addEventListener('blur', () => {
+      spacePressedAt = null;
     });
 
     render();

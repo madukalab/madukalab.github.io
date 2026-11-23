@@ -272,7 +272,7 @@
           </div>
 
           <div class="scene">
-            <canvas id="stairs" width="1200" height="480" aria-hidden="true"></canvas>
+            <canvas id="stairs" width="1200" height="580" aria-hidden="true"></canvas>
           </div>
 
           <button class="primary" id="start-game" type="button">Comença</button>
@@ -288,8 +288,8 @@
           </div>
 
           <p class="keyboard">
-            <kbd>←</kbd> / <kbd>→</kbd>: camina.
-            <kbd>Espai</kbd>: toca per saltar 1 esglaó o mantén premut i deixa anar per saltar-ne 2.
+            <kbd>←</kbd> / <kbd>→</kbd> per caminar i dirigir el salt.
+            <kbd>Espai</kbd> per saltar. Aterra un o dos esglaons més amunt per sumar el salt.
           </p>
         </section>
 
@@ -328,7 +328,9 @@
     const discoveries = totals.map(() => new Set());
     const ctx = get('stairs').getContext('2d');
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-    const longPressMs = 260;
+    const held = new Set();
+    const floor = 213;
+    const gravity = 1050;
 
     let started = false;
     let level = 1;
@@ -336,7 +338,10 @@
     let message = '';
     let frame = null;
     let walkOffset = 0;
-    let spacePressedAt = null;
+    let physicsFrame = null;
+    let lastTime = null;
+    let velocityX = 0;
+    let flight = null;
 
     function position() {
       return route.reduce((sum, jump) => sum + jump, 0);
@@ -349,19 +354,19 @@
     function restart() {
       route = [];
       walkOffset = 0;
-      spacePressedAt = null;
+      stopMotion();
       message = '';
       render();
     }
 
-    function move(jump) {
+    function move(jump, landingOffset = null) {
       const previous = position();
       const step = previous + jump;
-      if (step > level) return;
+      if (step > level || flight) return;
 
-      spacePressedAt = null;
+      stopMotion();
       const previousOffset = walkOffset;
-      walkOffset = 0;
+      walkOffset = landingOffset ?? 0;
       route.push(jump);
       message = '';
 
@@ -381,7 +386,7 @@
         }
       }
 
-      render(previous, previousOffset);
+      render(landingOffset === null ? previous : step, previousOffset);
 
       if (step === level) {
         get('restart').focus({ preventScroll: true });
@@ -395,7 +400,7 @@
 
       route.pop();
       walkOffset = 0;
-      spacePressedAt = null;
+      stopMotion();
       message = '';
       render();
 
@@ -438,7 +443,6 @@
       get('count').textContent = complete
         ? `${found.size} · Escala completada`
         : `${found.size} ${countLabel}`;
-
       get('routes').innerHTML = [...found]
         .map(path => `<li>${equation(path, level)}</li>`)
         .join('');
@@ -478,6 +482,108 @@
       frame = requestAnimationFrame(animate);
     }
 
+    function stairWidth() {
+      return Math.min(93, 438 / level);
+    }
+
+    function stairOrigin() {
+      return (600 - stairWidth() * level) / 2 + 17;
+    }
+
+    function stairHeight(step) {
+      return floor - step * Math.min(33, 124 / level);
+    }
+
+    function centerX(step) {
+      return step === 0
+        ? stairOrigin() - 40
+        : stairOrigin() + (step - .5) * stairWidth();
+    }
+
+    function leftEdge(step) {
+      return step === 0 ? 38 : stairOrigin() + (step - 1) * stairWidth();
+    }
+
+    function rightEdge(step) {
+      return stairOrigin() + step * stairWidth();
+    }
+
+    function stopMotion() {
+      if (physicsFrame !== null) cancelAnimationFrame(physicsFrame);
+      physicsFrame = null;
+      lastTime = null;
+      velocityX = 0;
+      flight = null;
+    }
+
+    function queueMotion() {
+      if (physicsFrame === null) {
+        physicsFrame = requestAnimationFrame(updateMotion);
+      }
+    }
+
+    function updateMotion(time) {
+      physicsFrame = null;
+      const dt = lastTime === null ? 0 : Math.min(.025, (time - lastTime) / 1000);
+      lastTime = time;
+
+      const step = position();
+      const direction = Number(held.has('ArrowRight')) - Number(held.has('ArrowLeft'));
+      const targetSpeed = direction * (flight ? 245 : 165);
+      velocityX += (targetSpeed - velocityX) * (1 - Math.exp(-17 * dt));
+
+      if (flight) {
+        const previousY = flight.y;
+        flight.velocityY += gravity * dt;
+        flight.y += flight.velocityY * dt;
+
+        const lastStep = Math.min(step + 2, level);
+        let limit = rightEdge(lastStep) - 2;
+
+        for (let next = step + 1; next <= lastStep; next++) {
+          if (previousY > stairHeight(next) && flight.x < leftEdge(next)) {
+            limit = leftEdge(next) - 2;
+            break;
+          }
+        }
+
+        flight.x = Math.max(leftEdge(step) + 2, Math.min(limit, flight.x + velocityX * dt));
+
+        if (flight.velocityY >= 0) {
+          for (let landed = lastStep; landed >= step; landed--) {
+            if (flight.x < leftEdge(landed) ||
+                flight.x >= rightEdge(landed) ||
+                flight.y < stairHeight(landed)) continue;
+
+            const offset = flight.x - centerX(landed);
+            flight = null;
+
+            if (landed > step) {
+              move(landed - step, offset);
+              if (held.size) queueMotion();
+              return;
+            }
+
+            walkOffset = offset;
+            break;
+          }
+        }
+      } else {
+        const x = centerX(step) + walkOffset + velocityX * dt;
+        const boundedX = Math.max(leftEdge(step) + 2, Math.min(rightEdge(step) - 2, x));
+        walkOffset = boundedX - centerX(step);
+      }
+
+      draw(step, 0, walkOffset, flight);
+
+      if (flight || held.size || Math.abs(velocityX) > 1) {
+        queueMotion();
+      } else {
+        lastTime = null;
+        velocityX = 0;
+      }
+    }
+
     function shape(fill, points) {
       const [[firstX, firstY], ...rest] = points;
       ctx.beginPath();
@@ -495,32 +601,13 @@
       ctx.fill();
     }
 
-    function stairWidth() {
-      return Math.min(93, 438 / level);
-    }
-
-    function walk(direction) {
-      if (frame !== null) return;
-
-      const step = position();
-      const width = stairWidth();
-      const origin = (600 - width * level) / 2 + 17;
-      const halfWalkableStep = width / 2 - 12;
-      const minOffset = step === 0 ? 38 - (origin - 40) : -halfWalkableStep;
-      const maxOffset = step === 0 ? 22 : halfWalkableStep;
-
-      walkOffset = Math.min(maxOffset, Math.max(minOffset, walkOffset + direction * 9));
-      draw(step, 0);
-    }
-
-    function draw(step, lift, offset = walkOffset) {
-      ctx.setTransform(2, 0, 0, 2, 0, 0);
-      ctx.clearRect(0, 0, 600, 240);
+    function draw(step, lift, offset = walkOffset, airborne = null) {
+      ctx.setTransform(2, 0, 0, 2, 0, 100);
+      ctx.clearRect(0, -50, 600, 290);
 
       const width = stairWidth();
       const rise = Math.min(33, 124 / level);
-      const origin = (600 - width * level) / 2 + 17;
-      const floor = 213;
+      const origin = stairOrigin();
       const visited = new Set();
       let sum = 0;
 
@@ -535,7 +622,7 @@
 
       for (let i = 1; i <= level; i++) {
         const x = origin + (i - 1) * width;
-        const y = floor - i * rise;
+        const y = stairHeight(i);
         const reached = visited.has(i);
 
         ctx.fillStyle = reached ? '#35604d' : '#aec49b';
@@ -553,7 +640,10 @@
         : origin + (step - .5) * width;
 
       ctx.save();
-      ctx.translate(x + offset, Math.max(73, floor - step * rise - lift));
+      ctx.translate(
+        airborne ? airborne.x : x + offset,
+        airborne ? airborne.y : Math.max(73, floor - step * rise - lift)
+      );
 
       oval('#dd7835', -19, -17, 16, 9);
       oval('#fff9eb', -29, -18, 7, 7);
@@ -609,36 +699,34 @@
       if (target.isContentEditable || target.closest?.('input, textarea, select, a[href]')) return;
 
       const space = event.code === 'Space' || event.key === ' ';
-      const direction = event.key === 'ArrowLeft' ? -1 : Number(event.key === 'ArrowRight');
-      if (!direction && !space) return;
+      const arrow = event.key === 'ArrowLeft' || event.key === 'ArrowRight';
+      if (!arrow && !space) return;
 
       event.preventDefault();
+      if (arrow) held.add(event.key);
+      if (frame !== null) return;
 
-      if (direction) {
-        walk(direction);
-      } else if (!event.repeat && frame === null && position() < level) {
-        spacePressedAt = event.timeStamp;
+      if (space && !event.repeat && !flight) {
+        const step = position();
+        flight = {
+          x: centerX(step) + walkOffset,
+          y: stairHeight(step),
+          velocityY: -420
+        };
+
+        if (!held.size) velocityX = 0;
       }
+
+      queueMotion();
     });
 
     document.addEventListener('keyup', event => {
-      if ((event.code !== 'Space' && event.key !== ' ') || spacePressedAt === null) return;
-
-      event.preventDefault();
-      const jump = event.timeStamp - spacePressedAt >= longPressMs ? 2 : 1;
-      spacePressedAt = null;
-
-      if (position() + jump > level) {
-        message = 'Queda un esglaó. Fes un toc curt a la barra espaiadora.';
-        render();
-        return;
-      }
-
-      move(jump);
+      held.delete(event.key);
     });
 
     window.addEventListener('blur', () => {
-      spacePressedAt = null;
+      held.clear();
+      velocityX = 0;
     });
 
     render();

@@ -80,8 +80,6 @@
       color: #40574c;
     }
 
-    #start-game { margin-bottom: 16px; }
-
     nav, .moves {
       display: flex;
       flex-wrap: wrap;
@@ -99,7 +97,7 @@
       font-weight: 800;
     }
 
-    nav button[aria-pressed="true"], .primary {
+    nav button[aria-pressed="true"] {
       border-color: var(--green);
       background: var(--green);
       color: white;
@@ -109,6 +107,8 @@
       padding: 11px 16px;
       border: 1px solid var(--green);
       border-radius: 10px;
+      background: var(--green);
+      color: white;
       font-weight: 800;
     }
 
@@ -117,6 +117,8 @@
       background: var(--lime);
       color: var(--green);
     }
+
+    #start-game { margin: 12px 0 4px; }
 
     .layout {
       display: grid;
@@ -220,6 +222,7 @@
     }
 
     th:last-child, td:last-child { text-align: right; }
+    td:first-child { width: 90px; }
     td:nth-child(2) { overflow-wrap: anywhere; }
 
     footer {
@@ -247,44 +250,42 @@
 
   <main class="wrap">
     <h1>Pugem esglaons!</h1>
-
     <p class="intro">
       Ajuda en MAT a arribar a dalt sumant salts d’1 o de 2 esglaons.
       Cada vegada que trobis una manera nova de pujar, suma 1 al recompte.
     </p>
 
-    <button class="primary" id="start-game" type="button">Comença</button>
-
-    <div id="game" hidden>
+    <div id="game">
       <nav id="levels" aria-label="Tria el nombre d’esglaons"></nav>
 
       <div class="layout">
         <section class="card" aria-labelledby="level-title">
           <div class="bar">
             <h2 id="level-title"></h2>
-            <span class="position" id="position"></span>
+            <span id="position" class="position"></span>
           </div>
 
           <div class="scene">
             <canvas id="stairs" width="1200" height="480" aria-hidden="true"></canvas>
           </div>
 
-          <p class="route" id="route"></p>
-          <p class="feedback" id="feedback" role="status"></p>
+          <button class="primary" id="start-game" type="button">Comença</button>
+
+          <p id="route" class="route"></p>
+          <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
 
           <div class="moves">
-            <button class="primary" id="one" type="button">↑ Puja 1</button>
-            <button class="primary jump2" id="two" type="button">↑ Puja 2</button>
-            <button class="secondary" id="undo" type="button">Desfés el salt</button>
-            <button class="secondary" id="restart" type="button">Torna a baix</button>
+            <button class="primary" id="one" type="button" disabled>↑ Puja 1</button>
+            <button class="primary jump2" id="two" type="button" disabled>↑ Puja 2</button>
+            <button class="secondary" id="undo" type="button" disabled>Desfés el salt</button>
+            <button class="secondary" id="restart" type="button" disabled>Torna a baix</button>
           </div>
         </section>
 
         <section class="card" aria-labelledby="routes-title">
           <h2 id="routes-title">Recorreguts descoberts</h2>
-          <p class="count" id="count"></p>
-          <ul class="routes" id="routes" role="list"></ul>
-
+          <p id="count" class="count"></p>
+          <ul id="routes" class="routes" role="list"></ul>
           <p id="hint">
             Prova de canviar l’ordre dels salts.
             Pujar 1 i després 2 fa el mateix recorregut que pujar 2 i després 1?
@@ -317,6 +318,7 @@
     const ctx = get('stairs').getContext('2d');
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
+    let started = false;
     let level = 1;
     let route = [];
     let message = '';
@@ -353,6 +355,7 @@
         } else {
           found.add(path);
           message = `Una manera nova! ${found.size - 1} + 1 = ${found.size}.`;
+
           if (found.size === totals[level - 1]) {
             message += ' Has completat l’escala!';
           }
@@ -390,6 +393,7 @@
         const done = discoveries[index].size === totals[index];
         const label = size === 1 ? '1 esglaó' : `${size} esglaons`;
 
+        button.disabled = !started;
         button.textContent = done ? `${size} ✓` : size;
         button.setAttribute('aria-pressed', size === level);
         button.setAttribute('aria-label', done ? `${label}, escala completada` : label);
@@ -404,9 +408,10 @@
         : '0 esglaons pujats';
       get('feedback').textContent = message;
 
-      get('one').disabled = step === level;
-      get('two').disabled = step + 2 > level;
-      get('undo').disabled = step === 0 || step === level;
+      get('one').disabled = !started || step === level;
+      get('two').disabled = !started || step + 2 > level;
+      get('undo').disabled = !started || step === 0 || step === level;
+      get('restart').disabled = !started;
 
       const countLabel = found.size === 1 ? 'manera trobada' : 'maneres trobades';
       get('count').textContent = complete
@@ -419,7 +424,9 @@
 
       get('summary').innerHTML = discoveries.map((paths, index) => {
         const size = index + 1;
-        const sums = [...paths].map(path => `<li>${equation(path, size)}</li>`).join('');
+        const sums = [...paths]
+          .map(path => `<li>${equation(path, size)}</li>`)
+          .join('');
         const list = sums ? `<ul class="sum-list" role="list">${sums}</ul>` : '—';
         const mark = paths.size === totals[index] ? ' ✓' : '';
 
@@ -498,8 +505,9 @@
         ctx.fillText(i, x + width / 2, y + 19);
       }
 
+      const startX = origin - 40;
       const x = step < 1
-        ? origin - 40 + step * (40 + width / 2)
+        ? startX + step * (40 + width / 2)
         : origin + (step - .5) * width;
 
       ctx.save();
@@ -545,11 +553,13 @@
     });
 
     get('start-game').addEventListener('click', () => {
-      render();
-      get('game').hidden = false;
+      started = true;
       get('start-game').hidden = true;
+      render();
       get('one').focus({ preventScroll: true });
     }, { once: true });
+
+    render();
   </script>
 </body>
 </html>

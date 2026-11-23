@@ -123,8 +123,8 @@
     .layout {
       display: grid;
       grid-template-columns: minmax(0, 1.8fr) minmax(250px, 1fr);
-      align-items: start;
       gap: 16px;
+      align-items: start;
     }
 
     .card {
@@ -175,6 +175,12 @@
       min-height: 25px;
       margin: 0 0 10px;
       color: #425c4e;
+    }
+
+    .keyboard {
+      margin: 10px 0 0;
+      color: #40574c;
+      font-size: 14px;
     }
 
     .count {
@@ -280,6 +286,12 @@
             <button class="secondary" id="undo" type="button" disabled>Desfés el salt</button>
             <button class="secondary" id="restart" type="button" disabled>Torna a baix</button>
           </div>
+
+          <p class="keyboard">
+            <kbd>→</kbd> / <kbd>↑</kbd> o <kbd>Espai</kbd>: puja 1.
+            <kbd>Maj</kbd> + <kbd>Espai</kbd>: puja 2.
+            <kbd>←</kbd> / <kbd>↓</kbd>: desfés el salt o torna a baix.
+          </p>
         </section>
 
         <section class="card" aria-labelledby="routes-title">
@@ -558,6 +570,33 @@
       render();
       get('one').focus({ preventScroll: true });
     }, { once: true });
+
+    document.addEventListener('keydown', event => {
+      if (!started || event.defaultPrevented || event.isComposing ||
+          event.altKey || event.ctrlKey || event.metaKey) return;
+
+      const target = event.target;
+      if (target.isContentEditable || target.closest('input, textarea, select, a[href]')) return;
+
+      const forward = event.key === 'ArrowRight' || event.key === 'ArrowUp';
+      const backward = event.key === 'ArrowLeft' || event.key === 'ArrowDown';
+      const space = event.code === 'Space' || event.key === ' ';
+      if (!forward && !backward && !space) return;
+
+      event.preventDefault();
+      if (event.repeat) return;
+
+      if (backward) {
+        if (position() === level) {
+          restart();
+          get('one').focus({ preventScroll: true });
+        } else {
+          undo();
+        }
+      } else {
+        move(space && event.shiftKey ? 2 : 1);
+      }
+    });
 
     render();
   </script>

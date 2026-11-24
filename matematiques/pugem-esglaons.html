@@ -20,24 +20,12 @@
     [hidden] { display: none !important; }
     body { margin: 0; }
     p { line-height: 1.5; }
-
-    button {
-      font: inherit;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      cursor: default;
-      opacity: .48;
-    }
-
-    button:focus-visible {
-      outline: 3px solid #cf651f;
-      outline-offset: 3px;
-    }
-
     header { border-bottom: 1px solid var(--line); }
-    .wrap { width: min(1120px, calc(100% - 36px)); margin: auto; }
+
+    .wrap {
+      width: min(1120px, calc(100% - 36px));
+      margin: auto;
+    }
 
     .brand {
       display: flex;
@@ -58,7 +46,7 @@
       font-size: 24px;
     }
 
-    .brand small { color: #52675c; font-size: 13px; font-weight: 600; }
+    .brand small { color: #52675c; font-size: 13px; }
 
     h1 {
       margin: 24px 0 5px;
@@ -71,13 +59,22 @@
     nav, .moves { display: flex; flex-wrap: wrap; gap: 8px; }
     nav { margin-bottom: 16px; }
 
-    nav button, .secondary {
+    button {
       padding: 9px 14px;
       border: 1px solid #a8b6a8;
       border-radius: 10px;
       background: #fffdf6;
       color: var(--green);
+      font: inherit;
       font-weight: 800;
+      cursor: pointer;
+    }
+
+    button:disabled { cursor: default; opacity: .48; }
+
+    button:focus-visible {
+      outline: 3px solid #cf651f;
+      outline-offset: 3px;
     }
 
     nav button[aria-pressed="true"], .primary {
@@ -86,18 +83,8 @@
       color: white;
     }
 
-    .primary {
-      padding: 11px 16px;
-      border: 1px solid var(--green);
-      border-radius: 10px;
-      font-weight: 800;
-    }
-
-    .jump2 {
-      border-color: #acc47d;
-      background: var(--lime);
-      color: var(--green);
-    }
+    .primary { padding: 11px 16px; }
+    .jump2 { border-color: #acc47d; background: var(--lime); color: var(--green); }
 
     .layout {
       display: grid;
@@ -166,6 +153,16 @@
       border-top: 1px solid var(--line);
     }
 
+    #hint-button { margin-top: 14px; }
+
+    .hint {
+      margin: 10px 0 0;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #ebefdd;
+    }
+
+    .hint:empty { display: none; }
     .summary { margin: 16px 0; }
     .summary h2 { margin-bottom: 8px; }
     table { width: 100%; border-collapse: collapse; text-align: left; }
@@ -177,6 +174,7 @@
     }
 
     th:last-child, td:last-child { text-align: right; }
+    td:first-child { width: 90px; }
     td:nth-child(2) { overflow-wrap: anywhere; }
     footer { padding: 8px 0 22px; color: #52675c; font-size: 14px; }
 
@@ -223,12 +221,12 @@
         <div class="moves">
           <button class="primary" id="one" type="button">↑ Puja 1</button>
           <button class="primary jump2" id="two" type="button">↑ Puja 2</button>
-          <button class="secondary" id="undo" type="button">Desfés el salt</button>
-          <button class="secondary" id="restart" type="button">Torna a baix</button>
+          <button id="undo" type="button">Desfés el salt</button>
+          <button id="restart" type="button">Torna a baix</button>
         </div>
 
         <p class="keyboard">
-          Tria l’escala amb les tecles <kbd>1</kbd> a <kbd>6</kbd>.
+          Tria l’escala amb <kbd>1</kbd> a <kbd>6</kbd>.
           Mou en MAT amb <kbd>←</kbd> i <kbd>→</kbd>.
           Prem <kbd>Espai</kbd> per saltar i dirigeix-lo amb les fletxes.
           Per baixar, també pots caminar cap a l’esquerra fins a la vora.
@@ -239,10 +237,11 @@
         <h2 id="routes-title">Recorreguts descoberts</h2>
         <p id="count" class="count"></p>
         <ul id="routes" class="routes" role="list"></ul>
-        <p id="hint">
-          Prova de canviar l’ordre dels salts.
-          Pujar 1 i després 2 fa el mateix recorregut que pujar 2 i després 1?
-        </p>
+
+        <button id="hint-button" type="button" aria-controls="hint-text">
+          Dona’m una pista
+        </button>
+        <p id="hint-text" class="hint" role="status" aria-atomic="true"></p>
       </section>
     </div>
 
@@ -286,14 +285,43 @@
     let previousTime = null;
     let buttonJump = null;
 
-    const mat = {
-      x: 0,
-      y: floor,
-      vx: 0,
-      vy: 0,
-      step: 0,
-      airborne: false
-    };
+    const mat = { x: 0, y: floor, vx: 0, vy: 0, step: 0, airborne: false };
+
+    function routesTo(remaining) {
+      if (remaining === 0) return [''];
+      if (remaining < 0) return [];
+
+      return [1, 2].flatMap(jump =>
+        routesTo(remaining - jump).map(rest => `${jump}${rest}`)
+      );
+    }
+
+    function showHint() {
+      const found = discoveries[level - 1];
+      const missing = routesTo(level).filter(path => !found.has(path));
+      if (!missing.length) return;
+
+      const prefix = route.join('');
+      const atRouteEnd = mat.step === routeEnd() && !mat.airborne && !buttonJump;
+      const continuations = atRouteEnd
+        ? missing.filter(path => path.startsWith(prefix))
+        : [];
+      const path = continuations[0] ?? missing[0];
+      const distance = Number(path[continuations.length ? prefix.length : 0]);
+      const jump = distance === 1 ? 'un esglaó' : 'dos esglaons';
+
+      if (continuations.length && prefix.length) {
+        get('hint-text').textContent = `Des d’on ets, prova ara un salt de ${jump}.`;
+      } else if (atRouteEnd && mat.step === 0) {
+        get('hint-text').textContent = `Prova de començar amb un salt de ${jump}.`;
+      } else {
+        get('hint-text').textContent = `Torna a baix i prova de començar amb un salt de ${jump}.`;
+      }
+    }
+
+    function clearHint() {
+      get('hint-text').textContent = '';
+    }
 
     function stairWidth() {
       return Math.min(93, 438 / level);
@@ -312,9 +340,7 @@
     }
 
     function centerX(step) {
-      return step === 0
-        ? stairOrigin() - 40
-        : leftEdge(step) + stairWidth() / 2;
+      return step === 0 ? stairOrigin() - 40 : leftEdge(step) + stairWidth() / 2;
     }
 
     function surfaceAt(x) {
@@ -343,6 +369,7 @@
     function restart() {
       route = [];
       message = '';
+      clearHint();
       setPosition(0);
       render();
     }
@@ -377,6 +404,8 @@
       mat.airborne = false;
       message = '';
 
+      if (step !== from) clearHint();
+
       if (step < from) {
         let end = routeEnd();
         while (end > step) end -= route.pop();
@@ -400,6 +429,7 @@
 
       setPosition(end);
       message = '';
+      clearHint();
       render();
 
       if (get('undo').disabled) get('one').focus({ preventScroll: true });
@@ -454,16 +484,15 @@
       get('one').disabled = mat.step >= level;
       get('two').disabled = mat.step + 2 > level;
       get('undo').disabled = mat.step === 0;
+      get('hint-button').disabled = complete;
 
       const countLabel = found.size === 1 ? 'manera trobada' : 'maneres trobades';
       get('count').textContent = complete
         ? `${found.size} · Escala completada`
         : `${found.size} ${countLabel}`;
-
       get('routes').innerHTML = [...found]
         .map(path => `<li>${equation(path, level)}</li>`)
         .join('');
-      get('hint').hidden = complete;
 
       get('summary').innerHTML = discoveries.map((paths, index) => {
         const size = index + 1;
@@ -504,8 +533,6 @@
       const nextX = Math.max(38, Math.min(562, mat.x + mat.vx * dt));
       const currentSurface = surfaceAt(mat.x);
       const nextSurface = surfaceAt(nextX);
-
-      // Els esglaons més alts fan de paret fins que en MAT hi passa per sobre.
       const hitsWall = nextSurface !== currentSurface && heightAt(nextSurface) < mat.y;
       const exceedsJump = nextSurface > mat.step + 2;
 
@@ -655,6 +682,7 @@
     get('one').addEventListener('click', () => jumpWithButton(1));
     get('two').addEventListener('click', () => jumpWithButton(2));
     get('undo').addEventListener('click', undo);
+    get('hint-button').addEventListener('click', showHint);
 
     get('restart').addEventListener('click', () => {
       restart();
@@ -678,6 +706,9 @@
       const space = event.code === 'Space' || event.key === ' ';
       const arrow = event.key === 'ArrowLeft' || event.key === 'ArrowRight';
       if (!arrow && !space) return;
+
+      // Quan el botó de pista té el focus, Espai l’activa com qualsevol botó.
+      if (space && target === get('hint-button')) return;
 
       event.preventDefault();
 

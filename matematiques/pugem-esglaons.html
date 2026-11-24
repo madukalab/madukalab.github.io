@@ -141,6 +141,7 @@
     }
 
     .routes button { padding: 5px 9px; font-size: 13px; }
+
     .routes li.new-route, .routes button[aria-pressed="true"] {
       background: #fff0bc;
       box-shadow: inset 0 0 0 1px #c48121;
@@ -271,12 +272,57 @@
       const replayJumpMs = 430;
       const replaySegmentMs = 620;
 
+      const dayDurationMs = 6 * 60 * 1000;
+      const dayStartedAt = performance.now();
+      const initialDayPhase = .22;
+      const landscape = document.createElement('canvas');
+      landscape.width = canvas.width;
+      landscape.height = canvas.height;
+      const brush = landscape.getContext('2d');
+      let landscapeInterval = null;
+
       const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
       const mix = (from, to, fraction) => from + (to - from) * fraction;
+
+      const skyPalettes = [
+        [.00, '#313c65', '#f1a178', '#788590', '#81948c', '#526c68', '#3e5858'],
+        [.11, '#b6dce9', '#fff1d3', '#dbe7ca', '#c2d5b7', '#a9c2a3', '#839c70'],
+        [.31, '#b8dbea', '#eff2d9', '#dbe7ca', '#c2d5b7', '#a9c2a3', '#839c70'],
+        [.47, '#716b9b', '#ffb578', '#a79992', '#99a38e', '#72867c', '#5d7564'],
+        [.60, '#18243f', '#3c4a6b', '#33465d', '#3c5364', '#304957', '#344d4b'],
+        [.89, '#18243f', '#3c4a6b', '#33465d', '#3c5364', '#304957', '#344d4b'],
+        [1.0, '#313c65', '#f1a178', '#788590', '#81948c', '#526c68', '#3e5858']
+      ];
+
+      const stars = Array.from({ length: 42 }, (_, index) => ({
+        x: 12 + (index * 137.73) % (worldWidth - 24),
+        y: -sky + 12 + (index * 37.13) % (sky + 35),
+        radius: index % 7 === 0 ? 1.6 : .8,
+        brightness: .45 + (index % 5) * .12
+      }));
+
+      function mixColor(from, to, fraction) {
+        const first = Number.parseInt(from.slice(1), 16);
+        const second = Number.parseInt(to.slice(1), 16);
+        const channels = [16, 8, 0].map(shift =>
+          Math.round(mix((first >> shift) & 255, (second >> shift) & 255, fraction))
+        );
+        return 'rgb(' + channels.join(', ') + ')';
+      }
+
+      function paletteAt(phase) {
+        const nextIndex = skyPalettes.findIndex(entry => entry[0] > phase);
+        const [start, ...from] = skyPalettes[nextIndex - 1];
+        const [end, ...to] = skyPalettes[nextIndex];
+        const fraction = (phase - start) / (end - start);
+
+        return from.map((color, index) => mixColor(color, to[index], fraction));
+      }
 
       function routesTo(remaining) {
         if (remaining === 0) return [''];
         if (remaining < 0) return [];
+
         return [1, 2].flatMap(jump =>
           routesTo(remaining - jump).map(rest => String(jump) + rest)
         );
@@ -335,12 +381,14 @@
       }
 
       function positions(path) {
-        const steps = [0];
         let sum = 0;
+        const steps = [0];
+
         for (const jump of path) {
           sum += Number(jump);
           steps.push(sum);
         }
+
         return steps;
       }
 
@@ -357,6 +405,7 @@
           x: centerX(step), y: stepHeight(step), vx: 0, vy: 0,
           step, airborne: false, jumps: 0, facing: 1, turn: 1, stride: 0
         });
+
         buttonJump = null;
         landing = null;
         boost = null;
@@ -368,8 +417,8 @@
         route = [];
         message = '';
         get('hint-text').textContent = '';
-        stopReplay();
         place(0);
+        stopReplay();
         render();
       }
 
@@ -407,7 +456,6 @@
 
         found.add(path);
         const finished = complete(level - 1);
-
         message = 'Una manera nova! ' + (found.size - 1) + ' + 1 = ' + found.size + '.';
         if (finished) message += ' Has completat l’escala!';
 
@@ -492,7 +540,9 @@
           const heightNeeded = Math.max(34, mat.y - stepHeight(target) + 28);
           mat.vy = -Math.max(Math.sqrt(2 * gravity * heightNeeded), -mat.vy);
 
-          if (!reduced.matches) boost = { x: mat.x, y: mat.y, start: performance.now() };
+          if (!reduced.matches) {
+            boost = { x: mat.x, y: mat.y, start: performance.now() };
+          }
         }
 
         queueFrame();
@@ -525,6 +575,7 @@
           updateRouteMarkers();
           if (!reduced.matches) queueFrame();
         }
+
         draw();
       }
 
@@ -563,15 +614,18 @@
           const item = document.createElement('li');
           const sum = document.createElement('span');
           const button = document.createElement('button');
+
           sum.textContent = equation(path, level);
           button.type = 'button';
           button.dataset.path = path;
           button.addEventListener('click', () => toggleReplay(path));
           item.append(sum, button);
+
           return item;
         }));
 
         updateRouteMarkers();
+
         if (focusedPath) {
           list.querySelector('button[data-path="' + focusedPath + '"]')
             ?.focus({ preventScroll: true });
@@ -580,8 +634,9 @@
         get('summary').innerHTML = discoveries.map((paths, index) => {
           const size = index + 1;
           const sums = Array.from(paths, path => '<li>' + equation(path, size) + '</li>').join('');
-          const list = sums ? '<ul class="sum-list" role="list">' + sums + '</ul>' : '—';
-          return '<tr><th scope="row">' + size + '</th><td>' + list + '</td><td>' +
+          const sumList = sums ? '<ul class="sum-list" role="list">' + sums + '</ul>' : '—';
+
+          return '<tr><th scope="row">' + size + '</th><td>' + sumList + '</td><td>' +
             paths.size + (complete(index) ? ' ✓' : '') + '</td></tr>';
         }).join('');
 
@@ -646,7 +701,6 @@
         frame = null;
         const dt = previousTime === null ? 0 : clamp((time - previousTime) / 1000, 0, .025);
         previousTime = time;
-        const oldX = mat.x;
 
         if (buttonJump) {
           const jump = buttonJump;
@@ -661,7 +715,9 @@
             if (jump.step === level) get('restart').focus({ preventScroll: true });
           }
         } else {
+          const oldX = mat.x;
           updateMotion(dt);
+
           if (!mat.airborne) {
             const distance = Math.abs(mat.x - oldX);
             mat.stride += Math.min(distance, Math.abs(loopWidth - distance)) / 7;
@@ -686,6 +742,7 @@
         }
 
         const turning = Math.abs(mat.turn - mat.facing) > .01;
+
         if (buttonJump || mat.airborne || held.size || Math.abs(mat.vx) > 1 || turning ||
             landing || boost || celebration || waveStart !== null || (replay && !reduced.matches)) {
           queueFrame();
@@ -698,72 +755,121 @@
         draw(time);
       }
 
-      function oval(brush, color, x, y, rx, ry) {
-        brush.beginPath();
-        brush.ellipse(x, y, rx, ry, 0, 0, 2 * Math.PI);
-        brush.fillStyle = color;
-        brush.fill();
+      function oval(context, color, x, y, rx, ry) {
+        context.beginPath();
+        context.ellipse(x, y, rx, ry, 0, 0, 2 * Math.PI);
+        context.fillStyle = color;
+        context.fill();
       }
 
-      function polygon(brush, color, points) {
-        brush.beginPath();
-        brush.moveTo(...points[0]);
-        for (const point of points.slice(1)) brush.lineTo(...point);
-        brush.closePath();
-        brush.fillStyle = color;
-        brush.fill();
+      function polygon(context, color, points) {
+        context.beginPath();
+        context.moveTo(...points[0]);
+        for (const point of points.slice(1)) context.lineTo(...point);
+        context.closePath();
+        context.fillStyle = color;
+        context.fill();
       }
 
-      function makeLandscape() {
-        const image = document.createElement('canvas');
-        image.width = canvas.width;
-        image.height = canvas.height;
-        const brush = image.getContext('2d');
+      function paintLandscape(phase) {
+        const [upperSky, horizon, hills, farTrees, nearTrees, ground] = paletteAt(phase);
+
         brush.setTransform(2, 0, 0, 2, 0, sky * 2);
+        const gradient = brush.createLinearGradient(0, -sky, 0, floor);
+        gradient.addColorStop(0, upperSky);
+        gradient.addColorStop(1, horizon);
+        brush.fillStyle = gradient;
+        brush.fillRect(0, -sky, worldWidth, landscape.height / 2);
 
-        const fill = brush.createLinearGradient(0, -sky, 0, floor);
-        fill.addColorStop(0, '#e5efd9');
-        fill.addColorStop(.65, '#f4f3df');
-        fill.addColorStop(1, '#dce8c9');
-        brush.fillStyle = fill;
-        brush.fillRect(0, -sky, worldWidth, image.height / 2);
-        oval(brush, '#fff6d7', 474, -25, 28, 28);
+        const night = Math.min(
+          clamp((phase - .48) / .14, 0, 1),
+          clamp((1 - phase) / .11, 0, 1)
+        );
+
+        if (night > 0) {
+          brush.save();
+          for (const star of stars) {
+            brush.globalAlpha = night * star.brightness;
+            oval(brush, '#fff6dd', star.x, star.y, star.radius, star.radius);
+          }
+          brush.restore();
+        }
+
+        const isSun = phase < .5;
+        const progress = isSun ? phase * 2 : (phase - .5) * 2;
+        const altitude = Math.sin(Math.PI * progress);
+        const x = mix(36, worldWidth - 36, progress);
+        const y = 120 - altitude * (isSun ? 190 : 185);
+        const radius = isSun ? 25 : 19;
+
+        brush.save();
+        brush.globalAlpha = clamp(altitude * 5, 0, 1);
+        brush.shadowColor = isSun ? '#ffc775' : '#d8e4ff';
+        brush.shadowBlur = isSun ? 22 : 17;
+        oval(brush, isSun ? '#fff0ba' : '#eef1ff', x, y, radius, radius);
+
+        if (!isSun) {
+          brush.shadowBlur = 0;
+          oval(brush, '#c7d6f1', x - 6, y + 4, 4, 4);
+          oval(brush, '#d9e2fa', x + 5, y - 6, 3, 3);
+        }
+        brush.restore();
 
         brush.beginPath();
         brush.moveTo(0, 118);
         brush.bezierCurveTo(86, 56, 144, 76, 231, 119);
-        brush.bezierCurveTo(355, 173, 412, 47, 600, 104);
+        brush.bezierCurveTo(355, 173, 412, 47, worldWidth, 104);
         brush.lineTo(worldWidth, floor);
         brush.lineTo(0, floor);
         brush.closePath();
-        brush.fillStyle = '#dbe7ca';
+        brush.fillStyle = hills;
         brush.fill();
 
         for (let layer = 0; layer < 2; layer++) {
           const count = layer === 0 ? 17 : 9;
           const base = layer === 0 ? 199 : 210;
-          const color = layer === 0 ? '#c2d5b7' : '#a9c2a3';
+          const color = layer === 0 ? farTrees : nearTrees;
 
           for (let index = 0; index < count; index++) {
-            const x = (index + .4) * worldWidth / count;
+            const treeX = (index + .4) * worldWidth / count;
             const height = 32 + (index * (17 + layer * 6)) % 58;
             const halfWidth = height * .26;
             const middle = base - height * .48;
 
             polygon(brush, color, [
-              [x, base - height], [x + halfWidth * .65, middle],
-              [x + halfWidth * .33, middle], [x + halfWidth, base],
-              [x - halfWidth, base], [x - halfWidth * .33, middle],
-              [x - halfWidth * .65, middle]
+              [treeX, base - height], [treeX + halfWidth * .65, middle],
+              [treeX + halfWidth * .33, middle], [treeX + halfWidth, base],
+              [treeX - halfWidth, base], [treeX - halfWidth * .33, middle],
+              [treeX - halfWidth * .65, middle]
             ]);
           }
         }
 
-        brush.fillStyle = '#839c70';
-        brush.fillRect(0, floor, worldWidth, image.height / 2 - sky - floor);
-        brush.fillStyle = '#a9bd89';
+        brush.fillStyle = ground;
+        brush.fillRect(0, floor, worldWidth, landscape.height / 2 - sky - floor);
+        brush.fillStyle = nearTrees;
         brush.fillRect(0, floor, worldWidth, 3);
-        return image;
+      }
+
+      function refreshLandscape() {
+        const elapsed = performance.now() - dayStartedAt;
+        const phase = (initialDayPhase + elapsed / dayDurationMs) % 1;
+        paintLandscape(phase);
+        queueFrame();
+      }
+
+      function syncLandscapeClock() {
+        if (document.hidden) {
+          if (landscapeInterval !== null) clearInterval(landscapeInterval);
+          landscapeInterval = null;
+          return;
+        }
+
+        refreshLandscape();
+
+        if (landscapeInterval === null) {
+          landscapeInterval = setInterval(refreshLandscape, 120);
+        }
       }
 
       function drawStairs() {
@@ -927,11 +1033,9 @@
 
         ctx.save();
         ctx.fillStyle = '#c48121';
-
         for (const step of replay.steps.slice(1, landed + 1)) {
           ctx.fillRect(leftEdge(step) + 6, stepHeight(step), stairWidth() - 12, 4);
         }
-
         ctx.restore();
 
         if (!reduced.matches) {
@@ -1019,6 +1123,7 @@
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.drawImage(landscape, 0, 0);
         ctx.setTransform(2, 0, 0, 2, 0, sky * 2);
+
         drawStairs();
         drawShadow();
 
@@ -1058,8 +1163,6 @@
 
         drawCelebration(time);
       }
-
-      const landscape = makeLandscape();
 
       solutions.forEach((_, index) => {
         const size = index + 1;
@@ -1106,6 +1209,7 @@
 
         const space = event.code === 'Space' || event.key === ' ';
         const arrow = event.key === 'ArrowLeft' || event.key === 'ArrowRight';
+
         if (!arrow && !space) return;
         if (space && target.closest?.('#hint-button, #routes button')) return;
 
@@ -1126,14 +1230,15 @@
         mat.vx = 0;
       });
 
-      if (typeof reduced.addEventListener === 'function') {
-        reduced.addEventListener('change', () => {
-          draw();
-          if (replay && !reduced.matches) queueFrame();
-        });
-      }
+      reduced.addEventListener?.('change', () => {
+        draw();
+        if (replay && !reduced.matches) queueFrame();
+      });
 
+      paintLandscape(initialDayPhase);
       restart();
+      document.addEventListener('visibilitychange', syncLandscapeClock);
+      syncLandscapeClock();
     })();
   </script>
 </body>

@@ -20,8 +20,16 @@
     [hidden] { display: none !important; }
     body { margin: 0; }
     p { line-height: 1.5; }
-    button { font: inherit; cursor: pointer; }
-    button:disabled { cursor: default; opacity: .48; }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: default;
+      opacity: .48;
+    }
 
     button:focus-visible {
       outline: 3px solid #cf651f;
@@ -220,6 +228,7 @@
         </div>
 
         <p class="keyboard">
+          Tria l’escala amb les tecles <kbd>1</kbd> a <kbd>6</kbd>.
           Mou en MAT amb <kbd>←</kbd> i <kbd>→</kbd>.
           Prem <kbd>Espai</kbd> per saltar i dirigeix-lo amb les fletxes.
           Per baixar, també pots caminar cap a l’esquerra fins a la vora.
@@ -262,6 +271,7 @@
     const ctx = canvas.getContext('2d');
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
     const held = new Set();
+
     const floor = 213;
     const gravity = 1050;
     const jumpSpeed = 490;
@@ -337,6 +347,11 @@
       render();
     }
 
+    function selectLevel(size) {
+      level = size;
+      restart();
+    }
+
     function recordRoute() {
       const found = discoveries[level - 1];
       const path = route.join('');
@@ -382,6 +397,7 @@
 
       let end = routeEnd();
       if (end === mat.step) end -= route.pop();
+
       setPosition(end);
       message = '';
       render();
@@ -418,6 +434,7 @@
         const size = index + 1;
         const done = discoveries[index].size === totals[index];
         const label = size === 1 ? '1 esglaó' : `${size} esglaons`;
+
         button.textContent = done ? `${size} ✓` : size;
         button.setAttribute('aria-pressed', size === level);
         button.setAttribute('aria-label', done ? `${label}, escala completada` : label);
@@ -426,7 +443,9 @@
       get('level-title').textContent = level === 1
         ? 'Escala d’1 esglaó'
         : `Escala de ${level} esglaons`;
-      get('position').textContent = mat.step === 0 ? 'A baix' : `Esglaó ${mat.step} de ${level}`;
+      get('position').textContent = mat.step === 0
+        ? 'A baix'
+        : `Esglaó ${mat.step} de ${level}`;
       get('route').textContent = route.length
         ? `${equation(route, total)} · ${route.length} ${route.length === 1 ? 'salt' : 'salts'}`
         : '0 esglaons pujats';
@@ -440,6 +459,7 @@
       get('count').textContent = complete
         ? `${found.size} · Escala completada`
         : `${found.size} ${countLabel}`;
+
       get('routes').innerHTML = [...found]
         .map(path => `<li>${equation(path, level)}</li>`)
         .join('');
@@ -464,6 +484,7 @@
     function updateButtonJump(time) {
       const { destination, fromX, fromY, start } = buttonJump;
       const progress = Math.min(1, Math.max(0, (time - start) / 360));
+
       mat.x = fromX + (centerX(destination) - fromX) * progress;
       mat.y = fromY + (heightAt(destination) - fromY) * progress
         - Math.sin(Math.PI * progress) * 58;
@@ -494,6 +515,7 @@
         } else if (currentSurface > 0) {
           mat.x = leftEdge(currentSurface) + .01;
         }
+
         mat.vx = 0;
         return;
       }
@@ -621,12 +643,12 @@
     }
 
     totals.forEach((_, index) => {
+      const size = index + 1;
       const button = document.createElement('button');
+
       button.type = 'button';
-      button.addEventListener('click', () => {
-        level = index + 1;
-        restart();
-      });
+      button.setAttribute('aria-keyshortcuts', String(size));
+      button.addEventListener('click', () => selectLevel(size));
       get('levels').append(button);
     });
 
@@ -644,7 +666,14 @@
           event.altKey || event.ctrlKey || event.metaKey) return;
 
       const target = event.target;
-      if (target.isContentEditable || target.closest?.('input, textarea, select, a[href]')) return;
+      if (target.isContentEditable ||
+          target.closest?.('input, textarea, select, a[href]')) return;
+
+      if (/^[1-6]$/.test(event.key)) {
+        event.preventDefault();
+        if (!event.repeat) selectLevel(Number(event.key));
+        return;
+      }
 
       const space = event.code === 'Space' || event.key === ' ';
       const arrow = event.key === 'ArrowLeft' || event.key === 'ArrowRight';

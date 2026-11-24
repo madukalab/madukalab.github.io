@@ -634,42 +634,49 @@
       }
     }
 
-    function moveHorizontally(dt) {
-      const direction = Number(held.has('ArrowRight')) - Number(held.has('ArrowLeft'));
-      const targetSpeed = direction * (mat.airborne ? airSpeed : walkSpeed);
-      mat.vx += (targetSpeed - mat.vx) * (1 - Math.exp(-17 * dt));
-      if (direction) mat.facing = direction;
+function moveHorizontally(dt) {
+  const direction = Number(held.has('ArrowRight')) - Number(held.has('ArrowLeft'));
+  const targetSpeed = direction * (mat.airborne ? airSpeed : walkSpeed);
+  mat.vx += (targetSpeed - mat.vx) * (1 - Math.exp(-17 * dt));
+  if (direction) mat.facing = direction;
 
-      const nextX = Math.max(-edgeMargin, mat.x + mat.vx * dt);
+  const nextX = mat.x + mat.vx * dt;
+  const leftLimit = -edgeMargin;
+  const rightLimit = worldWidth + edgeMargin;
+  const loopWidth = rightLimit - leftLimit;
 
-      // Deixa sortir tota la silueta abans de tornar-la a fer entrar.
-      if (nextX >= worldWidth + edgeMargin) {
-        const overflow = nextX - (worldWidth + edgeMargin);
-        mat.x = -edgeMargin + overflow;
-        return;
-      }
+  // En MAT surt del tot abans de reaparèixer a l’altre costat.
+  if (nextX >= rightLimit) {
+    mat.x = nextX - loopWidth;
+    return;
+  }
 
-      const currentSurface = surfaceAt(mat.x);
-      const nextSurface = surfaceAt(nextX);
-      const hitsWall = nextSurface !== currentSurface && heightAt(nextSurface) < mat.y;
-      const exceedsJump = nextSurface > mat.step + mat.jumpsUsed;
+  if (nextX <= leftLimit) {
+    mat.x = nextX + loopWidth;
+    return;
+  }
 
-      if (hitsWall || exceedsJump) {
-        if (nextX > mat.x && nextSurface > 0) {
-          mat.x = leftEdge(nextSurface) - .01;
-        } else if (nextX < mat.x) {
-          const boundary = currentSurface === 0
-            ? leftEdge(level) + stairWidth()
-            : leftEdge(currentSurface);
-          mat.x = boundary + .01;
-        }
+  const currentSurface = surfaceAt(mat.x);
+  const nextSurface = surfaceAt(nextX);
+  const hitsWall = nextSurface !== currentSurface && heightAt(nextSurface) < mat.y;
+  const exceedsJump = nextSurface > mat.step + mat.jumpsUsed;
 
-        mat.vx = 0;
-        return;
-      }
-
-      mat.x = nextX;
+  if (hitsWall || exceedsJump) {
+    if (nextX > mat.x && nextSurface > 0) {
+      mat.x = leftEdge(nextSurface) - .01;
+    } else if (nextX < mat.x) {
+      const boundary = currentSurface === 0
+        ? leftEdge(level) + stairWidth()
+        : leftEdge(currentSurface);
+      mat.x = boundary + .01;
     }
+
+    mat.vx = 0;
+    return;
+  }
+
+  mat.x = nextX;
+}
 
     function updateMotion(dt) {
       moveHorizontally(dt);

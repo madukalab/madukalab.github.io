@@ -17,15 +17,10 @@
     }
 
     * { box-sizing: border-box; }
-    [hidden] { display: none !important; }
     body { margin: 0; }
     p { line-height: 1.5; }
     header { border-bottom: 1px solid var(--line); }
-
-    .wrap {
-      width: min(1120px, calc(100% - 36px));
-      margin: auto;
-    }
+    .wrap { width: min(1120px, calc(100% - 36px)); margin: auto; }
 
     .brand {
       display: flex;
@@ -120,8 +115,9 @@
 
     .scene {
       overflow: hidden;
+      border: 1px solid #cbd7bf;
       border-radius: 14px;
-      background: linear-gradient(#e8f0d6, #f1f2db 75%, #e2e8c7);
+      background: #edf3dd;
     }
 
     canvas { display: block; width: 100%; }
@@ -237,7 +233,6 @@
         <h2 id="routes-title">Recorreguts descoberts</h2>
         <p id="count" class="count"></p>
         <ul id="routes" class="routes" role="list"></ul>
-
         <button id="hint-button" type="button" aria-controls="hint-text">
           Dona’m una pista
         </button>
@@ -277,6 +272,7 @@
     const walkSpeed = 165;
     const airSpeed = 285;
     const skyPadding = 115;
+    const flashDuration = 300;
 
     let level = 1;
     let route = [];
@@ -284,6 +280,7 @@
     let frame = null;
     let previousTime = null;
     let buttonJump = null;
+    let landingFlash = null;
 
     const mat = { x: 0, y: floor, vx: 0, vy: 0, step: 0, airborne: false };
 
@@ -303,14 +300,12 @@
 
       const prefix = route.join('');
       const atRouteEnd = mat.step === routeEnd() && !mat.airborne && !buttonJump;
-      const continuations = atRouteEnd
-        ? missing.filter(path => path.startsWith(prefix))
-        : [];
-      const path = continuations[0] ?? missing[0];
-      const distance = Number(path[continuations.length ? prefix.length : 0]);
+      const continuation = atRouteEnd && missing.find(path => path.startsWith(prefix));
+      const path = continuation || missing[0];
+      const distance = Number(path[continuation ? prefix.length : 0]);
       const jump = distance === 1 ? 'un esglaó' : 'dos esglaons';
 
-      if (continuations.length && prefix.length) {
+      if (continuation && prefix.length) {
         get('hint-text').textContent = `Des d’on ets, prova ara un salt de ${jump}.`;
       } else if (atRouteEnd && mat.step === 0) {
         get('hint-text').textContent = `Prova de començar amb un salt de ${jump}.`;
@@ -364,6 +359,7 @@
       mat.vy = 0;
       mat.airborne = false;
       buttonJump = null;
+      landingFlash = null;
     }
 
     function restart() {
@@ -418,6 +414,11 @@
         message = 'Torna a l’últim esglaó verd o a baix per reprendre el recorregut.';
       }
 
+      if (step > 0 && !reducedMotion.matches) {
+        landingFlash = { step, start: performance.now() };
+        queueFrame();
+      }
+
       render();
     }
 
@@ -446,12 +447,7 @@
       }
 
       mat.vx = 0;
-      buttonJump = {
-        destination,
-        fromX: mat.x,
-        fromY: mat.y,
-        start: performance.now()
-      };
+      buttonJump = { destination, fromX: mat.x, fromY: mat.y, start: performance.now() };
       queueFrame();
     }
 
@@ -473,14 +469,16 @@
       get('level-title').textContent = level === 1
         ? 'Escala d’1 esglaó'
         : `Escala de ${level} esglaons`;
+
       get('position').textContent = mat.step === 0
         ? 'A baix'
         : `Esglaó ${mat.step} de ${level}`;
+
       get('route').textContent = route.length
         ? `${equation(route, total)} · ${route.length} ${route.length === 1 ? 'salt' : 'salts'}`
         : '0 esglaons pujats';
-      get('feedback').textContent = message;
 
+      get('feedback').textContent = message;
       get('one').disabled = mat.step >= level;
       get('two').disabled = mat.step + 2 > level;
       get('undo').disabled = mat.step === 0;
@@ -490,6 +488,7 @@
       get('count').textContent = complete
         ? `${found.size} · Escala completada`
         : `${found.size} ${countLabel}`;
+
       get('routes').innerHTML = [...found]
         .map(path => `<li>${equation(path, level)}</li>`)
         .join('');
@@ -584,9 +583,13 @@
         updateMotion(dt);
       }
 
-      draw();
+      if (landingFlash && time - landingFlash.start >= flashDuration) {
+        landingFlash = null;
+      }
 
-      if (buttonJump || mat.airborne || held.size || Math.abs(mat.vx) > 1) {
+      draw(time);
+
+      if (buttonJump || mat.airborne || held.size || Math.abs(mat.vx) > 1 || landingFlash) {
         queueFrame();
       } else {
         previousTime = null;
@@ -594,39 +597,149 @@
       }
     }
 
-    function shape(fill, points) {
-      ctx.beginPath();
-      ctx.moveTo(...points[0]);
-      for (const point of points.slice(1)) ctx.lineTo(...point);
-      ctx.closePath();
-      ctx.fillStyle = fill;
-      ctx.fill();
+    function shape(context, fill, points) {
+      context.beginPath();
+      context.moveTo(...points[0]);
+      for (const point of points.slice(1)) context.lineTo(...point);
+      context.closePath();
+      context.fillStyle = fill;
+      context.fill();
     }
 
-    function oval(fill, x, y, radiusX, radiusY) {
-      ctx.beginPath();
-      ctx.ellipse(x, y, radiusX, radiusY, 0, 0, Math.PI * 2);
-      ctx.fillStyle = fill;
-      ctx.fill();
+    function oval(context, fill, x, y, radiusX, radiusY) {
+      context.beginPath();
+      context.ellipse(x, y, radiusX, radiusY, 0, 0, Math.PI * 2);
+      context.fillStyle = fill;
+      context.fill();
+    }
+
+    function drawTree(context, x, base, height, color) {
+      const top = base - height;
+      const halfWidth = height * .26;
+
+      shape(context, color, [
+        [x, top],
+        [x + halfWidth * .65, base - height * .48],
+        [x + halfWidth * .33, base - height * .48],
+        [x + halfWidth, base],
+        [x - halfWidth, base],
+        [x - halfWidth * .33, base - height * .48],
+        [x - halfWidth * .65, base - height * .48]
+      ]);
+    }
+
+    function makeLandscape() {
+      const background = document.createElement('canvas');
+      background.width = canvas.width;
+      background.height = canvas.height;
+      const brush = background.getContext('2d');
+
+      brush.setTransform(2, 0, 0, 2, 0, skyPadding * 2);
+
+      const sky = brush.createLinearGradient(0, -skyPadding, 0, floor);
+      sky.addColorStop(0, '#e5efd9');
+      sky.addColorStop(.65, '#f4f3df');
+      sky.addColorStop(1, '#dce8c9');
+
+      brush.fillStyle = sky;
+      brush.fillRect(0, -skyPadding, 600, background.height / 2);
+      oval(brush, '#fff6d7', 474, -25, 28, 28);
+
+      brush.beginPath();
+      brush.moveTo(0, 118);
+      brush.bezierCurveTo(86, 56, 144, 76, 231, 119);
+      brush.bezierCurveTo(355, 173, 412, 47, 600, 104);
+      brush.lineTo(600, floor);
+      brush.lineTo(0, floor);
+      brush.closePath();
+      brush.fillStyle = '#dbe7ca';
+      brush.fill();
+
+      for (let i = 0; i < 17; i++) {
+        const x = 12 + i * 37;
+        const height = 38 + (i * 17 % 65);
+        drawTree(brush, x, 199, height, '#c2d5b7');
+      }
+
+      brush.beginPath();
+      brush.moveTo(0, 181);
+      brush.bezierCurveTo(84, 167, 117, 196, 200, 190);
+      brush.bezierCurveTo(350, 179, 473, 163, 600, 184);
+      brush.lineTo(600, floor);
+      brush.lineTo(0, floor);
+      brush.closePath();
+      brush.fillStyle = '#bccfad';
+      brush.fill();
+
+      for (let i = 0; i < 9; i++) {
+        const x = 24 + i * 72;
+        const height = 32 + (i * 23 % 54);
+        drawTree(brush, x, 209, height, '#a9c2a3');
+      }
+
+      brush.fillStyle = '#839c70';
+      brush.fillRect(0, floor, 600, background.height / 2 - skyPadding - floor);
+      brush.fillStyle = '#a9bd89';
+      brush.fillRect(0, floor, 600, 3);
+
+      return background;
+    }
+
+    function drawShadow() {
+      const surface = surfaceAt(mat.x);
+      const y = heightAt(surface);
+      if (mat.y > y + 1) return;
+
+      const distance = Math.max(0, y - mat.y);
+      const scale = Math.max(.46, 1 - distance / 190);
+
+      ctx.save();
+
+      if (surface > 0) {
+        ctx.beginPath();
+        ctx.rect(leftEdge(surface), y, stairWidth(), 7);
+        ctx.clip();
+      }
+
+      ctx.globalAlpha = .32 * scale;
+      oval(ctx, '#17352c', mat.x, y + 2, 23 * scale, 4 * scale);
+      ctx.restore();
+    }
+
+    function drawLandingFlash(time) {
+      if (!landingFlash || reducedMotion.matches) return;
+
+      const progress = Math.max(0, (time - landingFlash.start) / flashDuration);
+      const x = leftEdge(landingFlash.step);
+      const y = heightAt(landingFlash.step);
+      const width = stairWidth();
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - progress) * .85;
+      ctx.shadowColor = '#fff4ad';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#fff4ad';
+      ctx.fillRect(x + 2, y, width - 4, 4);
+      ctx.restore();
     }
 
     function drawMat() {
       ctx.save();
       ctx.translate(mat.x, mat.y);
 
-      oval('#dd7835', -19, -17, 16, 9);
-      oval('#fff9eb', -29, -18, 7, 7);
-      oval('#18392e', -7, -4, 7, 4);
-      oval('#18392e', 8, -4, 7, 4);
-      oval('#184738', 0, -17, 15, 16);
+      oval(ctx, '#dd7835', -19, -17, 16, 9);
+      oval(ctx, '#fff9eb', -29, -18, 7, 7);
+      oval(ctx, '#18392e', -7, -4, 7, 4);
+      oval(ctx, '#18392e', 8, -4, 7, 4);
+      oval(ctx, '#184738', 0, -17, 15, 16);
 
-      shape('#cf662e', [[-17, -51], [-19, -71], [-3, -59], [6, -59], [17, -71], [18, -49]]);
-      shape('#f8bc93', [[-15, -57], [-16, -65], [-8, -58], [9, -57], [15, -65], [15, -55]]);
-      oval('#e7823d', 0, -47, 19, 15);
-      shape('#fff9eb', [[-17, -46], [0, -39], [17, -46], [13, -36], [0, -31], [-13, -36]]);
-      oval('#302c2a', -7, -48, 2, 2);
-      oval('#302c2a', 7, -48, 2, 2);
-      oval('#302c2a', 0, -40, 3, 2);
+      shape(ctx, '#cf662e', [[-17, -51], [-19, -71], [-3, -59], [6, -59], [17, -71], [18, -49]]);
+      shape(ctx, '#f8bc93', [[-15, -57], [-16, -65], [-8, -58], [9, -57], [15, -65], [15, -55]]);
+      oval(ctx, '#e7823d', 0, -47, 19, 15);
+      shape(ctx, '#fff9eb', [[-17, -46], [0, -39], [17, -46], [13, -36], [0, -31], [-13, -36]]);
+      oval(ctx, '#302c2a', -7, -48, 2, 2);
+      oval(ctx, '#302c2a', 7, -48, 2, 2);
+      oval(ctx, '#302c2a', 0, -40, 3, 2);
 
       ctx.font = 'bold 7px system-ui';
       ctx.fillStyle = 'white';
@@ -634,9 +747,9 @@
       ctx.restore();
     }
 
-    function draw() {
+    function draw(time = performance.now()) {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(landscape, 0, 0);
       ctx.setTransform(2, 0, 0, 2, 0, skyPadding * 2);
 
       const width = stairWidth();
@@ -648,8 +761,6 @@
         visited.add(sum);
       }
 
-      ctx.fillStyle = '#c9d4aa';
-      ctx.fillRect(0, floor, 600, canvas.height / 2 - skyPadding - floor);
       ctx.textAlign = 'center';
 
       for (let step = 1; step <= level; step++) {
@@ -657,17 +768,24 @@
         const y = heightAt(step);
         const reached = visited.has(step);
 
-        ctx.fillStyle = reached ? '#35604d' : '#aec49b';
+        ctx.fillStyle = reached ? '#35604d' : '#c7d7b5';
         ctx.fillRect(x, y, width, floor - y);
-        ctx.fillStyle = reached ? '#d6ed9e' : '#718e72';
+        ctx.fillStyle = reached ? '#d6ed9e' : '#69866a';
         ctx.fillRect(x, y, width, 4);
+        ctx.fillStyle = reached ? '#274d3c' : '#a4b897';
+        ctx.fillRect(x, y + 4, 2, floor - y - 4);
+
         ctx.fillStyle = reached ? 'white' : '#163d31';
         ctx.font = 'bold 14px system-ui';
         ctx.fillText(step, x + width / 2, y + 19);
       }
 
+      drawLandingFlash(time);
+      drawShadow();
       drawMat();
     }
+
+    const landscape = makeLandscape();
 
     totals.forEach((_, index) => {
       const size = index + 1;
@@ -706,8 +824,6 @@
       const space = event.code === 'Space' || event.key === ' ';
       const arrow = event.key === 'ArrowLeft' || event.key === 'ArrowRight';
       if (!arrow && !space) return;
-
-      // Quan el botó de pista té el focus, Espai l’activa com qualsevol botó.
       if (space && target === get('hint-button')) return;
 
       event.preventDefault();

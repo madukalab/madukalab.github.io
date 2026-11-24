@@ -47,7 +47,6 @@
       letter-spacing: -.065em;
     }
 
-    small, footer { color: #52675c; }
     .intro { margin: 0 0 20px; color: #40574c; }
     nav, .moves { display: flex; flex-wrap: wrap; gap: 8px; }
     nav { margin-bottom: 16px; }
@@ -131,9 +130,9 @@
 
     .routes li {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap;
       gap: 8px;
       padding: 6px 8px;
       border-radius: 8px;
@@ -142,7 +141,6 @@
     }
 
     .routes button { padding: 5px 9px; font-size: 13px; }
-
     .routes li.new-route, .routes button[aria-pressed="true"] {
       background: #fff0bc;
       box-shadow: inset 0 0 0 1px #c48121;
@@ -164,6 +162,7 @@
     th, td { padding: 8px 5px; border-top: 1px solid var(--line); vertical-align: top; }
     th:last-child, td:last-child { text-align: right; }
     .sum-list li + li { padding-top: 6px; border-top: 1px solid var(--line); }
+    small, footer { color: #52675c; }
     footer { padding: 8px 0 22px; font-size: 14px; }
 
     @media (max-width: 720px) {
@@ -174,7 +173,6 @@
     }
   </style>
 </head>
-
 <body>
   <header>
     <div class="wrap brand">
@@ -219,6 +217,7 @@
           Tria l’escala amb <kbd>1</kbd> a <kbd>6</kbd>.
           Mou en MAT amb <kbd>←</kbd> i <kbd>→</kbd>.
           Prem <kbd>Espai</kbd> per saltar i torna’l a prémer a l’aire per fer un doble salt.
+          Prem <kbd>Q</kbd> per saludar.
           Si surts per una vora, reapareixes per l’altra.
         </p>
       </section>
@@ -267,6 +266,7 @@
       const gravity = 1050;
       const walkSpeed = 165;
       const airSpeed = 285;
+      const waveMs = 720;
       const celebrationMs = 2100;
       const replayJumpMs = 430;
       const replaySegmentMs = 620;
@@ -277,7 +277,6 @@
       function routesTo(remaining) {
         if (remaining === 0) return [''];
         if (remaining < 0) return [];
-
         return [1, 2].flatMap(jump =>
           routesTo(remaining - jump).map(rest => String(jump) + rest)
         );
@@ -285,7 +284,6 @@
 
       const solutions = Array.from({ length: 6 }, (_, index) => routesTo(index + 1));
       const discoveries = solutions.map(() => new Set());
-
       const mat = {
         x: 0, y: floor, vx: 0, vy: 0, step: 0,
         airborne: false, jumps: 0, facing: 1, turn: 1, stride: 0
@@ -301,6 +299,7 @@
       let boost = null;
       let replay = null;
       let celebration = null;
+      let waveStart = null;
 
       function stairWidth() {
         return Math.min(93, 438 / level);
@@ -336,11 +335,13 @@
       }
 
       function positions(path) {
+        const steps = [0];
         let sum = 0;
-        return [0, ...Array.from(path, jump => {
+        for (const jump of path) {
           sum += Number(jump);
-          return sum;
-        })];
+          steps.push(sum);
+        }
+        return steps;
       }
 
       function equation(path, sum) {
@@ -360,12 +361,7 @@
         landing = null;
         boost = null;
         celebration = null;
-      }
-
-      function stopReplay() {
-        replay = null;
-        get('replay-status').textContent = '';
-        updateRouteMarkers();
+        waveStart = null;
       }
 
       function restart() {
@@ -411,12 +407,11 @@
 
         found.add(path);
         const finished = complete(level - 1);
+
         message = 'Una manera nova! ' + (found.size - 1) + ' + 1 = ' + found.size + '.';
         if (finished) message += ' Has completat l’escala!';
 
-        celebration = {
-          path, sum: equation(path, level), finished, start: performance.now()
-        };
+        celebration = { path, sum: equation(path, level), finished, start: performance.now() };
         queueFrame();
       }
 
@@ -497,16 +492,31 @@
           const heightNeeded = Math.max(34, mat.y - stepHeight(target) + 28);
           mat.vy = -Math.max(Math.sqrt(2 * gravity * heightNeeded), -mat.vy);
 
-          if (!reduced.matches) {
-            boost = { x: mat.x, y: mat.y, start: performance.now() };
-          }
+          if (!reduced.matches) boost = { x: mat.x, y: mat.y, start: performance.now() };
         }
 
         queueFrame();
       }
 
+      function updateRouteMarkers() {
+        for (const button of get('routes').querySelectorAll('button[data-path]')) {
+          const path = button.dataset.path;
+          const active = replay?.path === path;
+          button.textContent = active ? 'Atura' : 'Reprodueix';
+          button.setAttribute('aria-pressed', String(active));
+          button.setAttribute('aria-label', button.textContent + ' ' + equation(path, level));
+          button.parentElement.classList.toggle('new-route', celebration?.path === path);
+        }
+      }
+
+      function stopReplay() {
+        replay = null;
+        get('replay-status').textContent = '';
+        updateRouteMarkers();
+      }
+
       function toggleReplay(path) {
-        if (replay && replay.path === path) {
+        if (replay?.path === path) {
           stopReplay();
         } else {
           replay = { path, steps: positions(path), start: performance.now() };
@@ -515,23 +525,7 @@
           updateRouteMarkers();
           if (!reduced.matches) queueFrame();
         }
-
         draw();
-      }
-
-      function updateRouteMarkers() {
-        for (const button of get('routes').querySelectorAll('button[data-path]')) {
-          const path = button.dataset.path;
-          const active = Boolean(replay && replay.path === path);
-          const action = active ? 'Atura' : 'Reprodueix';
-
-          button.textContent = action;
-          button.setAttribute('aria-pressed', String(active));
-          button.setAttribute('aria-label', action + ' ' + equation(path, level));
-          button.parentElement.classList.toggle(
-            'new-route', Boolean(celebration && celebration.path === path)
-          );
-        }
       }
 
       function render() {
@@ -569,7 +563,6 @@
           const item = document.createElement('li');
           const sum = document.createElement('span');
           const button = document.createElement('button');
-
           sum.textContent = equation(path, level);
           button.type = 'button';
           button.dataset.path = path;
@@ -579,10 +572,9 @@
         }));
 
         updateRouteMarkers();
-
         if (focusedPath) {
-          const button = list.querySelector('button[data-path="' + focusedPath + '"]');
-          if (button) button.focus({ preventScroll: true });
+          list.querySelector('button[data-path="' + focusedPath + '"]')
+            ?.focus({ preventScroll: true });
         }
 
         get('summary').innerHTML = discoveries.map((paths, index) => {
@@ -624,9 +616,7 @@
           (stepHeight(next) < mat.y || next > mat.step + mat.jumps);
 
         if (blocked) {
-          mat.x = nextX > mat.x
-            ? leftEdge(next) - .01
-            : leftEdge(next) + stairWidth() + .01;
+          mat.x = nextX > mat.x ? leftEdge(next) - .01 : leftEdge(next) + stairWidth() + .01;
           mat.vx = 0;
         } else {
           mat.x = nextX;
@@ -662,7 +652,8 @@
           const jump = buttonJump;
           const progress = clamp((time - jump.start) / 360, 0, 1);
           mat.x = mix(jump.x, centerX(jump.step), progress);
-          mat.y = mix(jump.y, stepHeight(jump.step), progress) - Math.sin(Math.PI * progress) * 58;
+          mat.y = mix(jump.y, stepHeight(jump.step), progress)
+            - Math.sin(Math.PI * progress) * 58;
 
           if (progress === 1) {
             buttonJump = null;
@@ -682,6 +673,7 @@
 
         if (landing && time - landing.start >= 300) landing = null;
         if (boost && time - boost.start >= 360) boost = null;
+        if (waveStart !== null && time - waveStart >= waveMs) waveStart = null;
 
         if (celebration && time - celebration.start >= celebrationMs) {
           celebration = null;
@@ -695,7 +687,7 @@
 
         const turning = Math.abs(mat.turn - mat.facing) > .01;
         if (buttonJump || mat.airborne || held.size || Math.abs(mat.vx) > 1 || turning ||
-            landing || boost || celebration || (replay && !reduced.matches)) {
+            landing || boost || celebration || waveStart !== null || (replay && !reduced.matches)) {
           queueFrame();
         } else {
           previousTime = null;
@@ -777,6 +769,7 @@
       function drawStairs() {
         const visited = new Set(positions(route));
         const width = stairWidth();
+
         ctx.save();
         ctx.font = 'bold 17px system-ui';
         ctx.textAlign = 'center';
@@ -827,8 +820,8 @@
 
       function drawDust(effect, duration, time, upwards) {
         if (!effect || reduced.matches) return;
-        const progress = clamp((time - effect.start) / duration, 0, 1);
 
+        const progress = clamp((time - effect.start) / duration, 0, 1);
         ctx.save();
         ctx.globalAlpha = .75 * (1 - progress);
 
@@ -844,13 +837,10 @@
         ctx.restore();
       }
 
-      const ears = [
-        [-17, -51], [-19, -71], [-3, -59],
-        [6, -59], [17, -71], [18, -49]
-      ];
+      const ears = [[-17, -51], [-19, -71], [-3, -59], [6, -59], [17, -71], [18, -49]];
 
       function drawFox(x, y, pose) {
-        const { turn, stride, pace, air, squash, ghost } = pose;
+        const { turn, stride, pace, air, squash, ghost, wave = null } = pose;
         const side = turn < 0 ? -1 : 1;
         const swing = Math.sin(stride) * pace * 7;
         const bob = Math.abs(Math.sin(stride)) * pace * 2;
@@ -876,6 +866,19 @@
         oval(ctx, green, 8 - swing, -4 - tuck - Math.max(0, -swing) * .65, 7, 4);
         ctx.translate(0, -bob + (air ? 2 : 0));
         oval(ctx, green, 0, -17, 15, 16);
+
+        if (wave !== null) {
+          const raise = reduced.matches ? 1 : clamp(Math.min(wave, 1 - wave) / .18, 0, 1);
+          const sway = reduced.matches ? 0 : Math.sin(wave * Math.PI * 6) * .24;
+
+          ctx.save();
+          ctx.translate(side * 11, -23);
+          ctx.scale(side, 1);
+          ctx.rotate(mix(.95, -1.12, raise) + sway * raise);
+          oval(ctx, green, 8, 0, 10, 4.5);
+          oval(ctx, '#e7823d', 18, 0, 5, 4.5);
+          ctx.restore();
+        }
 
         ctx.save();
         ctx.translate(turn * 3, 0);
@@ -934,12 +937,14 @@
         if (!reduced.matches) {
           const from = replay.steps[index];
           const to = replay.steps[index + 1];
+          const x = mix(centerX(from), centerX(to), progress);
+          const y = mix(stepHeight(from), stepHeight(to), progress)
+            - Math.sin(Math.PI * progress) * 52;
 
-          drawFox(
-            mix(centerX(from), centerX(to), progress),
-            mix(stepHeight(from), stepHeight(to), progress) - Math.sin(Math.PI * progress) * 52,
-            { turn: 1, stride: 0, pace: 0, air: progress > 0 && progress < 1, squash: 0, ghost: true }
-          );
+          drawFox(x, y, {
+            turn: 1, stride: 0, pace: 0, air: progress > 0 && progress < 1,
+            squash: 0, ghost: true
+          });
         }
       }
 
@@ -982,6 +987,7 @@
 
         ctx.save();
         ctx.translate(worldWidth / 2, -sky + 43);
+
         if (!reduced.matches) {
           ctx.globalAlpha = Math.min(clamp(elapsed / 100, 0, 1), fade);
           ctx.translate(0, (1 - enter) * 12);
@@ -1031,7 +1037,7 @@
         drawReplay(time);
 
         let bounce = 0;
-        if (celebration && celebration.finished && mat.step === level &&
+        if (celebration?.finished && mat.step === level &&
             !reduced.matches && !mat.airborne && !buttonJump) {
           const elapsed = time - celebration.start;
           bounce = 21 * Math.sin(Math.PI * clamp((elapsed - 180) / 380, 0, 1))
@@ -1046,7 +1052,8 @@
           turn: reduced.matches ? mat.facing : mat.turn,
           stride: mat.stride,
           pace: !reduced.matches && !air ? clamp(Math.abs(mat.vx) / walkSpeed, 0, 1) : 0,
-          air, squash, ghost: false
+          air, squash, ghost: false,
+          wave: waveStart === null ? null : clamp((time - waveStart) / waveMs, 0, 1)
         });
 
         drawCelebration(time);
@@ -1081,6 +1088,15 @@
         const target = event.target;
         if (target.isContentEditable ||
             target.closest?.('input, textarea, select, a[href]')) return;
+
+        if (event.key.toLowerCase() === 'q') {
+          event.preventDefault();
+          if (!event.repeat) {
+            waveStart = performance.now();
+            queueFrame();
+          }
+          return;
+        }
 
         if (/^[1-6]$/.test(event.key)) {
           event.preventDefault();

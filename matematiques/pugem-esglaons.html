@@ -198,6 +198,7 @@
           <h2 id="level-title"></h2>
           <span id="position" class="position"></span>
         </div>
+
         <p id="replay-status" class="replay-status" role="status"></p>
 
         <div class="scene">
@@ -249,827 +250,875 @@
   </main>
 
   <script>
-    const get = id => document.getElementById(id);
-    const canvas = get('stairs');
-    const ctx = canvas.getContext('2d');
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-    const held = new Set();
-
-    const worldWidth = canvas.width / 2;
-    const margin = 44;
-    const loopWidth = worldWidth + 2 * margin;
-    const floor = 213;
-    const sky = 115;
-    const gravity = 1050;
-    const walkSpeed = 165;
-    const airSpeed = 285;
-    const celebrationMs = 2100;
-    const replayJumpMs = 430;
-    const replaySegmentMs = 620;
-
-    const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
-    const mix = (a, b, t) => a + (b - a) * t;
-
-    function routesTo(remaining) {
-      if (remaining === 0) return [''];
-      if (remaining < 0) return [];
-      return [1, 2].flatMap(jump =>
-        routesTo(remaining - jump).map(rest => String(jump) + rest)
-      );
-    }
-
-    const solutions = Array.from({ length: 6 }, (_, i) => routesTo(i + 1));
-    const discoveries = solutions.map(() => new Set());
-    const mat = {
-      x: 0, y: floor, vx: 0, vy: 0, step: 0,
-      airborne: false, jumps: 0, facing: 1, turn: 1, stride: 0
-    };
-
-    let level = 1;
-    let route = [];
-    let message = '';
-    let frame = null;
-    let previousTime = null;
-    let buttonJump = null;
-    let landing = null;
-    let boost = null;
-    let replay = null;
-    let celebration = null;
-
-    function width() {
-      return Math.min(93, 438 / level);
-    }
-
-    function origin() {
-      return (worldWidth - width() * level) / 2 + 17;
-    }
-
-    function rise() {
-      return Math.min(33, 124 / level);
-    }
-
-    function top(step) {
-      return floor - step * rise();
-    }
-
-    function left(step) {
-      return origin() + (step - 1) * width();
-    }
-
-    function center(step) {
-      return step === 0 ? origin() - 40 : left(step) + width() / 2;
-    }
-
-    function surface(x) {
-      const index = Math.floor((x - origin()) / width());
-      return index < 0 || index >= level ? 0 : index + 1;
-    }
-
-    function routeEnd() {
-      return route.reduce((sum, jump) => sum + jump, 0);
-    }
-
-    function positions(path) {
-      let sum = 0;
-      return [0, ...Array.from(path, jump => {
-        sum += Number(jump);
-        return sum;
-      })];
-    }
-
-    function equation(path, sum) {
-      return [...path].join(' + ') + ' = ' + sum;
-    }
-
-    function complete(index) {
-      return discoveries[index].size === solutions[index].length;
-    }
-
-    function place(step) {
-      Object.assign(mat, {
-        x: center(step), y: top(step), vx: 0, vy: 0,
-        step, airborne: false, jumps: 0, facing: 1, turn: 1, stride: 0
-      });
-      buttonJump = null;
-      landing = null;
-      boost = null;
-      celebration = null;
-    }
-
-    function stopReplay() {
-      replay = null;
-      get('replay-status').textContent = '';
-      updateRouteMarkers();
-    }
-
-    function restart() {
-      route = [];
-      message = '';
-      get('hint-text').textContent = '';
-      stopReplay();
-      place(0);
-      render();
-    }
-
-    function selectLevel(size) {
-      level = size;
-      restart();
-    }
-
-    function showHint() {
-      const missing = solutions[level - 1].filter(path => !discoveries[level - 1].has(path));
-      if (!missing.length) return;
-
-      const prefix = route.join('');
-      const canContinue = !mat.airborne && !buttonJump && mat.step === routeEnd();
-      const continuation = canContinue && missing.find(path => path.startsWith(prefix));
-      const path = continuation || missing[0];
-      const jump = path[continuation ? prefix.length : 0] === '1' ? 'un esglaó' : 'dos esglaons';
-
-      let prompt = 'Torna a baix i prova de començar';
-      if (continuation && prefix.length) prompt = 'Des d’on ets, prova ara';
-      else if (canContinue && mat.step === 0) prompt = 'Prova de començar';
-
-      get('hint-text').textContent = prompt + ' amb un salt de ' + jump + '.';
-    }
-
-    function recordRoute() {
-      const found = discoveries[level - 1];
-      const path = route.join('');
-
-      if (found.has(path)) {
-        message = 'Ja havies trobat aquesta manera. El recompte continua a ' + found.size + '.';
-        return;
-      }
-
-      found.add(path);
-      const finished = complete(level - 1);
-      message = 'Una manera nova! ' + (found.size - 1) + ' + 1 = ' + found.size + '.';
-      if (finished) message += ' Has completat l’escala!';
-      celebration = { path, sum: equation(path, level), finished, start: performance.now() };
-      queueFrame();
-    }
-
-    function land(step) {
-      const from = mat.step;
-      mat.step = step;
-      mat.y = top(step);
-      mat.vy = 0;
-      mat.airborne = false;
-      mat.jumps = 0;
-
-      if (step !== from) {
-        message = '';
-        get('hint-text').textContent = '';
-      }
-
-      if (step < from) {
-        let end = routeEnd();
-        while (end > step) end -= route.pop();
-      } else if (step > from && from === routeEnd() && step - from <= 2) {
-        route.push(step - from);
-        if (step === level) recordRoute();
-      }
-
-      if (step !== routeEnd()) {
-        message = 'Torna a l’últim esglaó verd o a baix per reprendre el recorregut.';
-      }
-
-      if (!reduced.matches) {
-        landing = { step, x: mat.x, start: performance.now() };
-        queueFrame();
-      }
-
-      render();
-    }
-
-    function undo() {
-      if (mat.airborne || buttonJump || mat.step === 0) return;
-      if (routeEnd() === mat.step) route.pop();
-      place(routeEnd());
-      message = '';
-      get('hint-text').textContent = '';
-      render();
-
-      if (get('undo').disabled) get('one').focus({ preventScroll: true });
-    }
-
-    function jumpByButton(distance) {
-      const step = mat.step + distance;
-      if (mat.airborne || buttonJump || step > level) return;
-
-      mat.vx = 0;
-      mat.facing = 1;
-
-      if (reduced.matches) {
-        mat.turn = 1;
-        mat.x = center(step);
-        land(step);
-        return;
-      }
-
-      buttonJump = { step, x: mat.x, y: mat.y, start: performance.now() };
-      queueFrame();
-    }
-
-    function jumpByKeyboard() {
-      if (buttonJump) return;
-
-      if (!mat.airborne) {
-        mat.airborne = true;
-        mat.jumps = 1;
-        mat.vy = -Math.sqrt(2 * gravity * (rise() + 14));
-        if (!held.size) mat.vx = 0;
-      } else if (mat.jumps === 1) {
-        mat.jumps = 2;
-        const target = Math.min(level, mat.step + 2);
-        const heightNeeded = Math.max(34, mat.y - top(target) + 28);
-        mat.vy = -Math.max(Math.sqrt(2 * gravity * heightNeeded), -mat.vy);
-
-        if (!reduced.matches) boost = { x: mat.x, y: mat.y, start: performance.now() };
-      }
-
-      queueFrame();
-    }
-
-    function toggleReplay(path) {
-      if (replay && replay.path === path) {
-        stopReplay();
-      } else {
-        replay = { path, steps: positions(path), start: performance.now() };
-        get('replay-status').textContent =
-          equation(path, level) + ' · ' + replay.steps.join(' → ');
-        updateRouteMarkers();
-        if (!reduced.matches) queueFrame();
-      }
-
-      draw();
-    }
-
-    function updateRouteMarkers() {
-      for (const button of get('routes').querySelectorAll('button[data-path]')) {
-        const path = button.dataset.path;
-        const active = Boolean(replay && replay.path === path);
-        const action = active ? 'Atura' : 'Reprodueix';
-        button.textContent = action;
-        button.setAttribute('aria-pressed', String(active));
-        button.setAttribute('aria-label', action + ' ' + equation(path, level));
-        button.parentElement.classList.toggle('new-route', Boolean(celebration && celebration.path === path));
-      }
-    }
-
-    function render() {
-      const found = discoveries[level - 1];
-      const finished = complete(level - 1);
-
-      Array.from(get('levels').children).forEach((button, i) => {
-        const size = i + 1;
-        button.textContent = size + (complete(i) ? ' ✓' : '');
-        button.setAttribute('aria-pressed', String(size === level));
-      });
-
-      get('level-title').textContent = level === 1
-        ? 'Escala d’1 esglaó' : 'Escala de ' + level + ' esglaons';
-      get('position').textContent = mat.step === 0
-        ? 'A baix' : 'Esglaó ' + mat.step + ' de ' + level;
-      get('route').textContent = route.length
-        ? equation(route, routeEnd()) + ' · ' + route.length + (route.length === 1 ? ' salt' : ' salts')
-        : '0 esglaons pujats';
-      get('feedback').textContent = message;
-      get('one').disabled = mat.step >= level;
-      get('two').disabled = mat.step + 2 > level;
-      get('undo').disabled = mat.step === 0;
-      get('hint-button').disabled = finished;
-      get('count').textContent = found.size + (finished
-        ? ' · Escala completada'
-        : found.size === 1 ? ' manera trobada' : ' maneres trobades');
-
-      const list = get('routes');
-      const focusedPath = list.contains(document.activeElement)
-        ? document.activeElement.dataset.path : null;
-
-      list.replaceChildren(...Array.from(found, path => {
-        const item = document.createElement('li');
-        const sum = document.createElement('span');
-        const button = document.createElement('button');
-        sum.textContent = equation(path, level);
-        button.type = 'button';
-        button.dataset.path = path;
-        button.addEventListener('click', () => toggleReplay(path));
-        item.append(sum, button);
-        return item;
-      }));
-
-      updateRouteMarkers();
-
-      if (focusedPath) {
-        const button = list.querySelector('button[data-path="' + focusedPath + '"]');
-        if (button) button.focus({ preventScroll: true });
-      }
-
-      get('summary').innerHTML = discoveries.map((paths, i) => {
-        const size = i + 1;
-        const sums = Array.from(paths, path => '<li>' + equation(path, size) + '</li>').join('');
-        const list = sums ? '<ul class="sum-list" role="list">' + sums + '</ul>' : '—';
-        return '<tr><th scope="row">' + size + '</th><td>' + list + '</td><td>' +
-          paths.size + (complete(i) ? ' ✓' : '') + '</td></tr>';
-      }).join('');
-
-      draw();
-    }
-
-    function queueFrame() {
-      if (frame === null) frame = requestAnimationFrame(update);
-    }
-
-    function moveHorizontally(dt) {
-      const direction = Number(held.has('ArrowRight')) - Number(held.has('ArrowLeft'));
-      const speed = direction * (mat.airborne ? airSpeed : walkSpeed);
-      mat.vx += (speed - mat.vx) * (1 - Math.exp(-17 * dt));
-      if (direction) mat.facing = direction;
-
-      const nextX = mat.x + mat.vx * dt;
-
-      if (nextX >= worldWidth + margin) {
-        mat.x = nextX - loopWidth;
-        return;
-      }
-
-      if (nextX <= -margin) {
-        mat.x = nextX + loopWidth;
-        return;
-      }
-
-      const current = surface(mat.x);
-      const next = surface(nextX);
-      const blocked = next > 0 && next !== current &&
-        (top(next) < mat.y || next > mat.step + mat.jumps);
-
-      if (blocked) {
-        mat.x = nextX > mat.x ? left(next) - .01 : left(next) + width() + .01;
-        mat.vx = 0;
-      } else {
-        mat.x = nextX;
-      }
-    }
-
-    function updateMotion(dt) {
-      moveHorizontally(dt);
-      const step = surface(mat.x);
-      const surfaceY = top(step);
-
-      if (!mat.airborne && surfaceY > mat.y) {
-        mat.airborne = true;
-        mat.vy = 0;
-      }
-
-      if (!mat.airborne) return;
-
-      const nextY = mat.y + mat.vy * dt + .5 * gravity * dt * dt;
-      mat.vy += gravity * dt;
-
-      if (mat.vy >= 0 && nextY >= surfaceY) land(step);
-      else mat.y = nextY;
-    }
-
-    function update(time) {
-      frame = null;
-      const dt = previousTime === null ? 0 : clamp((time - previousTime) / 1000, 0, .025);
-      previousTime = time;
-      const oldX = mat.x;
-
-      if (buttonJump) {
-        const jump = buttonJump;
-        const progress = clamp((time - jump.start) / 360, 0, 1);
-        mat.x = mix(jump.x, center(jump.step), progress);
-        mat.y = mix(jump.y, top(jump.step), progress) - Math.sin(Math.PI * progress) * 58;
-        if (progress === 1) {
-          buttonJump = null;
-          land(jump.step);
-          if (jump.step === level) get('restart').focus({ preventScroll: true });
-        }
-      } else {
-        updateMotion(dt);
-        if (!mat.airborne) {
-          const distance = Math.abs(mat.x - oldX);
-          mat.stride += Math.min(distance, Math.abs(loopWidth - distance)) / 7;
-        }
-      }
-
-      mat.turn = reduced.matches ? mat.facing
-        : mix(mat.turn, mat.facing, 1 - Math.exp(-24 * dt));
-
-      if (landing && time - landing.start >= 300) landing = null;
-      if (boost && time - boost.start >= 360) boost = null;
-      if (celebration && time - celebration.start >= celebrationMs) {
-        celebration = null;
-        updateRouteMarkers();
-      }
-      if (replay && !reduced.matches &&
-          time - replay.start >= replay.path.length * replaySegmentMs + 750) {
-        stopReplay();
-      }
-
-      const turning = Math.abs(mat.turn - mat.facing) > .01;
-      if (buttonJump || mat.airborne || held.size || Math.abs(mat.vx) > 1 || turning ||
-          landing || boost || celebration || (replay && !reduced.matches)) {
-        queueFrame();
-      } else {
-        previousTime = null;
-        mat.vx = 0;
-        mat.turn = mat.facing;
-      }
-
-      draw(time);
-    }
-
-    function oval(brush, color, x, y, rx, ry) {
-      brush.beginPath();
-      brush.ellipse(x, y, rx, ry, 0, 0, 2 * Math.PI);
-      brush.fillStyle = color;
-      brush.fill();
-    }
-
-    function polygon(brush, color, points) {
-      brush.beginPath();
-      brush.moveTo(...points[0]);
-      for (const point of points.slice(1)) brush.lineTo(...point);
-      brush.closePath();
-      brush.fillStyle = color;
-      brush.fill();
-    }
-
-    function makeLandscape() {
-      const image = document.createElement('canvas');
-      image.width = canvas.width;
-      image.height = canvas.height;
-      const brush = image.getContext('2d');
-      brush.setTransform(2, 0, 0, 2, 0, sky * 2);
-
-      const fill = brush.createLinearGradient(0, -sky, 0, floor);
-      fill.addColorStop(0, '#e5efd9');
-      fill.addColorStop(.65, '#f4f3df');
-      fill.addColorStop(1, '#dce8c9');
-      brush.fillStyle = fill;
-      brush.fillRect(0, -sky, worldWidth, image.height / 2);
-      oval(brush, '#fff6d7', 474, -25, 28, 28);
-
-      brush.beginPath();
-      brush.moveTo(0, 118);
-      brush.bezierCurveTo(86, 56, 144, 76, 231, 119);
-      brush.bezierCurveTo(355, 173, 412, 47, 600, 104);
-      brush.lineTo(worldWidth, floor);
-      brush.lineTo(0, floor);
-      brush.closePath();
-      brush.fillStyle = '#dbe7ca';
-      brush.fill();
-
-      for (let layer = 0; layer < 2; layer++) {
-        const count = layer === 0 ? 17 : 9;
-        const base = layer === 0 ? 199 : 210;
-        const color = layer === 0 ? '#c2d5b7' : '#a9c2a3';
-
-        for (let i = 0; i < count; i++) {
-          const x = (i + .4) * worldWidth / count;
-          const height = 32 + (i * (17 + layer * 6)) % 58;
-          const w = height * .26;
-          const mid = base - height * .48;
-          polygon(brush, color, [
-            [x, base - height], [x + w * .65, mid], [x + w * .33, mid],
-            [x + w, base], [x - w, base], [x - w * .33, mid], [x - w * .65, mid]
-          ]);
-        }
-      }
-
-      brush.fillStyle = '#839c70';
-      brush.fillRect(0, floor, worldWidth, image.height / 2 - sky - floor);
-      brush.fillStyle = '#a9bd89';
-      brush.fillRect(0, floor, worldWidth, 3);
-      return image;
-    }
-
-    function drawStairs() {
-      const visited = new Set(positions(route));
-      const w = width();
-      ctx.save();
-      ctx.font = 'bold 17px system-ui';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      for (let step = 1; step <= level; step++) {
-        const x = left(step);
-        const y = top(step);
-        const height = floor - y;
-        const reached = visited.has(step);
-        const face = ctx.createLinearGradient(0, y, 0, floor);
-        face.addColorStop(0, reached ? '#417558' : '#e1ebce');
-        face.addColorStop(1, reached ? '#28513e' : '#a9bd95');
-
-        ctx.fillStyle = 'rgba(22, 61, 49, .18)';
-        ctx.fillRect(x + 3, y + 3, w, height);
-        ctx.fillStyle = face;
-        ctx.fillRect(x, y, w, height);
-        ctx.strokeStyle = reached ? '#234a37' : '#6f8b69';
-        ctx.strokeRect(x + .5, y + .5, w - 1, height - 1);
-        ctx.fillStyle = reached ? '#d6ed9e' : '#84a479';
-        ctx.fillRect(x + 1, y + 1, w - 2, 4);
-        ctx.fillStyle = reached ? '#fffef4' : '#163d31';
-        ctx.fillText(String(step), x + w / 2, y + Math.min(19, (height + 4) / 2));
-      }
-
-      ctx.restore();
-    }
-
-    function drawShadow() {
-      const step = surface(mat.x);
-      const y = top(step);
-      if (mat.y > y + 1) return;
-      const scale = Math.max(.46, 1 - (y - mat.y) / 190);
-
-      ctx.save();
-      if (step > 0) {
-        ctx.beginPath();
-        ctx.rect(left(step), y, width(), 7);
-        ctx.clip();
-      }
-      ctx.globalAlpha = .32 * scale;
-      oval(ctx, '#17352c', mat.x, y + 2, 23 * scale, 4 * scale);
-      ctx.restore();
-    }
-
-    function drawDust(effect, duration, time, upwards) {
-      if (!effect || reduced.matches) return;
-      const t = clamp((time - effect.start) / duration, 0, 1);
-
-      ctx.save();
-      ctx.globalAlpha = .75 * (1 - t);
-
-      for (let i = 0; i < 10; i++) {
-        const side = i % 2 === 0 ? -1 : 1;
-        const x = effect.x + side * (5 + (12 + i * 2) * t);
-        const lift = (6 + i % 4 * 5) * Math.sin(t * Math.PI);
-        const y = effect.y + (upwards ? -lift : 4 + lift);
-        const radius = (2 + i % 3) * (1 - .6 * t);
-        oval(ctx, '#fff3c6', x, y, radius, radius);
-      }
-
-      ctx.restore();
-    }
-
-    const ears = [[-17, -51], [-19, -71], [-3, -59], [6, -59], [17, -71], [18, -49]];
-
-    function drawFox(x, y, pose) {
-      const { turn, stride, pace, air, squash, ghost } = pose;
-      const side = turn < 0 ? -1 : 1;
-      const swing = Math.sin(stride) * pace * 7;
-      const bob = Math.abs(Math.sin(stride)) * pace * 2;
-      const tuck = air ? 7 : 0;
-      const orange = ghost ? '#ae7420' : '#dd7835';
-      const cream = ghost ? orange : '#fff9eb';
-      const green = ghost ? orange : '#184738';
-
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.scale((.65 + .35 * Math.abs(turn)) * (1 + squash * .08), 1 - squash * .16);
-      if (ghost) ctx.globalAlpha = .55;
-
-      ctx.save();
-      ctx.scale(side, 1);
-      ctx.translate(-9, -19 + bob);
-      ctx.rotate(air ? .38 : Math.sin(stride) * pace * .24);
-      oval(ctx, orange, -11, 0, 16, 9);
-      oval(ctx, cream, -22, -1, 7, 7);
-      ctx.restore();
-
-      oval(ctx, green, -8 + swing, -4 - tuck - Math.max(0, swing) * .65, 7, 4);
-      oval(ctx, green, 8 - swing, -4 - tuck - Math.max(0, -swing) * .65, 7, 4);
-      ctx.translate(0, -bob + (air ? 2 : 0));
-      oval(ctx, green, 0, -17, 15, 16);
-
-      ctx.save();
-      ctx.translate(turn * 3, 0);
-      ctx.scale(side, 1);
-      polygon(ctx, ghost ? orange : '#cf662e', ears);
-      if (!ghost) {
-        polygon(ctx, '#f8bc93', [[-15,-57],[-16,-65],[-8,-58],[9,-57],[15,-65],[15,-55]]);
-      }
-      oval(ctx, ghost ? orange : '#e7823d', 0, -47, 19, 15);
-      if (!ghost) {
-        polygon(ctx, cream, [[-16,-46],[2,-40],[19,-46],[15,-36],[3,-31],[-12,-36]]);
-        oval(ctx, '#302c2a', -5, -48, 2, 2);
-        oval(ctx, '#302c2a', 10, -48, 2, 2);
-        oval(ctx, '#302c2a', 5, -40, 3, 2);
-      }
-      ctx.restore();
-
-      if (!ghost) {
-        ctx.textAlign = 'center';
-        ctx.font = 'bold 7px system-ui';
-        ctx.fillStyle = 'white';
-        ctx.fillText('PCMAT', 0, -15);
-      }
-
-      ctx.restore();
-    }
-
-    function drawReplay(time) {
-      if (!replay) return;
-      const elapsed = Math.max(0, time - replay.start);
-      const count = replay.steps.length - 1;
-      const index = Math.min(count - 1, Math.floor(elapsed / replaySegmentMs));
-      const t = clamp((elapsed - index * replaySegmentMs) / replayJumpMs, 0, 1);
-      const landed = reduced.matches ? count : index + Number(t === 1);
-
-      ctx.save();
-      ctx.fillStyle = '#c48121';
-      for (const step of replay.steps.slice(1, landed + 1)) {
-        ctx.fillRect(left(step) + 6, top(step), width() - 12, 4);
-      }
-      ctx.restore();
-
-      if (!reduced.matches) {
-        const from = replay.steps[index];
-        const to = replay.steps[index + 1];
-        drawFox(
-          mix(center(from), center(to), t),
-          mix(top(from), top(to), t) - Math.sin(Math.PI * t) * 52,
-          { turn: 1, stride: 0, pace: 0, air: t > 0 && t < 1, squash: 0, ghost: true }
+    (() => {
+      'use strict';
+
+      const get = id => document.getElementById(id);
+      const canvas = get('stairs');
+      const ctx = canvas.getContext('2d');
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+      const held = new Set();
+
+      const worldWidth = canvas.width / 2;
+      const margin = 44;
+      const loopWidth = worldWidth + 2 * margin;
+      const floor = 213;
+      const sky = 115;
+      const gravity = 1050;
+      const walkSpeed = 165;
+      const airSpeed = 285;
+      const celebrationMs = 2100;
+      const replayJumpMs = 430;
+      const replaySegmentMs = 620;
+
+      const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+      const mix = (from, to, fraction) => from + (to - from) * fraction;
+
+      function routesTo(remaining) {
+        if (remaining === 0) return [''];
+        if (remaining < 0) return [];
+
+        return [1, 2].flatMap(jump =>
+          routesTo(remaining - jump).map(rest => String(jump) + rest)
         );
       }
-    }
 
-    function drawConfetti(elapsed, finished) {
-      const colors = ['#f9c74f', '#ee784f', '#69a66b', '#4c9db7', '#ad79c7'];
-      const bursts = finished ? [0, 380] : [0];
+      const solutions = Array.from({ length: 6 }, (_, index) => routesTo(index + 1));
+      const discoveries = solutions.map(() => new Set());
 
-      for (const delay of bursts) {
-        const t = (elapsed - delay) / 950;
-        if (t < 0 || t >= 1) continue;
+      const mat = {
+        x: 0, y: floor, vx: 0, vy: 0, step: 0,
+        airborne: false, jumps: 0, facing: 1, turn: 1, stride: 0
+      };
 
-        const pieces = finished ? 26 : 16;
-        for (let i = 0; i < pieces; i++) {
-          const side = i % 2 === 0 ? -1 : 1;
-          const x = worldWidth / 2 + side * (78 + (38 + (i * 17) % 112) * t);
-          const y = -sky + 48 - (22 + (i * 13) % 62) * t + 180 * t * t;
-          const size = 3 + i % 4;
+      let level = 1;
+      let route = [];
+      let message = '';
+      let frame = null;
+      let previousTime = null;
+      let buttonJump = null;
+      let landing = null;
+      let boost = null;
+      let replay = null;
+      let celebration = null;
 
-          ctx.save();
-          ctx.translate(x, y);
-          ctx.rotate(i + side * t * 8);
-          ctx.globalAlpha = 1 - clamp((t - .55) / .45, 0, 1);
-          ctx.fillStyle = colors[i % colors.length];
-          ctx.fillRect(-size / 2, -2, size, i % 3 === 0 ? size : 4);
-          ctx.restore();
+      function stairWidth() {
+        return Math.min(93, 438 / level);
+      }
+
+      function stairOrigin() {
+        return (worldWidth - stairWidth() * level) / 2 + 17;
+      }
+
+      function stepRise() {
+        return Math.min(33, 124 / level);
+      }
+
+      function stepHeight(step) {
+        return floor - step * stepRise();
+      }
+
+      function leftEdge(step) {
+        return stairOrigin() + (step - 1) * stairWidth();
+      }
+
+      function centerX(step) {
+        return step === 0 ? stairOrigin() - 40 : leftEdge(step) + stairWidth() / 2;
+      }
+
+      function surfaceAt(x) {
+        const index = Math.floor((x - stairOrigin()) / stairWidth());
+        return index < 0 || index >= level ? 0 : index + 1;
+      }
+
+      function routeEnd() {
+        return route.reduce((sum, jump) => sum + jump, 0);
+      }
+
+      function positions(path) {
+        let sum = 0;
+        return [0, ...Array.from(path, jump => {
+          sum += Number(jump);
+          return sum;
+        })];
+      }
+
+      function equation(path, sum) {
+        return [...path].join(' + ') + ' = ' + sum;
+      }
+
+      function complete(index) {
+        return discoveries[index].size === solutions[index].length;
+      }
+
+      function place(step) {
+        Object.assign(mat, {
+          x: centerX(step), y: stepHeight(step), vx: 0, vy: 0,
+          step, airborne: false, jumps: 0, facing: 1, turn: 1, stride: 0
+        });
+        buttonJump = null;
+        landing = null;
+        boost = null;
+        celebration = null;
+      }
+
+      function stopReplay() {
+        replay = null;
+        get('replay-status').textContent = '';
+        updateRouteMarkers();
+      }
+
+      function restart() {
+        route = [];
+        message = '';
+        get('hint-text').textContent = '';
+        stopReplay();
+        place(0);
+        render();
+      }
+
+      function selectLevel(size) {
+        level = size;
+        restart();
+      }
+
+      function showHint() {
+        const missing = solutions[level - 1].filter(path => !discoveries[level - 1].has(path));
+        if (!missing.length) return;
+
+        const prefix = route.join('');
+        const canContinue = !mat.airborne && !buttonJump && mat.step === routeEnd();
+        const continuation = canContinue && missing.find(path => path.startsWith(prefix));
+        const path = continuation || missing[0];
+        const jump = path[continuation ? prefix.length : 0] === '1'
+          ? 'un esglaó' : 'dos esglaons';
+
+        let prompt = 'Torna a baix i prova de començar';
+        if (continuation && prefix.length) prompt = 'Des d’on ets, prova ara';
+        else if (canContinue && mat.step === 0) prompt = 'Prova de començar';
+
+        get('hint-text').textContent = prompt + ' amb un salt de ' + jump + '.';
+      }
+
+      function recordRoute() {
+        const found = discoveries[level - 1];
+        const path = route.join('');
+
+        if (found.has(path)) {
+          message = 'Ja havies trobat aquesta manera. El recompte continua a ' + found.size + '.';
+          return;
+        }
+
+        found.add(path);
+        const finished = complete(level - 1);
+        message = 'Una manera nova! ' + (found.size - 1) + ' + 1 = ' + found.size + '.';
+        if (finished) message += ' Has completat l’escala!';
+
+        celebration = {
+          path, sum: equation(path, level), finished, start: performance.now()
+        };
+        queueFrame();
+      }
+
+      function land(step) {
+        const from = mat.step;
+        mat.step = step;
+        mat.y = stepHeight(step);
+        mat.vy = 0;
+        mat.airborne = false;
+        mat.jumps = 0;
+
+        if (step !== from) {
+          message = '';
+          get('hint-text').textContent = '';
+        }
+
+        if (step < from) {
+          let end = routeEnd();
+          while (end > step) end -= route.pop();
+        } else if (step > from && from === routeEnd() && step - from <= 2) {
+          route.push(step - from);
+          if (step === level) recordRoute();
+        }
+
+        if (step !== routeEnd()) {
+          message = 'Torna a l’últim esglaó verd o a baix per reprendre el recorregut.';
+        }
+
+        if (!reduced.matches) {
+          landing = { step, x: mat.x, y: mat.y, start: performance.now() };
+          queueFrame();
+        }
+
+        render();
+      }
+
+      function undo() {
+        if (mat.airborne || buttonJump || mat.step === 0) return;
+        if (routeEnd() === mat.step) route.pop();
+
+        place(routeEnd());
+        message = '';
+        get('hint-text').textContent = '';
+        render();
+
+        if (get('undo').disabled) get('one').focus({ preventScroll: true });
+      }
+
+      function jumpByButton(distance) {
+        const step = mat.step + distance;
+        if (mat.airborne || buttonJump || step > level) return;
+
+        mat.vx = 0;
+        mat.facing = 1;
+
+        if (reduced.matches) {
+          mat.turn = 1;
+          mat.x = centerX(step);
+          land(step);
+          return;
+        }
+
+        buttonJump = { step, x: mat.x, y: mat.y, start: performance.now() };
+        queueFrame();
+      }
+
+      function jumpByKeyboard() {
+        if (buttonJump) return;
+
+        if (!mat.airborne) {
+          mat.airborne = true;
+          mat.jumps = 1;
+          mat.vy = -Math.sqrt(2 * gravity * (stepRise() + 14));
+          if (!held.size) mat.vx = 0;
+        } else if (mat.jumps === 1) {
+          mat.jumps = 2;
+          const target = Math.min(level, mat.step + 2);
+          const heightNeeded = Math.max(34, mat.y - stepHeight(target) + 28);
+          mat.vy = -Math.max(Math.sqrt(2 * gravity * heightNeeded), -mat.vy);
+
+          if (!reduced.matches) {
+            boost = { x: mat.x, y: mat.y, start: performance.now() };
+          }
+        }
+
+        queueFrame();
+      }
+
+      function toggleReplay(path) {
+        if (replay && replay.path === path) {
+          stopReplay();
+        } else {
+          replay = { path, steps: positions(path), start: performance.now() };
+          get('replay-status').textContent =
+            equation(path, level) + ' · ' + replay.steps.join(' → ');
+          updateRouteMarkers();
+          if (!reduced.matches) queueFrame();
+        }
+
+        draw();
+      }
+
+      function updateRouteMarkers() {
+        for (const button of get('routes').querySelectorAll('button[data-path]')) {
+          const path = button.dataset.path;
+          const active = Boolean(replay && replay.path === path);
+          const action = active ? 'Atura' : 'Reprodueix';
+
+          button.textContent = action;
+          button.setAttribute('aria-pressed', String(active));
+          button.setAttribute('aria-label', action + ' ' + equation(path, level));
+          button.parentElement.classList.toggle(
+            'new-route', Boolean(celebration && celebration.path === path)
+          );
         }
       }
-    }
 
-    function drawCelebration(time) {
-      if (!celebration) return;
-      const elapsed = Math.max(0, time - celebration.start);
-      const enter = clamp(elapsed / 320, 0, 1);
-      const fade = clamp((celebrationMs - elapsed) / 280, 0, 1);
-      const pop = .78 + .22 * enter + .15 * Math.sin(Math.PI * enter);
-      const title = celebration.finished ? 'Escala completada!' : 'Ruta nova!';
+      function render() {
+        const found = discoveries[level - 1];
+        const finished = complete(level - 1);
 
-      if (!reduced.matches) drawConfetti(elapsed, celebration.finished);
+        Array.from(get('levels').children).forEach((button, index) => {
+          const size = index + 1;
+          button.textContent = size + (complete(index) ? ' ✓' : '');
+          button.setAttribute('aria-pressed', String(size === level));
+        });
 
-      ctx.save();
-      ctx.translate(worldWidth / 2, -sky + 43);
-      if (!reduced.matches) {
-        ctx.globalAlpha = Math.min(clamp(elapsed / 100, 0, 1), fade);
-        ctx.translate(0, (1 - enter) * 12);
-        ctx.scale(pop, pop);
+        get('level-title').textContent = level === 1
+          ? 'Escala d’1 esglaó' : 'Escala de ' + level + ' esglaons';
+        get('position').textContent = mat.step === 0
+          ? 'A baix' : 'Esglaó ' + mat.step + ' de ' + level;
+        get('route').textContent = route.length
+          ? equation(route, routeEnd()) + ' · ' + route.length + (route.length === 1 ? ' salt' : ' salts')
+          : '0 esglaons pujats';
+
+        get('feedback').textContent = message;
+        get('one').disabled = mat.step >= level;
+        get('two').disabled = mat.step + 2 > level;
+        get('undo').disabled = mat.step === 0;
+        get('hint-button').disabled = finished;
+        get('count').textContent = found.size + (finished
+          ? ' · Escala completada'
+          : found.size === 1 ? ' manera trobada' : ' maneres trobades');
+
+        const list = get('routes');
+        const focusedPath = list.contains(document.activeElement)
+          ? document.activeElement.dataset.path : null;
+
+        list.replaceChildren(...Array.from(found, path => {
+          const item = document.createElement('li');
+          const sum = document.createElement('span');
+          const button = document.createElement('button');
+
+          sum.textContent = equation(path, level);
+          button.type = 'button';
+          button.dataset.path = path;
+          button.addEventListener('click', () => toggleReplay(path));
+          item.append(sum, button);
+          return item;
+        }));
+
+        updateRouteMarkers();
+
+        if (focusedPath) {
+          const button = list.querySelector('button[data-path="' + focusedPath + '"]');
+          if (button) button.focus({ preventScroll: true });
+        }
+
+        get('summary').innerHTML = discoveries.map((paths, index) => {
+          const size = index + 1;
+          const sums = Array.from(paths, path => '<li>' + equation(path, size) + '</li>').join('');
+          const list = sums ? '<ul class="sum-list" role="list">' + sums + '</ul>' : '—';
+          return '<tr><th scope="row">' + size + '</th><td>' + list + '</td><td>' +
+            paths.size + (complete(index) ? ' ✓' : '') + '</td></tr>';
+        }).join('');
+
+        draw();
       }
 
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = '800 23px system-ui';
-      const w = Math.max(190, ctx.measureText(celebration.sum).width + 40);
+      function queueFrame() {
+        if (frame === null) frame = requestAnimationFrame(update);
+      }
 
-      ctx.fillStyle = 'rgba(22, 61, 49, .18)';
-      ctx.fillRect(-w / 2 + 3, -27, w, 62);
-      ctx.fillStyle = celebration.finished ? '#ffe19a' : '#fff3cb';
-      ctx.fillRect(-w / 2, -31, w, 62);
-      ctx.strokeStyle = '#be842f';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(-w / 2, -31, w, 62);
-      ctx.fillStyle = '#654211';
-      ctx.font = '800 13px system-ui';
-      ctx.fillText(title, 0, -13);
-      ctx.fillStyle = '#163d31';
-      ctx.font = '800 23px system-ui';
-      ctx.fillText(celebration.sum, 0, 12);
-      ctx.restore();
-    }
+      function moveHorizontally(dt) {
+        const direction = Number(held.has('ArrowRight')) - Number(held.has('ArrowLeft'));
+        const speed = direction * (mat.airborne ? airSpeed : walkSpeed);
+        mat.vx += (speed - mat.vx) * (1 - Math.exp(-17 * dt));
+        if (direction) mat.facing = direction;
 
-    function draw(time = performance.now()) {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.drawImage(landscape, 0, 0);
-      ctx.setTransform(2, 0, 0, 2, 0, sky * 2);
-      drawStairs();
-      drawShadow();
+        const nextX = mat.x + mat.vx * dt;
 
-      if (landing && landing.step > 0 && !reduced.matches) {
+        if (nextX >= worldWidth + margin) {
+          mat.x = nextX - loopWidth;
+          return;
+        }
+
+        if (nextX <= -margin) {
+          mat.x = nextX + loopWidth;
+          return;
+        }
+
+        const current = surfaceAt(mat.x);
+        const next = surfaceAt(nextX);
+        const blocked = next > 0 && next !== current &&
+          (stepHeight(next) < mat.y || next > mat.step + mat.jumps);
+
+        if (blocked) {
+          mat.x = nextX > mat.x
+            ? leftEdge(next) - .01
+            : leftEdge(next) + stairWidth() + .01;
+          mat.vx = 0;
+        } else {
+          mat.x = nextX;
+        }
+      }
+
+      function updateMotion(dt) {
+        moveHorizontally(dt);
+        const step = surfaceAt(mat.x);
+        const surfaceY = stepHeight(step);
+
+        if (!mat.airborne && surfaceY > mat.y) {
+          mat.airborne = true;
+          mat.vy = 0;
+        }
+
+        if (!mat.airborne) return;
+
+        const nextY = mat.y + mat.vy * dt + .5 * gravity * dt * dt;
+        mat.vy += gravity * dt;
+
+        if (mat.vy >= 0 && nextY >= surfaceY) land(step);
+        else mat.y = nextY;
+      }
+
+      function update(time) {
+        frame = null;
+        const dt = previousTime === null ? 0 : clamp((time - previousTime) / 1000, 0, .025);
+        previousTime = time;
+        const oldX = mat.x;
+
+        if (buttonJump) {
+          const jump = buttonJump;
+          const progress = clamp((time - jump.start) / 360, 0, 1);
+          mat.x = mix(jump.x, centerX(jump.step), progress);
+          mat.y = mix(jump.y, stepHeight(jump.step), progress) - Math.sin(Math.PI * progress) * 58;
+
+          if (progress === 1) {
+            buttonJump = null;
+            land(jump.step);
+            if (jump.step === level) get('restart').focus({ preventScroll: true });
+          }
+        } else {
+          updateMotion(dt);
+          if (!mat.airborne) {
+            const distance = Math.abs(mat.x - oldX);
+            mat.stride += Math.min(distance, Math.abs(loopWidth - distance)) / 7;
+          }
+        }
+
+        mat.turn = reduced.matches ? mat.facing
+          : mix(mat.turn, mat.facing, 1 - Math.exp(-24 * dt));
+
+        if (landing && time - landing.start >= 300) landing = null;
+        if (boost && time - boost.start >= 360) boost = null;
+
+        if (celebration && time - celebration.start >= celebrationMs) {
+          celebration = null;
+          updateRouteMarkers();
+        }
+
+        if (replay && !reduced.matches &&
+            time - replay.start >= replay.path.length * replaySegmentMs + 750) {
+          stopReplay();
+        }
+
+        const turning = Math.abs(mat.turn - mat.facing) > .01;
+        if (buttonJump || mat.airborne || held.size || Math.abs(mat.vx) > 1 || turning ||
+            landing || boost || celebration || (replay && !reduced.matches)) {
+          queueFrame();
+        } else {
+          previousTime = null;
+          mat.vx = 0;
+          mat.turn = mat.facing;
+        }
+
+        draw(time);
+      }
+
+      function oval(brush, color, x, y, rx, ry) {
+        brush.beginPath();
+        brush.ellipse(x, y, rx, ry, 0, 0, 2 * Math.PI);
+        brush.fillStyle = color;
+        brush.fill();
+      }
+
+      function polygon(brush, color, points) {
+        brush.beginPath();
+        brush.moveTo(...points[0]);
+        for (const point of points.slice(1)) brush.lineTo(...point);
+        brush.closePath();
+        brush.fillStyle = color;
+        brush.fill();
+      }
+
+      function makeLandscape() {
+        const image = document.createElement('canvas');
+        image.width = canvas.width;
+        image.height = canvas.height;
+        const brush = image.getContext('2d');
+        brush.setTransform(2, 0, 0, 2, 0, sky * 2);
+
+        const fill = brush.createLinearGradient(0, -sky, 0, floor);
+        fill.addColorStop(0, '#e5efd9');
+        fill.addColorStop(.65, '#f4f3df');
+        fill.addColorStop(1, '#dce8c9');
+        brush.fillStyle = fill;
+        brush.fillRect(0, -sky, worldWidth, image.height / 2);
+        oval(brush, '#fff6d7', 474, -25, 28, 28);
+
+        brush.beginPath();
+        brush.moveTo(0, 118);
+        brush.bezierCurveTo(86, 56, 144, 76, 231, 119);
+        brush.bezierCurveTo(355, 173, 412, 47, 600, 104);
+        brush.lineTo(worldWidth, floor);
+        brush.lineTo(0, floor);
+        brush.closePath();
+        brush.fillStyle = '#dbe7ca';
+        brush.fill();
+
+        for (let layer = 0; layer < 2; layer++) {
+          const count = layer === 0 ? 17 : 9;
+          const base = layer === 0 ? 199 : 210;
+          const color = layer === 0 ? '#c2d5b7' : '#a9c2a3';
+
+          for (let index = 0; index < count; index++) {
+            const x = (index + .4) * worldWidth / count;
+            const height = 32 + (index * (17 + layer * 6)) % 58;
+            const halfWidth = height * .26;
+            const middle = base - height * .48;
+
+            polygon(brush, color, [
+              [x, base - height], [x + halfWidth * .65, middle],
+              [x + halfWidth * .33, middle], [x + halfWidth, base],
+              [x - halfWidth, base], [x - halfWidth * .33, middle],
+              [x - halfWidth * .65, middle]
+            ]);
+          }
+        }
+
+        brush.fillStyle = '#839c70';
+        brush.fillRect(0, floor, worldWidth, image.height / 2 - sky - floor);
+        brush.fillStyle = '#a9bd89';
+        brush.fillRect(0, floor, worldWidth, 3);
+        return image;
+      }
+
+      function drawStairs() {
+        const visited = new Set(positions(route));
+        const width = stairWidth();
         ctx.save();
-        ctx.globalAlpha = .85 * (1 - clamp((time - landing.start) / 300, 0, 1));
-        ctx.fillStyle = '#fff4ad';
-        ctx.shadowColor = '#fff4ad';
-        ctx.shadowBlur = 12;
-        ctx.fillRect(left(landing.step) + 2, top(landing.step), width() - 4, 4);
+        ctx.font = 'bold 17px system-ui';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        for (let step = 1; step <= level; step++) {
+          const x = leftEdge(step);
+          const y = stepHeight(step);
+          const height = floor - y;
+          const reached = visited.has(step);
+          const face = ctx.createLinearGradient(0, y, 0, floor);
+          face.addColorStop(0, reached ? '#417558' : '#e1ebce');
+          face.addColorStop(1, reached ? '#28513e' : '#a9bd95');
+
+          ctx.fillStyle = 'rgba(22, 61, 49, .18)';
+          ctx.fillRect(x + 3, y + 3, width, height);
+          ctx.fillStyle = face;
+          ctx.fillRect(x, y, width, height);
+          ctx.strokeStyle = reached ? '#234a37' : '#6f8b69';
+          ctx.strokeRect(x + .5, y + .5, width - 1, height - 1);
+          ctx.fillStyle = reached ? '#d6ed9e' : '#84a479';
+          ctx.fillRect(x + 1, y + 1, width - 2, 4);
+          ctx.fillStyle = reached ? '#fffef4' : '#163d31';
+          ctx.fillText(String(step), x + width / 2, y + Math.min(19, (height + 4) / 2));
+        }
+
         ctx.restore();
       }
 
-      drawDust(landing, 300, time, true);
-      drawDust(boost, 360, time, false);
-      drawReplay(time);
+      function drawShadow() {
+        const step = surfaceAt(mat.x);
+        const y = stepHeight(step);
+        if (mat.y > y + 1) return;
 
-      let bounce = 0;
-      if (celebration && celebration.finished && mat.step === level &&
-          !reduced.matches && !mat.airborne && !buttonJump) {
-        const elapsed = time - celebration.start;
-        bounce = 21 * Math.sin(Math.PI * clamp((elapsed - 180) / 380, 0, 1))
-          + 11 * Math.sin(Math.PI * clamp((elapsed - 620) / 280, 0, 1));
+        const scale = Math.max(.46, 1 - (y - mat.y) / 190);
+        ctx.save();
+
+        if (step > 0) {
+          ctx.beginPath();
+          ctx.rect(leftEdge(step), y, stairWidth(), 7);
+          ctx.clip();
+        }
+
+        ctx.globalAlpha = .32 * scale;
+        oval(ctx, '#17352c', mat.x, y + 2, 23 * scale, 4 * scale);
+        ctx.restore();
       }
 
-      const air = !reduced.matches && Boolean(mat.airborne || buttonJump || bounce > .1);
-      const squash = !reduced.matches && !air && landing
-        ? 1 - clamp((time - landing.start) / 170, 0, 1) : 0;
+      function drawDust(effect, duration, time, upwards) {
+        if (!effect || reduced.matches) return;
+        const progress = clamp((time - effect.start) / duration, 0, 1);
 
-      drawFox(mat.x, mat.y - bounce, {
-        turn: reduced.matches ? mat.facing : mat.turn,
-        stride: mat.stride,
-        pace: !reduced.matches && !air ? clamp(Math.abs(mat.vx) / walkSpeed, 0, 1) : 0,
-        air, squash, ghost: false
+        ctx.save();
+        ctx.globalAlpha = .75 * (1 - progress);
+
+        for (let index = 0; index < 10; index++) {
+          const side = index % 2 === 0 ? -1 : 1;
+          const x = effect.x + side * (5 + (12 + index * 2) * progress);
+          const lift = (6 + index % 4 * 5) * Math.sin(progress * Math.PI);
+          const y = effect.y + (upwards ? -lift : 4 + lift);
+          const radius = (2 + index % 3) * (1 - .6 * progress);
+          oval(ctx, '#fff3c6', x, y, radius, radius);
+        }
+
+        ctx.restore();
+      }
+
+      const ears = [
+        [-17, -51], [-19, -71], [-3, -59],
+        [6, -59], [17, -71], [18, -49]
+      ];
+
+      function drawFox(x, y, pose) {
+        const { turn, stride, pace, air, squash, ghost } = pose;
+        const side = turn < 0 ? -1 : 1;
+        const swing = Math.sin(stride) * pace * 7;
+        const bob = Math.abs(Math.sin(stride)) * pace * 2;
+        const tuck = air ? 7 : 0;
+        const orange = ghost ? '#ae7420' : '#dd7835';
+        const cream = ghost ? orange : '#fff9eb';
+        const green = ghost ? orange : '#184738';
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale((.65 + .35 * Math.abs(turn)) * (1 + squash * .08), 1 - squash * .16);
+        if (ghost) ctx.globalAlpha = .55;
+
+        ctx.save();
+        ctx.scale(side, 1);
+        ctx.translate(-9, -19 + bob);
+        ctx.rotate(air ? .38 : Math.sin(stride) * pace * .24);
+        oval(ctx, orange, -11, 0, 16, 9);
+        oval(ctx, cream, -22, -1, 7, 7);
+        ctx.restore();
+
+        oval(ctx, green, -8 + swing, -4 - tuck - Math.max(0, swing) * .65, 7, 4);
+        oval(ctx, green, 8 - swing, -4 - tuck - Math.max(0, -swing) * .65, 7, 4);
+        ctx.translate(0, -bob + (air ? 2 : 0));
+        oval(ctx, green, 0, -17, 15, 16);
+
+        ctx.save();
+        ctx.translate(turn * 3, 0);
+        ctx.scale(side, 1);
+        polygon(ctx, ghost ? orange : '#cf662e', ears);
+
+        if (!ghost) {
+          polygon(ctx, '#f8bc93', [
+            [-15, -57], [-16, -65], [-8, -58],
+            [9, -57], [15, -65], [15, -55]
+          ]);
+        }
+
+        oval(ctx, ghost ? orange : '#e7823d', 0, -47, 19, 15);
+
+        if (!ghost) {
+          polygon(ctx, cream, [
+            [-16, -46], [2, -40], [19, -46],
+            [15, -36], [3, -31], [-12, -36]
+          ]);
+          oval(ctx, '#302c2a', -5, -48, 2, 2);
+          oval(ctx, '#302c2a', 10, -48, 2, 2);
+          oval(ctx, '#302c2a', 5, -40, 3, 2);
+        }
+
+        ctx.restore();
+
+        if (!ghost) {
+          ctx.textAlign = 'center';
+          ctx.font = 'bold 7px system-ui';
+          ctx.fillStyle = 'white';
+          ctx.fillText('PCMAT', 0, -15);
+        }
+
+        ctx.restore();
+      }
+
+      function drawReplay(time) {
+        if (!replay) return;
+
+        const elapsed = Math.max(0, time - replay.start);
+        const count = replay.steps.length - 1;
+        const index = Math.min(count - 1, Math.floor(elapsed / replaySegmentMs));
+        const progress = clamp((elapsed - index * replaySegmentMs) / replayJumpMs, 0, 1);
+        const landed = reduced.matches ? count : index + Number(progress === 1);
+
+        ctx.save();
+        ctx.fillStyle = '#c48121';
+
+        for (const step of replay.steps.slice(1, landed + 1)) {
+          ctx.fillRect(leftEdge(step) + 6, stepHeight(step), stairWidth() - 12, 4);
+        }
+
+        ctx.restore();
+
+        if (!reduced.matches) {
+          const from = replay.steps[index];
+          const to = replay.steps[index + 1];
+
+          drawFox(
+            mix(centerX(from), centerX(to), progress),
+            mix(stepHeight(from), stepHeight(to), progress) - Math.sin(Math.PI * progress) * 52,
+            { turn: 1, stride: 0, pace: 0, air: progress > 0 && progress < 1, squash: 0, ghost: true }
+          );
+        }
+      }
+
+      function drawConfetti(elapsed, finished) {
+        const colors = ['#f9c74f', '#ee784f', '#69a66b', '#4c9db7', '#ad79c7'];
+        const bursts = finished ? [0, 380] : [0];
+
+        for (const delay of bursts) {
+          const progress = (elapsed - delay) / 950;
+          if (progress < 0 || progress >= 1) continue;
+
+          const pieces = finished ? 26 : 16;
+          for (let index = 0; index < pieces; index++) {
+            const side = index % 2 === 0 ? -1 : 1;
+            const x = worldWidth / 2 + side * (78 + (38 + (index * 17) % 112) * progress);
+            const y = -sky + 48 - (22 + (index * 13) % 62) * progress + 180 * progress * progress;
+            const size = 3 + index % 4;
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(index + side * progress * 8);
+            ctx.globalAlpha = 1 - clamp((progress - .55) / .45, 0, 1);
+            ctx.fillStyle = colors[index % colors.length];
+            ctx.fillRect(-size / 2, -2, size, index % 3 === 0 ? size : 4);
+            ctx.restore();
+          }
+        }
+      }
+
+      function drawCelebration(time) {
+        if (!celebration) return;
+
+        const elapsed = Math.max(0, time - celebration.start);
+        const enter = clamp(elapsed / 320, 0, 1);
+        const fade = clamp((celebrationMs - elapsed) / 280, 0, 1);
+        const pop = .78 + .22 * enter + .15 * Math.sin(Math.PI * enter);
+        const title = celebration.finished ? 'Escala completada!' : 'Ruta nova!';
+
+        if (!reduced.matches) drawConfetti(elapsed, celebration.finished);
+
+        ctx.save();
+        ctx.translate(worldWidth / 2, -sky + 43);
+        if (!reduced.matches) {
+          ctx.globalAlpha = Math.min(clamp(elapsed / 100, 0, 1), fade);
+          ctx.translate(0, (1 - enter) * 12);
+          ctx.scale(pop, pop);
+        }
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '800 23px system-ui';
+        const width = Math.max(190, ctx.measureText(celebration.sum).width + 40);
+
+        ctx.fillStyle = 'rgba(22, 61, 49, .18)';
+        ctx.fillRect(-width / 2 + 3, -27, width, 62);
+        ctx.fillStyle = celebration.finished ? '#ffe19a' : '#fff3cb';
+        ctx.fillRect(-width / 2, -31, width, 62);
+        ctx.strokeStyle = '#be842f';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-width / 2, -31, width, 62);
+        ctx.fillStyle = '#654211';
+        ctx.font = '800 13px system-ui';
+        ctx.fillText(title, 0, -13);
+        ctx.fillStyle = '#163d31';
+        ctx.font = '800 23px system-ui';
+        ctx.fillText(celebration.sum, 0, 12);
+        ctx.restore();
+      }
+
+      function draw(time = performance.now()) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.drawImage(landscape, 0, 0);
+        ctx.setTransform(2, 0, 0, 2, 0, sky * 2);
+        drawStairs();
+        drawShadow();
+
+        if (landing && landing.step > 0 && !reduced.matches) {
+          ctx.save();
+          ctx.globalAlpha = .85 * (1 - clamp((time - landing.start) / 300, 0, 1));
+          ctx.fillStyle = '#fff4ad';
+          ctx.shadowColor = '#fff4ad';
+          ctx.shadowBlur = 12;
+          ctx.fillRect(leftEdge(landing.step) + 2, stepHeight(landing.step), stairWidth() - 4, 4);
+          ctx.restore();
+        }
+
+        drawDust(landing, 300, time, true);
+        drawDust(boost, 360, time, false);
+        drawReplay(time);
+
+        let bounce = 0;
+        if (celebration && celebration.finished && mat.step === level &&
+            !reduced.matches && !mat.airborne && !buttonJump) {
+          const elapsed = time - celebration.start;
+          bounce = 21 * Math.sin(Math.PI * clamp((elapsed - 180) / 380, 0, 1))
+            + 11 * Math.sin(Math.PI * clamp((elapsed - 620) / 280, 0, 1));
+        }
+
+        const air = !reduced.matches && Boolean(mat.airborne || buttonJump || bounce > .1);
+        const squash = !reduced.matches && !air && landing
+          ? 1 - clamp((time - landing.start) / 170, 0, 1) : 0;
+
+        drawFox(mat.x, mat.y - bounce, {
+          turn: reduced.matches ? mat.facing : mat.turn,
+          stride: mat.stride,
+          pace: !reduced.matches && !air ? clamp(Math.abs(mat.vx) / walkSpeed, 0, 1) : 0,
+          air, squash, ghost: false
+        });
+
+        drawCelebration(time);
+      }
+
+      const landscape = makeLandscape();
+
+      solutions.forEach((_, index) => {
+        const size = index + 1;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.setAttribute('aria-keyshortcuts', String(size));
+        button.setAttribute('aria-label', size === 1 ? '1 esglaó' : size + ' esglaons');
+        button.addEventListener('click', () => selectLevel(size));
+        get('levels').append(button);
       });
 
-      drawCelebration(time);
-    }
+      get('one').addEventListener('click', () => jumpByButton(1));
+      get('two').addEventListener('click', () => jumpByButton(2));
+      get('undo').addEventListener('click', undo);
+      get('hint-button').addEventListener('click', showHint);
 
-    const landscape = makeLandscape();
+      get('restart').addEventListener('click', () => {
+        restart();
+        get('one').focus({ preventScroll: true });
+      });
 
-    solutions.forEach((_, i) => {
-      const size = i + 1;
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.setAttribute('aria-keyshortcuts', String(size));
-      button.setAttribute('aria-label', size === 1 ? '1 esglaó' : size + ' esglaons');
-      button.addEventListener('click', () => selectLevel(size));
-      get('levels').append(button);
-    });
+      document.addEventListener('keydown', event => {
+        if (event.defaultPrevented || event.isComposing || event.altKey ||
+            event.ctrlKey || event.metaKey) return;
 
-    get('one').addEventListener('click', () => jumpByButton(1));
-    get('two').addEventListener('click', () => jumpByButton(2));
-    get('undo').addEventListener('click', undo);
-    get('hint-button').addEventListener('click', showHint);
+        const target = event.target;
+        if (target.isContentEditable ||
+            target.closest?.('input, textarea, select, a[href]')) return;
 
-    get('restart').addEventListener('click', () => {
-      restart();
-      get('one').focus({ preventScroll: true });
-    });
+        if (/^[1-6]$/.test(event.key)) {
+          event.preventDefault();
+          if (!event.repeat) selectLevel(Number(event.key));
+          return;
+        }
 
-    document.addEventListener('keydown', event => {
-      if (event.defaultPrevented || event.isComposing || event.altKey ||
-          event.ctrlKey || event.metaKey) return;
+        const space = event.code === 'Space' || event.key === ' ';
+        const arrow = event.key === 'ArrowLeft' || event.key === 'ArrowRight';
+        if (!arrow && !space) return;
+        if (space && target.closest?.('#hint-button, #routes button')) return;
 
-      const target = event.target;
-      if (target.isContentEditable || target.closest('input, textarea, select, a[href]')) return;
-
-      if (/^[1-6]$/.test(event.key)) {
         event.preventDefault();
-        if (!event.repeat) selectLevel(Number(event.key));
-        return;
-      }
 
-      const space = event.code === 'Space' || event.key === ' ';
-      const arrow = event.key === 'ArrowLeft' || event.key === 'ArrowRight';
-      if (!arrow && !space) return;
-      if (space && target.closest('#hint-button, #routes button')) return;
-
-      event.preventDefault();
-
-      if (arrow) {
-        held.add(event.key);
-        queueFrame();
-      } else if (!event.repeat) {
-        jumpByKeyboard();
-      }
-    });
-
-    document.addEventListener('keyup', event => held.delete(event.key));
-    window.addEventListener('blur', () => {
-      held.clear();
-      mat.vx = 0;
-    });
-
-    if (typeof reduced.addEventListener === 'function') {
-      reduced.addEventListener('change', () => {
-        draw();
-        if (replay && !reduced.matches) queueFrame();
+        if (arrow) {
+          held.add(event.key);
+          queueFrame();
+        } else if (!event.repeat) {
+          jumpByKeyboard();
+        }
       });
-    }
 
-    restart();
+      document.addEventListener('keyup', event => held.delete(event.key));
+
+      window.addEventListener('blur', () => {
+        held.clear();
+        mat.vx = 0;
+      });
+
+      if (typeof reduced.addEventListener === 'function') {
+        reduced.addEventListener('change', () => {
+          draw();
+          if (replay && !reduced.matches) queueFrame();
+        });
+      }
+
+      restart();
+    })();
   </script>
 </body>
 </html>

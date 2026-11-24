@@ -5,14 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#163d31">
   <title>Pugem esglaons! · PCMAT</title>
-
   <style>
     :root {
       font-family: "Trebuchet MS", system-ui, sans-serif;
       color: #163d31;
       background: #f8f6ed;
       --green: #163d31;
-      --lime: #d6ed9e;
       --line: #dedfd2;
     }
 
@@ -43,7 +41,6 @@
     }
 
     .brand small { color: #52675c; font-size: 13px; }
-
     h1 {
       margin: 24px 0 5px;
       font-size: clamp(38px, 7vw, 72px);
@@ -67,12 +64,7 @@
     }
 
     button:disabled { cursor: default; opacity: .48; }
-
-    button:focus-visible {
-      outline: 3px solid #cf651f;
-      outline-offset: 3px;
-    }
-
+    button:focus-visible { outline: 3px solid #cf651f; outline-offset: 3px; }
     nav button[aria-pressed="true"], .primary {
       background: var(--green);
       border-color: var(--green);
@@ -80,12 +72,7 @@
     }
 
     .primary { padding: 11px 16px; }
-
-    .jump2 {
-      border-color: #acc47d;
-      background: var(--lime);
-      color: var(--green);
-    }
+    .jump2 { border-color: #acc47d; background: #d6ed9e; color: var(--green); }
 
     .layout {
       display: grid;
@@ -102,7 +89,6 @@
     }
 
     .card h2 { margin: 0; font-size: 21px; }
-
     .bar {
       display: flex;
       align-items: center;
@@ -142,7 +128,6 @@
     }
 
     .routes { margin-top: 10px; }
-
     .routes li {
       display: flex;
       flex-wrap: wrap;
@@ -156,18 +141,13 @@
     }
 
     .routes button { padding: 5px 9px; font-size: 13px; }
-
     .routes button[aria-pressed="true"] {
       border-color: #876129;
       background: #fff0bc;
       color: #563b13;
     }
 
-    .sum-list li + li {
-      padding-top: 6px;
-      border-top: 1px solid var(--line);
-    }
-
+    .sum-list li + li { padding-top: 6px; border-top: 1px solid var(--line); }
     #hint-button { margin-top: 14px; }
 
     .hint, .replay-status {
@@ -177,7 +157,6 @@
     }
 
     .hint { background: #ebefdd; }
-
     .replay-status {
       margin-bottom: 10px;
       background: #fff0bc;
@@ -189,13 +168,7 @@
     .summary { margin: 16px 0; }
     .summary h2 { margin-bottom: 8px; }
     table { width: 100%; border-collapse: collapse; text-align: left; }
-
-    th, td {
-      padding: 8px 5px;
-      border-top: 1px solid var(--line);
-      vertical-align: top;
-    }
-
+    th, td { padding: 8px 5px; border-top: 1px solid var(--line); vertical-align: top; }
     th:last-child, td:last-child { text-align: right; }
     td:nth-child(2) { overflow-wrap: anywhere; }
     footer { padding: 8px 0 22px; color: #52675c; font-size: 14px; }
@@ -208,7 +181,6 @@
     }
   </style>
 </head>
-
 <body>
   <header>
     <div class="wrap brand">
@@ -234,7 +206,6 @@
         </div>
 
         <p id="replay-status" class="replay-status" role="status"></p>
-
         <div class="scene">
           <canvas id="stairs" width="1200" height="680" aria-hidden="true"></canvas>
         </div>
@@ -261,9 +232,7 @@
         <h2 id="routes-title">Recorreguts descoberts</h2>
         <p id="count" class="count"></p>
         <ul id="routes" class="routes" role="list"></ul>
-        <button id="hint-button" type="button" aria-controls="hint-text">
-          Dona’m una pista
-        </button>
+        <button id="hint-button" type="button" aria-controls="hint-text">Dona’m una pista</button>
         <p id="hint-text" class="hint" role="status" aria-atomic="true"></p>
       </section>
     </div>
@@ -301,8 +270,10 @@
     const airSpeed = 285;
     const skyPadding = 115;
     const flashDuration = 300;
+    const landingDuration = 170;
     const replayJumpMs = 430;
-    const replayPauseMs = 190;
+    const replaySegmentMs = 620;
+    const earOutline = [[-17,-51],[-19,-71],[-3,-59],[6,-59],[17,-71],[18,-49]];
 
     let level = 1;
     let route = [];
@@ -311,55 +282,59 @@
     let previousTime = null;
     let buttonJump = null;
     let landingFlash = null;
+    let landedAt = -Infinity;
     let replay = null;
 
-    const mat = { x: 0, y: floor, vx: 0, vy: 0, step: 0, airborne: false };
+    const mat = {
+      x: 0, y: floor, vx: 0, vy: 0, step: 0, airborne: false,
+      facing: 1, turn: 1, stride: 0
+    };
+
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    const mix = (from, to, fraction) => from + (to - from) * fraction;
 
     function routePositions(path) {
       const positions = [0];
-
       for (const jump of path) {
         positions.push(positions[positions.length - 1] + Number(jump));
       }
-
       return positions;
-    }
-
-    function equation(path, sum) {
-      return `${[...path].join(' + ')} = ${sum}`;
-    }
-
-    function routesTo(remaining) {
-      if (remaining === 0) return [''];
-      if (remaining < 0) return [];
-
-      return [1, 2].flatMap(jump =>
-        routesTo(remaining - jump).map(rest => `${jump}${rest}`)
-      );
     }
 
     function routeEnd() {
       return route.reduce((sum, jump) => sum + jump, 0);
     }
 
+    function equation(path, sum) {
+      return \`\${[...path].join(' + ')} = \${sum}\`;
+    }
+
+    function routesTo(remaining) {
+      if (remaining === 0) return [''];
+      if (remaining < 0) return [];
+      return [1, 2].flatMap(jump =>
+        routesTo(remaining - jump).map(rest => \`\${jump}\${rest}\`)
+      );
+    }
+
     function showHint() {
-      const found = discoveries[level - 1];
-      const missing = routesTo(level).filter(path => !found.has(path));
+      const missing = routesTo(level).filter(path => !discoveries[level - 1].has(path));
       if (!missing.length) return;
 
       const prefix = route.join('');
       const atRouteEnd = mat.step === routeEnd() && !mat.airborne && !buttonJump;
       const continuation = atRouteEnd && missing.find(path => path.startsWith(prefix));
       const path = continuation || missing[0];
-      const distance = Number(path[continuation ? prefix.length : 0]);
-      const jump = distance === 1 ? 'un esglaó' : 'dos esglaons';
+      const jump = path[continuation ? prefix.length : 0] === '1'
+        ? 'un esglaó'
+        : 'dos esglaons';
 
       if (continuation && prefix.length) {
-        get('hint-text').textContent = `Des d’on ets, prova ara un salt de ${jump}.`;
+        get('hint-text').textContent = \`Des d’on ets, prova ara un salt de \${jump}.\`;
       } else if (atRouteEnd && mat.step === 0) {
-        get('hint-text').textContent = `Prova de començar amb un salt de ${jump}.`;
+        get('hint-text').textContent = \`Prova de començar amb un salt de \${jump}.\`;
       } else {
-        get('hint-text').textContent = `Torna a baix i prova de començar amb un salt de ${jump}.`;
+        get('hint-text').textContent = \`Torna a baix i prova de començar amb un salt de \${jump}.\`;
       }
     }
 
@@ -393,14 +368,13 @@
     }
 
     function setPosition(step) {
-      mat.step = step;
-      mat.x = centerX(step);
-      mat.y = heightAt(step);
-      mat.vx = 0;
-      mat.vy = 0;
-      mat.airborne = false;
+      Object.assign(mat, {
+        step, x: centerX(step), y: heightAt(step), vx: 0, vy: 0,
+        airborne: false, facing: 1, turn: 1, stride: 0
+      });
       buttonJump = null;
       landingFlash = null;
+      landedAt = -Infinity;
     }
 
     function restart() {
@@ -422,16 +396,13 @@
       const path = route.join('');
 
       if (found.has(path)) {
-        message = `Ja havies trobat aquesta manera. El recompte continua a ${found.size}.`;
+        message = \`Ja havies trobat aquesta manera. El recompte continua a \${found.size}.\`;
         return;
       }
 
       found.add(path);
-      message = `Una manera nova! ${found.size - 1} + 1 = ${found.size}.`;
-
-      if (found.size === totals[level - 1]) {
-        message += ' Has completat l’escala!';
-      }
+      message = \`Una manera nova! \${found.size - 1} + 1 = \${found.size}.\`;
+      if (found.size === totals[level - 1]) message += ' Has completat l’escala!';
     }
 
     function land(step) {
@@ -456,8 +427,9 @@
         message = 'Torna a l’últim esglaó verd o a baix per reprendre el recorregut.';
       }
 
-      if (step > 0 && !reducedMotion.matches) {
-        landingFlash = { step, start: performance.now() };
+      if (!reducedMotion.matches) {
+        landedAt = performance.now();
+        if (step > 0) landingFlash = { step, start: landedAt };
         queueFrame();
       }
 
@@ -469,7 +441,6 @@
 
       let end = routeEnd();
       if (end === mat.step) end -= route.pop();
-
       setPosition(end);
       message = '';
       clearHint();
@@ -483,12 +454,15 @@
       if (mat.airborne || buttonJump || destination > level) return;
 
       if (reducedMotion.matches) {
+        mat.facing = 1;
+        mat.turn = 1;
         mat.x = centerX(destination);
         land(destination);
         return;
       }
 
       mat.vx = 0;
+      mat.facing = 1;
       buttonJump = { destination, fromX: mat.x, fromY: mat.y, start: performance.now() };
       queueFrame();
     }
@@ -496,11 +470,10 @@
     function updateReplayButtons() {
       for (const button of get('routes').querySelectorAll('button[data-path]')) {
         const active = replay?.path === button.dataset.path;
-        button.textContent = active ? 'Atura' : 'Reprodueix';
-        button.setAttribute('aria-pressed', String(active));
-
         const action = active ? 'Atura' : 'Reprodueix';
-        button.setAttribute('aria-label', `${action} ${equation(button.dataset.path, level)}`);
+        button.textContent = action;
+        button.setAttribute('aria-pressed', String(active));
+        button.setAttribute('aria-label', \`\${action} \${equation(button.dataset.path, level)}\`);
       }
     }
 
@@ -513,23 +486,14 @@
     function toggleReplay(path) {
       if (replay?.path === path) {
         stopReplay();
-        draw();
-        return;
+      } else {
+        replay = { path, positions: routePositions(path), start: performance.now() };
+        get('replay-status').textContent =
+          \`\${equation(path, level)} · \${replay.positions.join(' → ')}\`;
+        updateReplayButtons();
+        if (!reducedMotion.matches) queueFrame();
       }
-
-      replay = {
-        path,
-        positions: routePositions(path),
-        start: performance.now()
-      };
-
-      get('replay-status').textContent =
-        `${equation(path, level)} · ${replay.positions.join(' → ')}`;
-
-      updateReplayButtons();
       draw();
-
-      if (!reducedMotion.matches) queueFrame();
     }
 
     function renderRoutes(found) {
@@ -542,49 +506,41 @@
         const item = document.createElement('li');
         const sum = document.createElement('span');
         const button = document.createElement('button');
-
         sum.textContent = equation(path, level);
         button.type = 'button';
         button.dataset.path = path;
         button.addEventListener('click', () => toggleReplay(path));
-
         item.append(sum, button);
         return item;
       });
 
       list.replaceChildren(...items);
       updateReplayButtons();
-
       if (focusedPath) {
-        list.querySelector(`button[data-path="${focusedPath}"]`)
-          ?.focus({ preventScroll: true });
+        list.querySelector(\`button[data-path="\${focusedPath}"]\`)?.focus({ preventScroll: true });
       }
     }
 
     function render() {
       const found = discoveries[level - 1];
       const complete = found.size === totals[level - 1];
-      const total = routeEnd();
 
       [...get('levels').children].forEach((button, index) => {
         const size = index + 1;
         const done = discoveries[index].size === totals[index];
-        const label = size === 1 ? '1 esglaó' : `${size} esglaons`;
-
-        button.textContent = done ? `${size} ✓` : size;
+        const label = size === 1 ? '1 esglaó' : \`\${size} esglaons\`;
+        button.textContent = done ? \`\${size} ✓\` : size;
         button.setAttribute('aria-pressed', size === level);
-        button.setAttribute('aria-label', done ? `${label}, escala completada` : label);
+        button.setAttribute('aria-label', done ? \`\${label}, escala completada\` : label);
       });
 
-      get('level-title').textContent = level === 1
-        ? 'Escala d’1 esglaó'
-        : `Escala de ${level} esglaons`;
-      get('position').textContent = mat.step === 0 ? 'A baix' : `Esglaó ${mat.step} de ${level}`;
+      get('level-title').textContent = level === 1 ? 'Escala d’1 esglaó' : \`Escala de \${level} esglaons\`;
+      get('position').textContent = mat.step === 0 ? 'A baix' : \`Esglaó \${mat.step} de \${level}\`;
       get('route').textContent = route.length
-        ? `${equation(route, total)} · ${route.length} ${route.length === 1 ? 'salt' : 'salts'}`
+        ? \`\${equation(route, routeEnd())} · \${route.length} \${route.length === 1 ? 'salt' : 'salts'}\`
         : '0 esglaons pujats';
-      get('feedback').textContent = message;
 
+      get('feedback').textContent = message;
       get('one').disabled = mat.step >= level;
       get('two').disabled = mat.step + 2 > level;
       get('undo').disabled = mat.step === 0;
@@ -592,18 +548,17 @@
 
       const countLabel = found.size === 1 ? 'manera trobada' : 'maneres trobades';
       get('count').textContent = complete
-        ? `${found.size} · Escala completada`
-        : `${found.size} ${countLabel}`;
+        ? \`\${found.size} · Escala completada\`
+        : \`\${found.size} \${countLabel}\`;
 
       renderRoutes(found);
 
       get('summary').innerHTML = discoveries.map((paths, index) => {
         const size = index + 1;
-        const sums = [...paths].map(path => `<li>${equation(path, size)}</li>`).join('');
-        const list = sums ? `<ul class="sum-list" role="list">${sums}</ul>` : '—';
+        const sums = [...paths].map(path => \`<li>\${equation(path, size)}</li>\`).join('');
+        const list = sums ? \`<ul class="sum-list" role="list">\${sums}</ul>\` : '—';
         const mark = paths.size === totals[index] ? ' ✓' : '';
-
-        return `<tr><th scope="row">${size}</th><td>${list}</td><td>${paths.size}${mark}</td></tr>`;
+        return \`<tr><th scope="row">\${size}</th><td>\${list}</td><td>\${paths.size}\${mark}</td></tr>\`;
       }).join('');
 
       draw();
@@ -615,11 +570,10 @@
 
     function updateButtonJump(time) {
       const { destination, fromX, fromY, start } = buttonJump;
-      const progress = Math.min(1, Math.max(0, (time - start) / 360));
+      const progress = clamp((time - start) / 360, 0, 1);
 
-      mat.x = fromX + (centerX(destination) - fromX) * progress;
-      mat.y = fromY + (heightAt(destination) - fromY) * progress
-        - Math.sin(Math.PI * progress) * 58;
+      mat.x = mix(fromX, centerX(destination), progress);
+      mat.y = mix(fromY, heightAt(destination), progress) - Math.sin(Math.PI * progress) * 58;
 
       if (progress === 1) {
         buttonJump = null;
@@ -633,18 +587,17 @@
       const targetSpeed = direction * (mat.airborne ? airSpeed : walkSpeed);
       mat.vx += (targetSpeed - mat.vx) * (1 - Math.exp(-17 * dt));
 
-      const nextX = Math.max(38, Math.min(562, mat.x + mat.vx * dt));
+      if (direction) mat.facing = direction;
+
+      const nextX = clamp(mat.x + mat.vx * dt, 38, 562);
       const currentSurface = surfaceAt(mat.x);
       const nextSurface = surfaceAt(nextX);
       const hitsWall = nextSurface !== currentSurface && heightAt(nextSurface) < mat.y;
       const exceedsJump = nextSurface > mat.step + 2;
 
       if (hitsWall || exceedsJump) {
-        if (nextX > mat.x) {
-          mat.x = leftEdge(nextSurface) - .01;
-        } else if (currentSurface > 0) {
-          mat.x = leftEdge(currentSurface) + .01;
-        }
+        if (nextX > mat.x) mat.x = leftEdge(nextSurface) - .01;
+        else if (currentSurface > 0) mat.x = leftEdge(currentSurface) + .01;
 
         mat.vx = 0;
         return;
@@ -668,35 +621,41 @@
       const nextY = mat.y + mat.vy * dt + .5 * gravity * dt * dt;
       mat.vy += gravity * dt;
 
-      if (mat.vy >= 0 && nextY >= surfaceY) {
-        land(surface);
-      } else {
-        mat.y = nextY;
-      }
+      if (mat.vy >= 0 && nextY >= surfaceY) land(surface);
+      else mat.y = nextY;
     }
 
     function update(time) {
       frame = null;
-      const dt = previousTime === null ? 0 : Math.min(.025, (time - previousTime) / 1000);
+      const dt = previousTime === null ? 0 : clamp((time - previousTime) / 1000, 0, .025);
       previousTime = time;
+      const oldX = mat.x;
 
       if (buttonJump) updateButtonJump(time);
       else updateMotion(dt);
 
-      if (landingFlash && time - landingFlash.start >= flashDuration) {
-        landingFlash = null;
+      if (!mat.airborne && !buttonJump) mat.stride += Math.abs(mat.x - oldX) / 7;
+
+      if (reducedMotion.matches) {
+        mat.turn = mat.facing;
+      } else {
+        mat.turn += (mat.facing - mat.turn) * (1 - Math.exp(-24 * dt));
       }
 
-      const replayAnimating = replay && !reducedMotion.matches;
-      if (replayAnimating &&
-          time - replay.start >= replay.path.length * (replayJumpMs + replayPauseMs) + 750) {
+      if (landingFlash && time - landingFlash.start >= flashDuration) landingFlash = null;
+
+      if (replay && !reducedMotion.matches &&
+          time - replay.start >= replay.path.length * replaySegmentMs + 750) {
         stopReplay();
       }
 
       draw(time);
 
+      const animatingMat = !reducedMotion.matches &&
+        (time - landedAt < landingDuration || Math.abs(mat.turn - mat.facing) > .01);
+
       if (buttonJump || mat.airborne || held.size || Math.abs(mat.vx) > 1 ||
-          landingFlash || (replay && !reducedMotion.matches)) {
+          landingFlash || animatingMat || (replay && !reducedMotion.matches)) {
         queueFrame();
       } else {
         previousTime = null;
@@ -721,17 +680,16 @@
     }
 
     function drawTree(context, x, base, height, color) {
-      const top = base - height;
       const halfWidth = height * .26;
-
+      const middle = base - height * .48;
       shape(context, color, [
-        [x, top],
-        [x + halfWidth * .65, base - height * .48],
-        [x + halfWidth * .33, base - height * .48],
+        [x, base - height],
+        [x + halfWidth * .65, middle],
+        [x + halfWidth * .33, middle],
         [x + halfWidth, base],
         [x - halfWidth, base],
-        [x - halfWidth * .33, base - height * .48],
-        [x - halfWidth * .65, base - height * .48]
+        [x - halfWidth * .33, middle],
+        [x - halfWidth * .65, middle]
       ]);
     }
 
@@ -740,8 +698,8 @@
       background.width = canvas.width;
       background.height = canvas.height;
       const brush = background.getContext('2d');
-
       brush.setTransform(2, 0, 0, 2, 0, skyPadding * 2);
+
       const sky = brush.createLinearGradient(0, -skyPadding, 0, floor);
       sky.addColorStop(0, '#e5efd9');
       sky.addColorStop(.65, '#f4f3df');
@@ -808,55 +766,27 @@
     function drawLandingFlash(time) {
       if (!landingFlash || reducedMotion.matches) return;
 
-      const progress = Math.max(0, (time - landingFlash.start) / flashDuration);
-      const x = leftEdge(landingFlash.step);
-      const y = heightAt(landingFlash.step);
-
+      const progress = clamp((time - landingFlash.start) / flashDuration, 0, 1);
       ctx.save();
-      ctx.globalAlpha = Math.max(0, 1 - progress) * .85;
+      ctx.globalAlpha = (1 - progress) * .85;
       ctx.shadowColor = '#fff4ad';
       ctx.shadowBlur = 12;
       ctx.fillStyle = '#fff4ad';
-      ctx.fillRect(x + 2, y, stairWidth() - 4, 4);
+      ctx.fillRect(leftEdge(landingFlash.step) + 2, heightAt(landingFlash.step), stairWidth() - 4, 4);
       ctx.restore();
     }
 
-    function drawMat(x, y, silhouette = false) {
+    function drawSilhouette(x, y) {
+      const color = '#ae7420';
       ctx.save();
       ctx.translate(x, y);
-
-      if (silhouette) {
-        const color = '#ae7420';
-        ctx.globalAlpha = .55;
-
-        oval(ctx, color, -19, -17, 17, 9);
-        oval(ctx, color, 0, -17, 15, 16);
-        oval(ctx, color, -7, -4, 7, 4);
-        oval(ctx, color, 8, -4, 7, 4);
-        oval(ctx, color, 0, -47, 19, 15);
-        shape(ctx, color, [[-17, -51], [-19, -71], [-3, -59], [6, -59], [17, -71], [18, -49]]);
-
-        ctx.restore();
-        return;
-      }
-
-      oval(ctx, '#dd7835', -19, -17, 16, 9);
-      oval(ctx, '#fff9eb', -29, -18, 7, 7);
-      oval(ctx, '#18392e', -7, -4, 7, 4);
-      oval(ctx, '#18392e', 8, -4, 7, 4);
-      oval(ctx, '#184738', 0, -17, 15, 16);
-
-      shape(ctx, '#cf662e', [[-17, -51], [-19, -71], [-3, -59], [6, -59], [17, -71], [18, -49]]);
-      shape(ctx, '#f8bc93', [[-15, -57], [-16, -65], [-8, -58], [9, -57], [15, -65], [15, -55]]);
-      oval(ctx, '#e7823d', 0, -47, 19, 15);
-      shape(ctx, '#fff9eb', [[-17, -46], [0, -39], [17, -46], [13, -36], [0, -31], [-13, -36]]);
-      oval(ctx, '#302c2a', -7, -48, 2, 2);
-      oval(ctx, '#302c2a', 7, -48, 2, 2);
-      oval(ctx, '#302c2a', 0, -40, 3, 2);
-
-      ctx.font = 'bold 7px system-ui';
-      ctx.fillStyle = 'white';
-      ctx.fillText('PCMAT', 0, -15);
+      ctx.globalAlpha = .55;
+      oval(ctx, color, -19, -17, 17, 9);
+      oval(ctx, color, 0, -17, 15, 16);
+      oval(ctx, color, -7, -4, 7, 4);
+      oval(ctx, color, 8, -4, 7, 4);
+      oval(ctx, color, 0, -47, 19, 15);
+      shape(ctx, color, earOutline);
       ctx.restore();
     }
 
@@ -865,11 +795,10 @@
 
       const { positions, start } = replay;
       const jumpCount = positions.length - 1;
-      const segmentMs = replayJumpMs + replayPauseMs;
       const elapsed = Math.max(0, time - start);
       const staticView = reducedMotion.matches;
-      const index = Math.min(jumpCount - 1, Math.floor(elapsed / segmentMs));
-      const progress = staticView ? 1 : Math.min(1, (elapsed - index * segmentMs) / replayJumpMs);
+      const index = Math.min(jumpCount - 1, Math.floor(elapsed / replaySegmentMs));
+      const progress = staticView ? 1 : Math.min(1, (elapsed - index * replaySegmentMs) / replayJumpMs);
       const lastLanded = staticView ? jumpCount : index + Number(progress >= 1);
 
       ctx.save();
@@ -885,18 +814,70 @@
         ctx.lineTo(left + stairWidth() - 6, top + 2);
         ctx.stroke();
       }
-
       ctx.restore();
 
       if (!staticView) {
         const from = positions[index];
         const to = positions[index + 1];
-        const x = centerX(from) + (centerX(to) - centerX(from)) * progress;
-        const y = heightAt(from) + (heightAt(to) - heightAt(from)) * progress
-          - Math.sin(Math.PI * progress) * 52;
-
-        drawMat(x, y, true);
+        const x = mix(centerX(from), centerX(to), progress);
+        const y = mix(heightAt(from), heightAt(to), progress) - Math.sin(Math.PI * progress) * 52;
+        drawSilhouette(x, y);
       }
+    }
+
+    function drawMat(time) {
+      const animate = !reducedMotion.matches;
+      const air = animate && (mat.airborne || Boolean(buttonJump));
+      const pace = animate && !air ? clamp(Math.abs(mat.vx) / walkSpeed, 0, 1) : 0;
+      const stride = Math.sin(mat.stride);
+      const swing = stride * pace * 7;
+      const bob = Math.abs(stride) * pace * 2;
+      const landing = animate && !air
+        ? 1 - clamp((time - landedAt) / landingDuration, 0, 1)
+        : 0;
+      const turn = animate ? mat.turn : mat.facing;
+      const side = turn < 0 ? -1 : 1;
+      const width = .65 + .35 * Math.abs(turn);
+
+      ctx.save();
+      ctx.translate(mat.x, mat.y);
+      ctx.scale(width * (1 + landing * .08), 1 - landing * .16);
+
+      // La cua segueix el pas i s’aixeca lleugerament durant el salt.
+      ctx.save();
+      ctx.scale(side, 1);
+      ctx.translate(-9, -19 + bob);
+      ctx.rotate(air ? .38 : stride * pace * .24);
+      oval(ctx, '#dd7835', -11, 0, 16, 9);
+      oval(ctx, '#fff9eb', -22, -1, 7, 7);
+      ctx.restore();
+
+      // En caminar, cada pota s’aixeca quan avança.
+      const tuck = air ? 7 : 0;
+      oval(ctx, '#18392e', -8 + swing, -4 - tuck - Math.max(0, swing) * .65, 7, 4);
+      oval(ctx, '#18392e', 8 - swing, -4 - tuck - Math.max(0, -swing) * .65, 7, 4);
+
+      ctx.translate(0, -bob + (air ? 2 : 0));
+      oval(ctx, '#184738', 0, -17, 15, 16);
+
+      // El cap mira cap on va en MAT. Les lletres de la dessuadora es mantenen dretes.
+      ctx.save();
+      ctx.translate(turn * 3, 0);
+      ctx.scale(side, 1);
+      shape(ctx, '#cf662e', earOutline);
+      shape(ctx, '#f8bc93', [[-15,-57],[-16,-65],[-8,-58],[9,-57],[15,-65],[15,-55]]);
+      oval(ctx, '#e7823d', 0, -47, 19, 15);
+      shape(ctx, '#fff9eb', [[-16,-46],[2,-40],[19,-46],[15,-36],[3,-31],[-12,-36]]);
+      oval(ctx, '#302c2a', -5, -48, 2, 2);
+      oval(ctx, '#302c2a', 10, -48, 2, 2);
+      oval(ctx, '#302c2a', 5, -40, 3, 2);
+      ctx.restore();
+
+      ctx.font = 'bold 7px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'white';
+      ctx.fillText('PCMAT', 0, -15);
+      ctx.restore();
     }
 
     function draw(time = performance.now()) {
@@ -927,7 +908,7 @@
       drawLandingFlash(time);
       drawShadow();
       drawReplay(time);
-      drawMat(mat.x, mat.y);
+      drawMat(time);
     }
 
     const landscape = makeLandscape();
@@ -968,9 +949,7 @@
       const space = event.code === 'Space' || event.key === ' ';
       const arrow = event.key === 'ArrowLeft' || event.key === 'ArrowRight';
       if (!arrow && !space) return;
-
-      if (space && (target === get('hint-button') ||
-          target.closest?.('#routes button'))) return;
+      if (space && (target === get('hint-button') || target.closest?.('#routes button'))) return;
 
       event.preventDefault();
 
@@ -992,6 +971,11 @@
     window.addEventListener('blur', () => {
       held.clear();
       mat.vx = 0;
+    });
+
+    reducedMotion.addEventListener('change', () => {
+      draw();
+      if (replay && !reducedMotion.matches) queueFrame();
     });
 
     restart();

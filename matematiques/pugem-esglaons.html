@@ -1107,7 +1107,7 @@ function draw(time = performance.now()) {
     });
 
 // Celebració de recorreguts nous i efecte del doble salt.
-const celebrationDuration = 1400;
+const celebrationDuration = 2100;
 const boostDustDuration = 360;
 
 let celebration = null;
@@ -1197,35 +1197,119 @@ function drawBoostDust(time) {
   ctx.restore();
 }
 
+function drawCelebrationConfetti(elapsed, complete) {
+  const colors = ['#f9c74f', '#ee784f', '#78b879', '#73b9d0', '#b68bd0'];
+  const bursts = complete ? [0, 380] : [0];
+
+  ctx.save();
+
+  for (const delay of bursts) {
+    const progress = (elapsed - delay) / 950;
+    if (progress < 0 || progress >= 1) continue;
+
+    const pieces = complete ? 24 : 16;
+    const originY = -skyPadding + 48;
+
+    for (let index = 0; index < pieces; index++) {
+      const side = index % 2 === 0 ? -1 : 1;
+      const originX = worldWidth / 2 + side * 78;
+      const spread = 38 + (index * 17) % 112;
+      const lift = 22 + (index * 13) % 62;
+      const x = originX + side * spread * progress;
+      const y = originY - lift * progress + 180 * progress * progress;
+      const size = 3 + index % 4;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(index + side * progress * 8);
+      ctx.globalAlpha = 1 - clamp((progress - .55) / .45, 0, 1);
+      ctx.fillStyle = colors[index % colors.length];
+
+      if (index % 3 === 0) {
+        ctx.fillRect(-size / 2, -size / 2, size, size);
+      } else {
+        ctx.fillRect(-size / 2, -2, size, 4);
+      }
+
+      ctx.restore();
+    }
+  }
+
+  ctx.restore();
+}
+
 function drawRouteCelebration(time) {
   if (!celebration) return;
 
   const elapsed = Math.max(0, time - celebration.start);
   const animated = !reducedMotion.matches;
-  const fadeIn = clamp(elapsed / 120, 0, 1);
-  const fadeOut = clamp((celebrationDuration - elapsed) / 260, 0, 1);
+  const complete = celebration.complete;
+  const title = complete ? 'Escala completada!' : 'Ruta nova!';
+  const enter = clamp(elapsed / 320, 0, 1);
+  const show = clamp(elapsed / 100, 0, 1);
+  const fade = clamp((celebrationDuration - elapsed) / 280, 0, 1);
+  const pop = .78 + .22 * enter + .15 * Math.sin(Math.PI * enter);
+
+  if (animated) drawCelebrationConfetti(elapsed, complete);
 
   ctx.save();
-  ctx.globalAlpha = animated ? Math.min(fadeIn, fadeOut) : 1;
-  ctx.font = '800 23px system-ui';
+  ctx.translate(worldWidth / 2, -skyPadding + 43);
+  ctx.globalAlpha = animated ? Math.min(show, fade) : 1;
+
+  if (animated) {
+    ctx.translate(0, (1 - enter) * 12);
+    ctx.scale(pop, pop);
+  }
+
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
+  ctx.font = '800 23px system-ui';
 
-  const padding = 18;
-  const width = ctx.measureText(celebration.equation).width + 2 * padding;
-  const x = worldWidth / 2;
-  const top = -skyPadding + 14 + (animated ? (1 - fadeIn) * 8 : 0);
+  const width = Math.max(178, ctx.measureText(celebration.equation).width + 40);
+  const height = 62;
 
-  ctx.fillStyle = '#fff0bc';
-  ctx.fillRect(x - width / 2, top, width, 40);
-  ctx.strokeStyle = '#c48121';
+  ctx.beginPath();
+  ctx.roundRect(-width / 2 + 2, -height / 2 + 4, width, height, 13);
+  ctx.fillStyle = 'rgba(22, 61, 49, .18)';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.roundRect(-width / 2, -height / 2, width, height, 13);
+  ctx.fillStyle = complete ? '#ffe19a' : '#fff3cb';
+  ctx.fill();
+  ctx.strokeStyle = '#be842f';
   ctx.lineWidth = 2;
-  ctx.strokeRect(x - width / 2, top, width, 40);
+  ctx.stroke();
 
-  ctx.fillStyle = '#563b13';
-  ctx.fillText(celebration.equation, x, top + 20);
+  ctx.fillStyle = '#654211';
+  ctx.font = '800 13px system-ui';
+  ctx.fillText(title, 0, -13);
+
+  ctx.fillStyle = '#163d31';
+  ctx.font = '800 23px system-ui';
+  ctx.fillText(celebration.equation, 0, 12);
   ctx.restore();
 }
+
+const drawMatNormally = drawMat;
+drawMat = function (time) {
+  let bounce = 0;
+
+  if (celebration?.complete && !reducedMotion.matches &&
+      mat.step === level && !mat.airborne && !buttonJump) {
+    const elapsed = time - celebration.start;
+    const first = clamp((elapsed - 180) / 380, 0, 1);
+    const second = clamp((elapsed - 620) / 280, 0, 1);
+
+    bounce = Math.sin(Math.PI * first) * 21
+      + Math.sin(Math.PI * second) * 11;
+  }
+
+  ctx.save();
+  ctx.translate(0, -bounce);
+  drawMatNormally(time);
+  ctx.restore();
+};
 
 const drawMatNormally = drawMat;
 drawMat = function (time) {

@@ -963,35 +963,86 @@ function moveHorizontally(dt) {
       ctx.restore();
     }
 
-    function draw(time = performance.now()) {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.drawImage(landscape, 0, 0);
-      ctx.setTransform(2, 0, 0, 2, 0, skyPadding * 2);
+function drawStairs(visited) {
+  const width = stairWidth();
 
-      const width = stairWidth();
-      const visited = new Set(routePositions(route));
-      ctx.textAlign = 'center';
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
 
-      for (let step = 1; step <= level; step++) {
-        const x = leftEdge(step);
-        const y = heightAt(step);
-        const reached = visited.has(step);
-        ctx.fillStyle = reached ? '#35604d' : '#c7d7b5';
-        ctx.fillRect(x, y, width, floor - y);
-        ctx.fillStyle = reached ? '#d6ed9e' : '#69866a';
-        ctx.fillRect(x, y, width, 4);
-        ctx.fillStyle = reached ? '#274d3c' : '#a4b897';
-        ctx.fillRect(x, y + 4, 2, floor - y - 4);
-        ctx.fillStyle = reached ? 'white' : '#163d31';
-        ctx.font = 'bold 14px system-ui';
-        ctx.fillText(step, x + width / 2, y + 19);
-      }
+  for (let step = 1; step <= level; step++) {
+    const x = leftEdge(step);
+    const y = heightAt(step);
+    const height = floor - y;
+    const reached = visited.has(step);
 
-      drawLandingFlash(time);
-      drawShadow();
-      drawReplay(time);
-      drawMat(time);
-    }
+    // Ombra i degradat per donar volum a cada esglaó.
+    ctx.fillStyle = 'rgba(22, 61, 49, .18)';
+    ctx.fillRect(x + 3, y + 3, width, height);
+
+    const face = ctx.createLinearGradient(x, y, x, floor);
+    face.addColorStop(0, reached ? '#4e896a' : '#e1ebce');
+    face.addColorStop(1, reached ? '#28513e' : '#a9bd95');
+
+    ctx.fillStyle = face;
+    ctx.fillRect(x, y, width, height);
+
+    ctx.strokeStyle = reached ? '#234a37' : '#6f8b69';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x + .5, y + .5, width - 1, height - 1);
+
+    // La vora superior indica on es pot aterrar.
+    ctx.fillStyle = reached ? '#d6ed9e' : '#84a479';
+    ctx.fillRect(x + 1, y + 1, width - 2, 4);
+
+    const labelY = y + Math.min(19, (height + 4) / 2);
+    ctx.fillStyle = reached ? '#fffef4' : '#163d31';
+    ctx.font = 'bold 17px system-ui';
+    ctx.fillText(String(step), x + width / 2, labelY);
+  }
+
+  ctx.restore();
+}
+
+function drawLandingDust(time) {
+  if (!landingFlash || reducedMotion.matches) return;
+
+  const progress = clamp((time - landingFlash.start) / flashMs, 0, 1);
+  const step = landingFlash.step;
+  const x = centerX(step);
+  const y = heightAt(step);
+
+  ctx.save();
+  ctx.globalAlpha = (1 - progress) * .65;
+
+  for (let index = 0; index < 8; index++) {
+    const direction = index % 2 === 0 ? -1 : 1;
+    const spread = 10 + (index % 4) * 6;
+    const rise = 5 + (index % 3) * 5;
+    const dotX = x + direction * (9 + spread * progress);
+    const dotY = y - 2 - Math.sin(progress * Math.PI) * rise;
+    const radius = (2 + index % 3) * (1 - progress * .65);
+
+    oval(ctx, '#fff3c6', dotX, dotY, radius, radius);
+  }
+
+  ctx.restore();
+}
+
+function draw(time = performance.now()) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(landscape, 0, 0);
+  ctx.setTransform(2, 0, 0, 2, 0, skyPadding * 2);
+
+  const visited = new Set(routePositions(route));
+
+  drawStairs(visited);
+  drawLandingFlash(time);
+  drawShadow();
+  drawLandingDust(time);
+  drawReplay(time);
+  drawMat(time);
+}
 
     const landscape = makeLandscape();
 

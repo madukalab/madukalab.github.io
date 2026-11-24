@@ -1,365 +1,235 @@
 <!DOCTYPE html>
 <html lang="ca">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>On és aquest país? · MADUKA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Geografia · MADUKA</title>
+
   <link rel="icon" type="image/png" href="../favicon.png?v=2">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 
   <style>
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #f7f7f5;
       color: #1d1d1f;
-      font-family: system-ui, sans-serif;
-    }
-
-    header, main {
-      max-width: 1200px;
-      margin: auto;
-      padding-inline: clamp(14px, 4vw, 32px);
+      line-height: 1.5;
     }
 
     header {
-      padding-block: 22px;
+      max-width: 1200px;
+      margin: auto;
+      padding: 35px 30px;
     }
 
-    header a {
-      color: inherit;
-      text-decoration: none;
+    .logo {
       font-size: 24px;
       font-weight: 800;
       letter-spacing: -1px;
+      text-decoration: none;
+      color: #1d1d1f;
     }
 
-    h1 {
-      margin: 0 0 16px;
-      font-size: clamp(28px, 5vw, 44px);
-      line-height: 1.1;
-      letter-spacing: -0.045em;
+    .hero {
+      max-width: 1200px;
+      margin: auto;
+      padding: 100px 30px 90px;
     }
 
-    main {
-      padding-bottom: 24px;
+    .hero h1 {
+      font-size: clamp(52px, 8vw, 100px);
+      line-height: 0.95;
+      letter-spacing: -5px;
     }
 
-    .game {
-      overflow: hidden;
-      border: 1px solid #e0e4e0;
-      border-radius: 20px;
-      background: white;
+    .hero p {
+      margin-top: 35px;
+      font-size: 21px;
+      color: #666;
+      max-width: 650px;
     }
 
-    .round {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px 24px;
-      padding: 14px 20px;
+    .recursos {
+      max-width: 1200px;
+      margin: auto;
+      padding: 40px 30px 100px;
     }
 
-    .round h2 {
-      margin: 0;
-      font-size: clamp(20px, 4vw, 30px);
-    }
-
-    #score {
-      color: #385748;
+    .recursos h2 {
       font-size: 14px;
-      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 30px;
+      color: #777;
     }
 
-    #map {
-      height: clamp(300px, 57vh, 610px);
-      background: #dbedf4;
-      border-block: 1px solid #e0e4e0;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
     }
 
-    .controls {
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 35px;
+      min-height: 260px;
+      text-decoration: none;
+      color: inherit;
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
     }
 
-    #feedback {
-      flex: 1 1 260px;
-      margin: 0;
-      color: #43534b;
+    .card:hover,
+    .card:focus-visible {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
     }
 
-    button {
-      min-height: 42px;
-      padding: 8px 14px;
-      border: 1px solid #cbd8ce;
-      border-radius: 10px;
-      background: #fff;
-      color: #184932;
-      font: inherit;
-      font-weight: 700;
-      cursor: pointer;
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
     }
 
-    button.primary {
-      border-color: #184932;
-      background: #184932;
-      color: #fff;
+    .icon {
+      font-size: 38px;
     }
 
-    :focus-visible {
-      outline: 3px solid #167caa;
-      outline-offset: 3px;
+    .etiqueta {
+      background: #f1f1ef;
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #666;
+    }
+
+    .card h3 {
+      font-size: 25px;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .obrir {
+      margin-top: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    footer {
+      max-width: 1200px;
+      margin: auto;
+      padding: 40px 30px;
+      border-top: 1px solid #ddd;
+      color: #777;
+      font-size: 13px;
+    }
+
+    @media (max-width: 800px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding-top: 60px;
+      }
+
+      .hero h1 {
+        letter-spacing: -3px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card {
+        transition: none;
+      }
+
+      .card:hover,
+      .card:focus-visible {
+        transform: none;
+      }
     }
   </style>
 </head>
 
 <body>
+
   <header>
-    <a href="../index.html" aria-label="Torna a l’inici de MADUKA">MADUKA</a>
+    <a class="logo" href="../" aria-label="Torna a l’inici de MADUKA">
+      MADUKA
+    </a>
   </header>
 
   <main>
-    <h1>On és aquest país?</h1>
+    <section class="hero">
+      <h1>Geografia.</h1>
+      <p>Explora el món amb mapes, reptes i jocs interactius de geografia.</p>
+    </section>
 
-    <section class="game" aria-label="Joc del mapamundi">
-      <div class="round">
-        <h2 id="question" aria-live="polite">Preparant el mapa…</h2>
-        <span id="score"></span>
-      </div>
+    <section class="recursos" aria-labelledby="titol-recursos">
+      <h2 id="titol-recursos">Jocs de geografia</h2>
 
-      <div id="map" role="region" aria-label="Mapamundi interactiu"></div>
+      <div class="grid">
 
-      <div class="controls">
-        <p id="feedback" role="status">Carregant les fronteres dels països…</p>
-        <button id="reset-view" type="button" hidden>Vista del món</button>
-        <button id="skip" type="button" hidden>Passa</button>
-        <button id="next" class="primary" type="button" hidden>Següent</button>
+        <a class="card" href="./on-es-aquest-pais.html">
+          <div class="card-top">
+            <div class="icon" aria-hidden="true">🌍</div>
+            <div class="etiqueta">PAÏSOS DEL MÓN</div>
+          </div>
+
+          <div>
+            <h3>On és aquest país?</h3>
+            <p>
+              Situa deu països al mapamundi. Fes zoom per veure millor
+              les fronteres i clica el país que et demana el joc.
+            </p>
+            <div class="obrir">Juga-hi <span aria-hidden="true">→</span></div>
+          </div>
+        </a>
+
+        <a class="card" href="./mapa_marques_cotxes.html">
+          <div class="card-top">
+            <div class="icon" aria-hidden="true">🚗</div>
+            <div class="etiqueta">PAÏSOS D’ORIGEN</div>
+          </div>
+
+          <div>
+            <h3>El mapa de les marques de cotxes</h3>
+            <p>
+              De quin país és cada marca? Clava la bandera al mapa.
+              Com més t’acostis al país d’origen, més punts sumaràs.
+            </p>
+            <div class="obrir">Juga-hi <span aria-hidden="true">→</span></div>
+          </div>
+        </a>
+
       </div>
     </section>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+  <footer>
+    MADUKA · Materials educatius oberts
+  </footer>
 
-  <script>
-    const mapUrl = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson";
-    const roundCount = 10;
-
-    const countryCodes = (
-      "ES PT FR GB IE DE IT GR PL SE NO FI UA RO TR " +
-      "CA US MX CU BR AR CL PE CO VE " +
-      "MA DZ EG SN GH NG ET KE TZ MG ZA " +
-      "CN IN JP KR MN TH VN ID PH MY SA IR PK KZ " +
-      "AU NZ PG"
-    ).split(/\s+/);
-
-    const question = document.querySelector("#question");
-    const score = document.querySelector("#score");
-    const feedback = document.querySelector("#feedback");
-    const resetView = document.querySelector("#reset-view");
-    const skip = document.querySelector("#skip");
-    const next = document.querySelector("#next");
-
-    const names = new Intl.DisplayNames(["ca"], { type: "region" });
-    const layersByCode = new Map();
-
-    const worldBounds = [[-58, -180], [84, 180]];
-    const land = {
-      color: "#527766",
-      weight: 0.8,
-      fillColor: "#b8d6bd",
-      fillOpacity: 1
-    };
-    const hoverStyle = { fillColor: "#e9cc78" };
-    const correctStyle = { fillColor: "#16834d", color: "#125633", weight: 1.5 };
-    const wrongStyle = { fillColor: "#e77c71", color: "#a63831", weight: 1.5 };
-
-    let map;
-    let countries;
-    let rounds = [];
-    let round = 0;
-    let points = 0;
-    let answered = false;
-    let finished = false;
-
-    function countryCode(properties) {
-      if (/^[A-Z]{2}$/.test(properties.ISO_A2 ?? "")) {
-        return properties.ISO_A2;
-      }
-
-      if (["France", "Norway"].includes(properties.ADMIN)) {
-        return properties.ADMIN === "France" ? "FR" : "NO";
-      }
-
-      return null;
-    }
-
-    function countryName(code, fallback) {
-      return code ? names.of(code) : fallback;
-    }
-
-    function showWorld() {
-      map.fitBounds(worldBounds, { padding: [10, 10], animate: false });
-    }
-
-    function shuffle(items) {
-      const copy = [...items];
-      for (let index = copy.length - 1; index > 0; index--) {
-        const randomIndex = Math.floor(Math.random() * (index + 1));
-        [copy[index], copy[randomIndex]] = [copy[randomIndex], copy[index]];
-      }
-      return copy;
-    }
-
-    function startGame() {
-      rounds = shuffle(countryCodes.filter(code => layersByCode.has(code)))
-        .slice(0, roundCount);
-
-      round = 0;
-      points = 0;
-      finished = false;
-      showRound();
-    }
-
-    function showRound() {
-      answered = false;
-      countries.setStyle(land);
-      showWorld();
-
-      question.textContent = `On és ${countryName(rounds[round])}?`;
-      score.textContent = `Ronda ${round + 1}/${rounds.length} · Enc​​erts: ${points}`
-        .replace(/\u200B/g, "");
-      feedback.textContent = "Clica un país al mapa. Pots fer zoom per veure’l millor.";
-      skip.hidden = false;
-      next.hidden = true;
-    }
-
-    function answer(chosenLayer, chosenCode, chosenName) {
-      if (answered || finished) return;
-
-      answered = true;
-      countries.setStyle(land);
-
-      const target = rounds[round];
-      const targetName = countryName(target);
-      const targetLayer = layersByCode.get(target);
-      const correct = chosenCode === target;
-
-      if (correct) {
-        points++;
-        feedback.textContent = `Correcte! Has trobat ${targetName}.`;
-      } else if (chosenLayer) {
-        chosenLayer.setStyle(wrongStyle);
-        feedback.textContent =
-          `Has clicat ${chosenName}. ${targetName} és el país marcat en verd.`;
-      } else {
-        feedback.textContent = `${targetName} és el país marcat en verd.`;
-      }
-
-      targetLayer.setStyle(correctStyle);
-      targetLayer.bringToFront();
-
-      // Torna a la vista general si el país correcte ha quedat fora de pantalla.
-      if (!map.getBounds().intersects(targetLayer.getBounds())) {
-        showWorld();
-      }
-
-      score.textContent = `Ronda ${round + 1}/${rounds.length} · Encerts: ${points}`;
-      skip.hidden = true;
-      next.textContent = round + 1 === rounds.length ? "Veure el resultat" : "Següent";
-      next.hidden = false;
-    }
-
-    function advance() {
-      if (finished) {
-        startGame();
-        return;
-      }
-
-      round++;
-      if (round < rounds.length) {
-        showRound();
-        return;
-      }
-
-      finished = true;
-      countries.setStyle(land);
-      showWorld();
-      question.textContent = "Partida acabada!";
-      score.textContent = `${points} de ${rounds.length} encerts`;
-      feedback.textContent = "Torna a jugar per trobar altres països.";
-      next.textContent = "Torna a jugar";
-    }
-
-    async function loadGame() {
-      try {
-        if (!window.L) throw new Error("Leaflet no s’ha carregat.");
-
-        map = L.map("map", {
-          scrollWheelZoom: false,
-          zoomSnap: 0.25,
-          maxZoom: 8
-        });
-
-        showWorld();
-        map.setMaxBounds([[-85, -210], [85, 210]]);
-        map.zoomControl.getContainer().setAttribute("aria-label", "Controls de zoom");
-        map.attributionControl.addAttribution(
-          '<a href="https://www.naturalearthdata.com/">Natural Earth</a>'
-        );
-
-        const response = await fetch(mapUrl);
-        if (!response.ok) throw new Error(`Resposta HTTP ${response.status}`);
-
-        const data = await response.json();
-
-        countries = L.geoJSON(data, {
-          style: land,
-          onEachFeature(feature, layer) {
-            const properties = feature.properties;
-            const code = countryCode(properties);
-            const name = countryName(code, properties.ADMIN || properties.NAME);
-
-            if (code) layersByCode.set(code, layer);
-
-            layer.on({
-              mouseover() {
-                if (!answered && !finished) layer.setStyle(hoverStyle);
-              },
-              mouseout() {
-                if (!answered && !finished) layer.setStyle(land);
-              },
-              click() {
-                answer(layer, code, name);
-              }
-            });
-          }
-        }).addTo(map);
-
-        if (!countryCodes.some(code => layersByCode.has(code))) {
-          throw new Error("Les dades del mapa no contenen els països esperats.");
-        }
-
-        resetView.hidden = false;
-        startGame();
-      } catch (error) {
-        question.textContent = "No s’ha pogut carregar el mapa";
-        feedback.textContent = "Comprova la connexió i recarrega la pàgina.";
-        console.error(error);
-      }
-    }
-
-    resetView.addEventListener("click", showWorld);
-    skip.addEventListener("click", () => answer(null, null, ""));
-    next.addEventListener("click", advance);
-
-    loadGame();
-  </script>
 </body>
 </html>

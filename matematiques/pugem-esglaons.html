@@ -178,13 +178,7 @@
     .summary { margin: 16px 0; }
     .summary h2 { margin-bottom: 8px; }
     table { width: 100%; border-collapse: collapse; text-align: left; }
-
-    th, td {
-      padding: 8px 5px;
-      border-top: 1px solid var(--line);
-      vertical-align: top;
-    }
-
+    th, td { padding: 8px 5px; border-top: 1px solid var(--line); vertical-align: top; }
     th:last-child, td:last-child { text-align: right; }
     td:nth-child(2) { overflow-wrap: anywhere; }
     .sum-list li + li { padding-top: 6px; border-top: 1px solid var(--line); }
@@ -240,10 +234,10 @@
         </div>
 
         <p class="keyboard">
-          Tria l’escala amb <kbd>1</kbd> a <kbd>6</kbd>.
+          Tria l’escala amb les tecles <kbd>1</kbd> a <kbd>6</kbd>.
           Mou en MAT amb <kbd>←</kbd> i <kbd>→</kbd>.
-          Prem <kbd>Espai</kbd> per saltar i dirigeix-lo amb les fletxes.
-          Per baixar, també pots caminar fins a la vora.
+          Prem <kbd>Espai</kbd> per saltar i torna’l a prémer a l’aire per fer un doble salt.
+          Per baixar, camina fins a la vora.
         </p>
       </section>
 
@@ -251,7 +245,6 @@
         <h2 id="routes-title">Recorreguts descoberts</h2>
         <p id="count" class="count"></p>
         <ul id="routes" class="routes" role="list"></ul>
-
         <button id="hint-button" type="button" aria-controls="hint-text">
           Dona’m una pista
         </button>
@@ -286,7 +279,6 @@
     const floor = 213;
     const skyPadding = 115;
     const gravity = 1050;
-    const jumpSpeed = 490;
     const walkSpeed = 165;
     const airSpeed = 285;
     const flashMs = 300;
@@ -306,7 +298,7 @@
       );
     }
 
-    const solutions = Array.from({ length: 6 }, (_, i) => routesTo(i + 1));
+    const solutions = Array.from({ length: 6 }, (_, index) => routesTo(index + 1));
     const discoveries = solutions.map(() => new Set());
 
     let level = 1;
@@ -321,7 +313,7 @@
 
     const mat = {
       x: 0, y: floor, vx: 0, vy: 0,
-      step: 0, airborne: false,
+      step: 0, airborne: false, jumpsUsed: 0,
       facing: 1, turn: 1, stride: 0
     };
 
@@ -333,8 +325,12 @@
       return (600 - stairWidth() * level) / 2 + 17;
     }
 
+    function stepRise() {
+      return Math.min(33, 124 / level);
+    }
+
     function heightAt(step) {
-      return floor - step * Math.min(33, 124 / level);
+      return floor - step * stepRise();
     }
 
     function leftEdge(step) {
@@ -357,7 +353,7 @@
     function routePositions(path) {
       const positions = [0];
       for (const jump of path) {
-        positions.push(positions.at(-1) + Number(jump));
+        positions.push(positions[positions.length - 1] + Number(jump));
       }
       return positions;
     }
@@ -383,8 +379,9 @@
       const atRouteEnd = mat.step === routeEnd() && !mat.airborne && !buttonJump;
       const continuation = atRouteEnd && missing.find(path => path.startsWith(prefix));
       const path = continuation || missing[0];
-      const distance = path[continuation ? prefix.length : 0];
-      const jump = distance === '1' ? 'un esglaó' : 'dos esglaons';
+      const jump = path[continuation ? prefix.length : 0] === '1'
+        ? 'un esglaó'
+        : 'dos esglaons';
 
       if (continuation && prefix.length) {
         get('hint-text').textContent = 'Des d’on ets, prova ara un salt de ' + jump + '.';
@@ -398,8 +395,9 @@
     function setPosition(step) {
       Object.assign(mat, {
         step, x: centerX(step), y: heightAt(step), vx: 0, vy: 0,
-        airborne: false, facing: 1, turn: 1, stride: 0
+        airborne: false, jumpsUsed: 0, facing: 1, turn: 1, stride: 0
       });
+
       buttonJump = null;
       landingFlash = null;
       landedAt = -Infinity;
@@ -439,6 +437,7 @@
       mat.y = heightAt(step);
       mat.vy = 0;
       mat.airborne = false;
+      mat.jumpsUsed = 0;
 
       if (step !== from) {
         message = '';
@@ -495,8 +494,33 @@
       }
 
       buttonJump = {
-        destination, fromX: mat.x, fromY: mat.y, start: performance.now()
+        destination,
+        fromX: mat.x,
+        fromY: mat.y,
+        start: performance.now()
       };
+      queueFrame();
+    }
+
+    function jumpWithKeyboard() {
+      if (buttonJump) return;
+
+      if (!mat.airborne) {
+        mat.airborne = true;
+        mat.jumpsUsed = 1;
+        mat.vy = -Math.sqrt(2 * gravity * (stepRise() + 14));
+        if (!held.size) mat.vx = 0;
+      } else if (mat.jumpsUsed === 1) {
+        mat.jumpsUsed = 2;
+
+        // El segon impuls arriba per sobre del segon esglaó
+        // encara que la segona pulsació sigui molt ràpida.
+        const targetStep = Math.min(level, mat.step + 2);
+        const heightNeeded = Math.max(34, mat.y - heightAt(targetStep) + 28);
+        const boostSpeed = Math.sqrt(2 * gravity * heightNeeded);
+        mat.vy = -Math.max(boostSpeed, -mat.vy);
+      }
+
       queueFrame();
     }
 
@@ -504,7 +528,6 @@
       for (const button of get('routes').querySelectorAll('button[data-path]')) {
         const active = replay?.path === button.dataset.path;
         const action = active ? 'Atura' : 'Reprodueix';
-
         button.textContent = action;
         button.setAttribute('aria-pressed', String(active));
         button.setAttribute('aria-label', action + ' ' + equation(button.dataset.path, level));
@@ -548,6 +571,7 @@
         button.dataset.path = path;
         button.addEventListener('click', () => toggleReplay(path));
         item.append(sum, button);
+
         return item;
       });
 
@@ -596,8 +620,8 @@
       get('route').textContent = route.length
         ? equation(route, routeEnd()) + ' · ' + route.length + (route.length === 1 ? ' salt' : ' salts')
         : '0 esglaons pujats';
-      get('feedback').textContent = message;
 
+      get('feedback').textContent = message;
       get('one').disabled = mat.step >= level;
       get('two').disabled = mat.step + 2 > level;
       get('undo').disabled = mat.step === 0;
@@ -640,9 +664,8 @@
       const nextX = clamp(mat.x + mat.vx * dt, 38, 562);
       const currentSurface = surfaceAt(mat.x);
       const nextSurface = surfaceAt(nextX);
-
       const hitsWall = nextSurface !== currentSurface && heightAt(nextSurface) < mat.y;
-      const exceedsJump = nextSurface > mat.step + 2;
+      const exceedsJump = nextSurface > mat.step + mat.jumpsUsed;
 
       if (hitsWall || exceedsJump) {
         if (nextX > mat.x && nextSurface > 0) {
@@ -712,7 +735,6 @@
 
       const animatingMat = !reducedMotion.matches &&
         (time - landedAt < landingMs || Math.abs(mat.turn - mat.facing) > .01);
-
       const moving = buttonJump || mat.airborne || held.size || Math.abs(mat.vx) > 1;
 
       if (moving || landingFlash || animatingMat || (replay && !reducedMotion.matches)) {
@@ -804,7 +826,6 @@
       brush.fillRect(0, floor, 600, background.height / 2 - skyPadding - floor);
       brush.fillStyle = '#a9bd89';
       brush.fillRect(0, floor, 600, 3);
-
       return background;
     }
 
@@ -849,6 +870,7 @@
 
     function drawSilhouette(x, y) {
       const color = '#ae7420';
+
       ctx.save();
       ctx.translate(x, y);
       ctx.globalAlpha = .55;
@@ -894,6 +916,7 @@
         const x = mix(centerX(from), centerX(to), progress);
         const y = mix(heightAt(from), heightAt(to), progress)
           - Math.sin(Math.PI * progress) * 52;
+
         drawSilhouette(x, y);
       }
     }
@@ -1033,13 +1056,10 @@
 
       if (arrow) {
         held.add(event.key);
-      } else if (!event.repeat && !mat.airborne && !buttonJump) {
-        mat.airborne = true;
-        mat.vy = -jumpSpeed;
-        if (!held.size) mat.vx = 0;
+        queueFrame();
+      } else if (!event.repeat) {
+        jumpWithKeyboard();
       }
-
-      queueFrame();
     });
 
     document.addEventListener('keyup', event => held.delete(event.key));

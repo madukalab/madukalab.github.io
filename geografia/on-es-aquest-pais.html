@@ -18,11 +18,7 @@
       font: 16px/1.5 system-ui, sans-serif;
     }
 
-    main {
-      max-width: 1320px;
-      margin: auto;
-      padding: 20px clamp(12px, 3vw, 36px) 28px;
-    }
+    main { max-width: 1320px; margin: auto; padding: 20px clamp(12px, 3vw, 36px) 28px; }
 
     header, .round, .controls, .stats {
       display: flex;
@@ -94,7 +90,7 @@
     .primary { background: #72f0be; color: #08251d; border-color: #72f0be; }
     :focus-visible { outline: 3px solid #a6e0ff; outline-offset: 3px; }
 
-    #round-intro {
+    dialog {
       width: min(440px, calc(100% - 32px));
       padding: clamp(24px, 7vw, 44px);
       border: 1px solid #53768d;
@@ -105,16 +101,11 @@
       box-shadow: 0 24px 80px #0009;
     }
 
-    #round-intro[open] { animation: dialog-in .24s ease-out both; }
-    #round-intro::backdrop { background: #040b15b8; backdrop-filter: blur(4px); }
+    dialog[open] { animation: dialog-in .24s ease-out both; }
+    dialog::backdrop { background: #040b15b8; backdrop-filter: blur(4px); }
     #intro-title { font-size: clamp(32px, 8vw, 50px); letter-spacing: -.045em; }
     #intro-info { margin: 12px 0 24px; color: #c5ddeb; }
     #start-round { min-width: 145px; }
-
-    @keyframes dialog-in {
-      from { opacity: 0; transform: translateY(12px) scale(.97); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
 
     .pin {
       position: relative;
@@ -144,8 +135,7 @@
       width: 20px;
       height: 18px;
       border-radius: 50%;
-      background: radial-gradient(circle at 32% 28%,
-        #fff4db, #ff987c 23%, #ed4637 54%, #a21924);
+      background: radial-gradient(circle at 32% 28%, #fff4db, #ff987c 23%, #ed4637 54%, #a21924);
       box-shadow: inset 0 -2px 2px #66141e70;
     }
 
@@ -170,6 +160,11 @@
       height: 15px;
       border-radius: 2px;
       animation: fall var(--time) var(--delay) ease-in both;
+    }
+
+    @keyframes dialog-in {
+      from { opacity: 0; transform: translateY(12px) scale(.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     @keyframes land {
@@ -197,7 +192,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      #round-intro[open], .pin, .points, #confetti i { animation: none; }
+      dialog[open], .pin, .points, #confetti i { animation: none; }
       path.leaflet-interactive { transition: none; }
     }
   </style>
@@ -218,7 +213,6 @@
           <p id="level"></p>
           <h2 id="question" tabindex="-1" aria-live="polite">Preparant el mapa…</h2>
         </div>
-
         <div class="stats">
           <span id="counter"></span>
           <strong id="score"></strong>
@@ -238,7 +232,7 @@
         <button id="world" type="button" hidden>Vista del món</button>
         <button id="skip" type="button" hidden>Passa</button>
         <button id="review" type="button" hidden>Repassem els errors</button>
-        <button id="next" class="primary" type="button" hidden>Següent</button>
+        <button id="continue" class="primary" type="button" hidden>Ronda següent</button>
       </div>
     </section>
   </main>
@@ -253,6 +247,9 @@
   <script>
     const mapUrl = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson";
     const questionsPerRound = 10;
+    const hitDelay = 1500;
+    const correctionDelay = 2400;
+    const fallingPinDelay = 700;
 
     const levels = [
       { name: "Fàcil", codes: "CA US BR RU CN IN AU MX AR ES FR GB JP DE EG IT" },
@@ -261,8 +258,8 @@
       { name: "Experta", codes: "ME XK SI AL MK MD BA EE LV LT LU BN BT TL QA KW GQ GM SV" }
     ];
 
-    const levelLabel = document.getElementById("level");
     const question = document.getElementById("question");
+    const levelLabel = document.getElementById("level");
     const counter = document.getElementById("counter");
     const score = document.getElementById("score");
     const streakBadge = document.getElementById("streak");
@@ -271,7 +268,7 @@
     const world = document.getElementById("world");
     const skip = document.getElementById("skip");
     const review = document.getElementById("review");
-    const next = document.getElementById("next");
+    const continueButton = document.getElementById("continue");
     const confetti = document.getElementById("confetti");
     const intro = document.getElementById("round-intro");
     const introTitle = document.getElementById("intro-title");
@@ -297,6 +294,7 @@
     let streak = 0;
     let phase = "loading";
     let reviewing = false;
+    let answerTimer;
     let confettiTimer;
 
     function nameOf(code) {
@@ -317,8 +315,12 @@
       });
     }
 
+    function availableCountries(level) {
+      return level.codes.split(" ").filter(code => layers.has(code));
+    }
+
     function chooseCountries(level) {
-      const available = level.codes.split(" ").filter(code => layers.has(code));
+      const available = availableCountries(level);
 
       for (let index = available.length - 1; index > 0; index--) {
         const randomIndex = Math.floor(Math.random() * (index + 1));
@@ -340,7 +342,7 @@
 
         if (result) {
           segment.className = result.hit ? "hit" : "miss";
-        } else if (phase !== "intro" && index === questionIndex) {
+        } else if (phase === "question" && index === questionIndex) {
           segment.className = "current";
         }
 
@@ -364,7 +366,7 @@
       counter.textContent = "";
       feedback.textContent = "";
       skip.hidden = true;
-      next.hidden = true;
+      continueButton.hidden = true;
       review.hidden = true;
       updateStats();
 
@@ -386,7 +388,7 @@
       counter.textContent = `Pregunta ${questionIndex + 1}/${questions.length}`;
       feedback.textContent = "Clica el país. Pots arrossegar el mapa i fer zoom amb la roda.";
       skip.hidden = false;
-      next.hidden = true;
+      continueButton.hidden = true;
       updateStats();
     }
 
@@ -396,6 +398,7 @@
     }
 
     function startSession(missedCountries = null) {
+      clearTimeout(answerTimer);
       clearConfetti();
       pins.clearLayers();
       effects.clearLayers();
@@ -420,9 +423,10 @@
     }
 
     function addPin(position, hit) {
+      const animation = hit ? "pin-land" : "pin-slip";
       const icon = L.divIcon({
         className: "",
-        html: `<span class="pin ${hit ? "pin-land" : "pin-slip"}" aria-hidden="true"></span>`,
+        html: `<span class="pin ${animation}" aria-hidden="true"></span>`,
         iconSize: [28, 34],
         iconAnchor: [14, 32]
       });
@@ -443,14 +447,12 @@
         iconAnchor: [42, 53]
       });
 
-      const marker = L.marker(position, {
+      L.marker(position, {
         icon,
         interactive: false,
         keyboard: false,
         zIndexOffset: 1000
       }).addTo(effects);
-
-      setTimeout(() => effects.removeLayer(marker), 1550);
     }
 
     function mainBounds(layer) {
@@ -496,9 +498,15 @@
       }
     }
 
-    function showNextButton() {
-      next.textContent = questionIndex + 1 === questions.length ? "Veure resultat" : "Següent";
-      next.hidden = false;
+    function advanceQuestion() {
+      if (phase !== "answer") return;
+
+      if (questionIndex + 1 === questions.length) {
+        finishRound();
+      } else {
+        questionIndex++;
+        showQuestion();
+      }
     }
 
     function answer(layer, code, label, position) {
@@ -522,7 +530,7 @@
         addPin(position, true);
         addPoints(position);
         feedback.textContent = `Correcte! Has trobat ${targetName}.`;
-        showNextButton();
+        answerTimer = setTimeout(advanceQuestion, hitDelay);
         return;
       }
 
@@ -532,18 +540,19 @@
         feedback.textContent = layer
           ? `Has clicat ${label}. El país correcte és ${targetName}, en verd al mapa.`
           : `El país correcte és ${targetName}, en verd al mapa.`;
+
         reveal(target, position);
-        showNextButton();
+        answerTimer = setTimeout(advanceQuestion, correctionDelay);
       }
 
       if (position && !reducedMotion.matches) {
         const missedPin = addPin(position, false);
         feedback.textContent = `Has clicat ${label}.`;
 
-        setTimeout(() => {
+        answerTimer = setTimeout(() => {
           effects.removeLayer(missedPin);
           showCorrection();
-        }, 700);
+        }, fallingPinDelay);
       } else {
         showCorrection();
       }
@@ -571,6 +580,7 @@
     }
 
     function finishRound() {
+      clearTimeout(answerTimer);
       effects.clearLayers();
       countries.setStyle(land);
       showWorld();
@@ -589,7 +599,7 @@
         feedback.textContent = reviewing
           ? "Continua amb els països pendents del repàs."
           : `Nivell següent: ${levels[levelIndex + 1].name.toLowerCase()}. Conserves els punts i les xinxetes.`;
-        next.textContent = reviewing ? "Bloc següent" : "Ronda següent";
+        continueButton.textContent = reviewing ? "Bloc següent" : "Ronda següent";
       } else {
         phase = "finished";
         const hits = results.filter(result => result.hit).length;
@@ -605,9 +615,11 @@
           : "Pots tornar a buscar els països amb el botó de repàs.";
 
         review.hidden = perfect;
-        next.textContent = "Nova partida";
-        updateStats();
+        continueButton.textContent = "Nova partida";
       }
+
+      continueButton.hidden = false;
+      updateStats();
 
       if (roundHits === questions.length) celebrate();
     }
@@ -616,7 +628,6 @@
 
     startRoundButton.addEventListener("click", () => {
       if (phase !== "intro") return;
-
       intro.close();
       showQuestion();
       question.focus({ preventScroll: true });
@@ -625,26 +636,18 @@
     world.addEventListener("click", showWorld);
     skip.addEventListener("click", () => answer(null, null, "", null));
 
-    next.addEventListener("click", () => {
-      if (next.hidden) return;
-
+    continueButton.addEventListener("click", () => {
       if (phase === "finished") {
         startSession();
       } else if (phase === "round-end") {
         clearConfetti();
         levelIndex++;
         showRoundIntro();
-      } else if (phase === "answer") {
-        if (questionIndex + 1 === questions.length) {
-          finishRound();
-        } else {
-          questionIndex++;
-          showQuestion();
-        }
       }
     });
 
     review.addEventListener("click", () => {
+      if (phase !== "finished") return;
       const missed = results.filter(result => !result.hit).map(result => result.code);
       if (missed.length) startSession(missed);
     });
@@ -699,8 +702,7 @@
         }).addTo(map);
 
         for (const level of levels) {
-          const available = level.codes.split(" ").filter(code => layers.has(code));
-          if (available.length < questionsPerRound) {
+          if (availableCountries(level).length < questionsPerRound) {
             throw new Error(`No hi ha prou països al nivell ${level.name}.`);
           }
         }

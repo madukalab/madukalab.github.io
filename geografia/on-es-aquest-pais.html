@@ -25,7 +25,7 @@
       padding: 20px clamp(12px, 3vw, 36px) 28px;
     }
 
-    .header, .round, .controls {
+    header, .round, .controls {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -33,15 +33,24 @@
       gap: 10px 24px;
     }
 
-    .header { margin-bottom: 18px; }
-    .brand { color: #fff; font-weight: 850; letter-spacing: -.05em; text-decoration: none; }
-    .back { color: #bfd6e9; text-decoration: none; }
+    header { margin-bottom: 18px; }
+
+    header a {
+      color: #bfd6e9;
+      text-decoration: none;
+    }
+
+    .brand {
+      color: white;
+      font-weight: 850;
+      letter-spacing: -.05em;
+    }
 
     h1 {
       margin: 0 0 14px;
       font-size: clamp(24px, 4vw, 40px);
-      line-height: 1.1;
       letter-spacing: -.045em;
+      line-height: 1.1;
     }
 
     .game {
@@ -52,42 +61,81 @@
     }
 
     .round, .controls { padding: 12px 16px; }
-    .round h2 { margin: 0; font-size: clamp(20px, 4vw, 32px); line-height: 1.1; }
-    .round h2 strong { color: #72f0be; }
-    .stats { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
-    #round-label { color: #bed0df; font-size: .85rem; }
-    #score { color: #72f0be; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(20px, 4vw, 32px);
+      line-height: 1.15;
+    }
+
+    h2 strong, #score { color: #72f0be; }
+
+    .stats {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+    }
+
+    #round-label {
+      color: #bed0df;
+      font-size: .85rem;
+    }
 
     #streak {
+      display: inline-block;
       padding: 3px 9px;
-      border-radius: 999px;
+      border-radius: 99px;
       background: #68471f;
       color: #fff1af;
       font-size: .85rem;
       font-weight: 800;
-      animation: pop .35s ease-out;
     }
 
-    .progress { display: flex; gap: 5px; padding: 0 16px 10px; }
-    .progress span { flex: 1; height: 5px; border-radius: 6px; background: #30455a; }
+    .progress {
+      display: flex;
+      gap: 5px;
+      padding: 0 16px 10px;
+    }
+
+    .progress span {
+      flex: 1;
+      height: 5px;
+      border-radius: 6px;
+      background: #30455a;
+    }
+
     .progress .hit { background: #36e8a5; }
     .progress .miss { background: #ff8d80; }
     .progress .current { background: #91c8f3; }
 
-    .map-frame { position: relative; }
+    .map-frame {
+      position: relative;
+      isolation: isolate;
+    }
+
     #map {
       height: clamp(320px, 58vh, 690px);
-      background-color: #112f49;
-      background-image: radial-gradient(ellipse at 50% 38%, #1b4c69, transparent 72%);
+      background: radial-gradient(ellipse at 50% 38%, #1b4c69, #112f49 72%);
       border-block: 1px solid #304a60;
     }
 
-    .leaflet-interactive { outline: none; }
-    path.leaflet-interactive { transition: fill .14s ease, stroke .14s ease; }
-    .leaflet-container .leaflet-control-attribution { background: #101f30; color: #d0e1ed; }
+    path.leaflet-interactive {
+      transition: fill .14s ease, stroke .14s ease;
+    }
+
+    .leaflet-container .leaflet-control-attribution {
+      background: #101f30;
+      color: #d0e1ed;
+    }
+
     .leaflet-control-attribution a { color: #9dd8ff; }
 
-    #feedback { flex: 1 1 270px; margin: 0; color: #d4e4ef; }
+    #feedback {
+      flex: 1 1 270px;
+      margin: 0;
+      color: #d4e4ef;
+    }
 
     button {
       min-height: 40px;
@@ -102,29 +150,62 @@
     }
 
     button:hover { filter: brightness(1.15); }
-    button.primary { background: #72f0be; color: #08251d; border-color: #72f0be; }
-    :focus-visible { outline: 3px solid #a6e0ff; outline-offset: 3px; }
 
-    .answer-pin {
-      display: block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid #fff;
-      border-radius: 50% 50% 50% 0;
-      background: #08744c;
-      transform: rotate(-45deg);
-      box-shadow: 0 3px 12px #001c18;
+    button.primary {
+      background: #72f0be;
+      color: #08251d;
+      border-color: #72f0be;
     }
 
-    .pin-drop { display: block; animation: land .52s cubic-bezier(.2,.8,.3,1.3) both; }
+    :focus-visible {
+      outline: 3px solid #a6e0ff;
+      outline-offset: 3px;
+    }
+
+    /* La punta de la xinxeta coincideix amb l’ancoratge del mapa. */
+    .pin {
+      position: relative;
+      display: block;
+      width: 28px;
+      height: 34px;
+      transform-origin: 14px 32px;
+      filter: drop-shadow(2px 3px 2px #001827aa);
+    }
+
+    .pin::before {
+      content: "";
+      position: absolute;
+      left: 12px;
+      top: 10px;
+      width: 4px;
+      height: 22px;
+      background: linear-gradient(90deg, #56636e, #f5fbff 55%, #9ca9b2);
+      clip-path: polygon(0 0, 100% 0, 100% 84%, 50% 100%, 0 84%);
+    }
+
+    .pin::after {
+      content: "";
+      position: absolute;
+      top: 1px;
+      left: 4px;
+      width: 20px;
+      height: 18px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%,
+        #fff4db 0%, #ff987c 23%, #ed4637 54%, #a21924 100%);
+      box-shadow: inset 0 -2px 2px #66141e70;
+    }
+
+    .pin-land { animation: pin-land .52s ease-out both; }
+    .pin-slip { animation: pin-slip .7s ease-in-out both; }
 
     .points {
       display: block;
       color: #e3fff2;
       font: 900 24px/1 system-ui, sans-serif;
-      text-shadow: 0 2px 7px #001e17, 0 0 12px #08744c;
       text-align: center;
-      animation: float-up 1.15s ease-out both;
+      text-shadow: 0 2px 7px #001e17, 0 0 12px #08744c;
+      animation: float-up 1.15s .33s ease-out both;
     }
 
     #confetti {
@@ -141,46 +222,45 @@
       width: 9px;
       height: 15px;
       border-radius: 2px;
-      animation: fall var(--time) var(--delay) ease-in both;
+      animation: confetti-fall var(--time) var(--delay) ease-in both;
     }
 
-    @keyframes land {
-      0% { transform: translateY(-42px) scale(.7); opacity: 0; }
-      70% { transform: translateY(4px) scale(1.12); opacity: 1; }
-      100% { transform: translateY(0) scale(1); opacity: 1; }
+    @keyframes pin-land {
+      0% { transform: translateY(-44px) rotate(-14deg); opacity: 0; }
+      64% { transform: translateY(0); opacity: 1; }
+      80% { transform: translateY(-5px); }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes pin-slip {
+      0% { transform: translateY(-44px) rotate(-14deg); opacity: 0; }
+      42% { transform: translateY(0); opacity: 1; }
+      68% { transform: translate(8px, -7px) rotate(65deg); opacity: 1; }
+      100% { transform: translate(28px, 80px) rotate(145deg); opacity: 0; }
     }
 
     @keyframes float-up {
-      0% { transform: translateY(0) scale(.75); opacity: 0; }
-      20% { opacity: 1; }
-      70% { opacity: 1; }
+      0% { transform: scale(.75); opacity: 0; }
+      20%, 70% { opacity: 1; }
       100% { transform: translateY(-55px) scale(1.12); opacity: 0; }
     }
 
-    @keyframes pop {
-      0% { transform: scale(.85); }
-      65% { transform: scale(1.13); }
-      100% { transform: scale(1); }
-    }
-
-    @keyframes fall {
+    @keyframes confetti-fall {
       to { transform: translate(var(--drift), 75vh) rotate(640deg); opacity: .2; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: .01ms !important;
-        transition-duration: .01ms !important;
-      }
+      .pin, .points, #confetti i { animation: none; }
+      path.leaflet-interactive { transition: none; }
     }
   </style>
 </head>
 
 <body>
   <main>
-    <header class="header">
+    <header>
       <a class="brand" href="../">MADUKA</a>
-      <a class="back" href="./">← Geografia</a>
+      <a href="./">← Geografia</a>
     </header>
 
     <h1>On és aquest país?</h1>
@@ -188,6 +268,7 @@
     <section class="game" aria-label="Joc del mapamundi">
       <div class="round">
         <h2 id="question" aria-live="polite">Preparant el mapa…</h2>
+
         <div class="stats">
           <span id="round-label"></span>
           <strong id="score"></strong>
@@ -215,6 +296,7 @@
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const mapUrl = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson";
+    const roundCount = 10;
     const pool = (
       "ES PT FR GB IE DE IT GR PL SE NO FI UA RO TR " +
       "CA US MX CU BR AR CL PE CO VE MA DZ EG SN GH NG ET KE TZ MG ZA " +
@@ -236,18 +318,21 @@
     const names = new Intl.DisplayNames(["ca"], { type: "region" });
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
     const layers = new Map();
+
     const land = {
       color: "#52766f",
       weight: 0.8,
       fillColor: "#c8dbbc",
       fillOpacity: 1
     };
+
     const hover = { fillColor: "#ffdf83", color: "#f6bb4c", weight: 1.4 };
     const correct = { fillColor: "#31eba4", color: "#e5fff3", weight: 2 };
     const wrong = { fillColor: "#ff897a", color: "#ffe1db", weight: 1.8 };
 
     let map;
     let countries;
+    let pins;
     let effects;
     let rounds = [];
     let results = [];
@@ -255,6 +340,7 @@
     let streak = 0;
     let finished = false;
     let reviewing = false;
+    let feedbackTimer;
     let confettiTimer;
 
     function countryCode(properties) {
@@ -274,17 +360,25 @@
 
     function randomRounds() {
       const available = pool.filter(code => layers.has(code));
+
       for (let i = available.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [available[i], available[j]] = [available[j], available[i]];
       }
-      return available.slice(0, 10);
+
+      return available.slice(0, roundCount);
+    }
+
+    function clearEffects() {
+      clearTimeout(feedbackTimer);
+      effects.clearLayers();
     }
 
     function startGame(selection, isReview = false) {
-      map.stop();
+      pins.clearLayers();
       clearTimeout(confettiTimer);
       confetti.replaceChildren();
+
       rounds = selection;
       results = [];
       round = 0;
@@ -292,68 +386,85 @@
       finished = false;
       reviewing = isReview;
       review.hidden = true;
+
       showQuestion();
     }
 
     function updateStats() {
       const hits = results.filter(result => result.hit).length;
-      score.textContent = (hits * 100) + " punts";
+
+      score.textContent = `${hits * 100} punts`;
       streakBadge.hidden = streak < 3 || finished;
-      streakBadge.textContent = "🔥 Ratxa ×" + streak;
+      streakBadge.textContent = `🔥 Ratxa ×${streak}`;
+
       roundLabel.textContent = finished
-        ? hits + " de " + rounds.length + " encerts"
-        : (reviewing ? "Repàs · " : "") + "Ronda " + (round + 1) + "/" + rounds.length;
+        ? `${hits} de ${rounds.length} encerts`
+        : `${reviewing ? "Repàs · " : ""}Ronda ${round + 1}/${rounds.length}`;
 
       progress.replaceChildren(...rounds.map((_, index) => {
         const segment = document.createElement("span");
+
         if (results[index]) {
           segment.className = results[index].hit ? "hit" : "miss";
         } else if (index === round) {
           segment.className = "current";
         }
+
         return segment;
       }));
     }
 
     function showQuestion() {
+      clearEffects();
       countries.setStyle(land);
-      effects.clearLayers();
       showWorld();
 
       const name = document.createElement("strong");
       name.textContent = names.of(rounds[round]);
       question.replaceChildren("Troba al mapa · ", name);
 
-      feedback.textContent = "Clica el país. Pots arrossegar el mapa i fer zoom.";
+      feedback.textContent = "Clica el país. Pots arrossegar el mapa i fer zoom amb la roda.";
       skip.hidden = false;
       next.hidden = true;
       updateStats();
     }
 
-    function addPin(position) {
+    function addPin(position, hit) {
+      const animation = hit ? "pin-land" : "pin-slip";
       const icon = L.divIcon({
         className: "",
-        html: '<span class="pin-drop"><span class="answer-pin"></span></span>',
-        iconSize: [20, 20],
-        iconAnchor: [10, 21]
+        html: `<span class="pin ${animation}" aria-hidden="true"></span>`,
+        iconSize: [28, 34],
+        iconAnchor: [14, 32]
       });
-      L.marker(position, { icon, interactive: false, keyboard: false }).addTo(effects);
+
+      return L.marker(position, {
+        icon,
+        interactive: false,
+        keyboard: false,
+        zIndexOffset: hit ? 0 : 1000
+      }).addTo(hit ? pins : effects);
     }
 
     function addPoints(position) {
       const icon = L.divIcon({
         className: "",
-        html: '<span class="points">+100</span>',
+        html: '<span class="points" aria-hidden="true">+100</span>',
         iconSize: [84, 24],
-        iconAnchor: [42, 47]
+        iconAnchor: [42, 53]
       });
-      const marker = L.marker(position, { icon, interactive: false, keyboard: false });
-      marker.addTo(effects);
-      setTimeout(() => effects.removeLayer(marker), 1200);
+
+      const marker = L.marker(position, {
+        icon,
+        interactive: false,
+        keyboard: false,
+        zIndexOffset: 1000
+      }).addTo(effects);
+
+      setTimeout(() => effects.removeLayer(marker), 1550);
     }
 
-    // Fes servir el polígon més gran per evitar que territoris
-    // llunyans facin que la càmera s'allunyi més del compte.
+    // Enquadra la part principal del país, inclosos els països amb illes.
     function mainBounds(layer) {
       const geometry = layer.feature.geometry;
       if (geometry.type !== "MultiPolygon") return layer.getBounds();
@@ -381,13 +492,15 @@
       return largestBounds;
     }
 
-    function reveal(target, chosen, clickPosition) {
-      const bounds = mainBounds(target);
-      if (clickPosition) bounds.extend(clickPosition);
-      else if (chosen) bounds.extend(mainBounds(chosen));
+    function reveal(target, position) {
+      target.setStyle(correct).bringToFront();
 
-      map.stop();
+      const bounds = mainBounds(target);
+      if (position) bounds.extend(position);
+
       const options = { padding: [34, 34], maxZoom: 5 };
+      map.stop();
+
       if (reducedMotion.matches) {
         map.fitBounds(bounds, { ...options, animate: false });
       } else {
@@ -395,49 +508,72 @@
       }
     }
 
+    function showNextButton() {
+      next.textContent = round + 1 === rounds.length ? "Veure el resultat" : "Següent";
+      next.hidden = false;
+    }
+
     function answer(layer, code, label, position) {
       if (finished || results[round]) return;
+
+      countries.setStyle(land);
 
       const targetCode = rounds[round];
       const target = layers.get(targetCode);
       const targetName = names.of(targetCode);
       const hit = code === targetCode;
 
-      countries.setStyle(land);
-      results.push({ code: targetCode, hit, position });
+      results.push({ code: targetCode, hit });
       streak = hit ? streak + 1 : 0;
+      skip.hidden = true;
+      updateStats();
 
       if (hit) {
-        addPin(position);
+        target.setStyle(correct).bringToFront();
+        addPin(position, true);
         addPoints(position);
-        feedback.textContent = "Correcte! Has trobat " + targetName + ".";
-      } else {
-        if (layer) layer.setStyle(wrong);
-        feedback.textContent = layer
-          ? "Has clicat " + label + ". En verd tens la resposta: " + targetName + "."
-          : "En verd tens la resposta: " + targetName + ".";
-        reveal(target, layer, position);
+        feedback.textContent = `Correcte! Has trobat ${targetName}.`;
+        showNextButton();
+        return;
       }
 
-      target.setStyle(correct).bringToFront();
-      skip.hidden = true;
-      next.textContent = round + 1 === rounds.length ? "Veure el resultat" : "Següent";
-      next.hidden = false;
-      updateStats();
+      if (layer) layer.setStyle(wrong);
+
+      function showCorrection() {
+        feedback.textContent = layer
+          ? `Has clicat ${label}. En verd tens la resposta: ${targetName}.`
+          : `En verd tens la resposta: ${targetName}.`;
+
+        reveal(target, position);
+        showNextButton();
+      }
+
+      if (position && !reducedMotion.matches) {
+        const missedPin = addPin(position, false);
+        feedback.textContent = `Has clicat ${label}.`;
+
+        feedbackTimer = setTimeout(() => {
+          effects.removeLayer(missedPin);
+          showCorrection();
+        }, 700);
+      } else {
+        showCorrection();
+      }
     }
 
     function celebrate() {
       if (reducedMotion.matches) return;
+
       const colors = ["#72f0be", "#ffdf83", "#ff897a", "#9dd8ff", "#d4a6f7"];
       const pieces = document.createDocumentFragment();
 
       for (let i = 0; i < 48; i++) {
         const piece = document.createElement("i");
-        piece.style.left = Math.random() * 100 + "%";
+        piece.style.left = `${Math.random() * 100}%`;
         piece.style.background = colors[i % colors.length];
-        piece.style.setProperty("--time", (1.4 + Math.random()) + "s");
-        piece.style.setProperty("--delay", (Math.random() * .45) + "s");
-        piece.style.setProperty("--drift", (Math.random() * 130 - 65) + "px");
+        piece.style.setProperty("--time", `${1.4 + Math.random()}s`);
+        piece.style.setProperty("--delay", `${Math.random() * .45}s`);
+        piece.style.setProperty("--drift", `${Math.random() * 130 - 65}px`);
         pieces.append(piece);
       }
 
@@ -447,21 +583,27 @@
 
     function finishGame() {
       finished = true;
+      clearEffects();
       countries.setStyle(land);
-      effects.clearLayers();
       showWorld();
 
       for (const result of results) {
-        if (!result.hit) continue;
-        layers.get(result.code).setStyle(correct);
-        addPin(result.position);
+        if (result.hit) layers.get(result.code).setStyle(correct);
       }
 
-      const perfect = results.every(result => result.hit);
+      const hits = results.filter(result => result.hit).length;
+      const perfect = hits === rounds.length;
+
       question.textContent = perfect ? "Ple d’encerts!" : "Partida acabada!";
-      feedback.textContent = perfect
-        ? "Has trobat tots els països."
-        : "Les agulles marquen els països que has encertat.";
+
+      if (hits === 0) {
+        feedback.textContent = "Pots tornar a buscar els països amb el botó de repàs.";
+      } else if (hits === 1) {
+        feedback.textContent = "Has deixat una xinxeta clavada al mapa.";
+      } else {
+        feedback.textContent = `Has deixat ${hits} xinxetes clavades al mapa.`;
+      }
+
       review.hidden = perfect;
       next.textContent = "Nova partida";
       updateStats();
@@ -473,6 +615,8 @@
     skip.addEventListener("click", () => answer(null, null, "", null));
 
     next.addEventListener("click", () => {
+      if (next.hidden) return;
+
       if (finished) {
         startGame(randomRounds());
       } else if (round + 1 === rounds.length) {
@@ -485,7 +629,7 @@
 
     review.addEventListener("click", () => {
       const missed = results.filter(result => !result.hit).map(result => result.code);
-      startGame(missed, true);
+      if (missed.length) startGame(missed, true);
     });
 
     async function load() {
@@ -500,15 +644,18 @@
         });
 
         map.zoomControl.getContainer().setAttribute("aria-label", "Controls de zoom");
+
         L.control.attribution({ prefix: false }).addTo(map).addAttribution(
-          '<a href="https://www.naturalearthdata.com/">Natural Earth</a> · <a href="https://leafletjs.com/">Leaflet</a>'
+          '<a href="https://www.naturalearthdata.com/">Natural Earth</a> · ' +
+          '<a href="https://leafletjs.com/">Leaflet</a>'
         );
 
         showWorld();
+        pins = L.layerGroup().addTo(map);
         effects = L.layerGroup().addTo(map);
 
         const response = await fetch(mapUrl);
-        if (!response.ok) throw new Error("HTTP " + response.status);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         countries = L.geoJSON(await response.json(), {
           filter: feature => feature.properties.ADMIN !== "Antarctica",
@@ -517,6 +664,7 @@
             const properties = feature.properties;
             const code = countryCode(properties);
             const label = code ? names.of(code) : properties.NAME;
+
             if (code) layers.set(code, layer);
 
             layer.on({
@@ -534,7 +682,7 @@
         }).addTo(map);
 
         const selection = randomRounds();
-        if (selection.length < 10) throw new Error("Falten dades dels països.");
+        if (selection.length < roundCount) throw new Error("Falten dades dels països.");
 
         world.hidden = false;
         startGame(selection);

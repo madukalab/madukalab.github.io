@@ -493,7 +493,7 @@
         if (!window.L) throw new Error("Leaflet no s’ha carregat.");
 
         map = L.map("map", {
-          scrollWheelZoom: false,
+          scrollWheelZoom: true,
           zoomSnap: .25,
           maxZoom: 8,
           attributionControl: false

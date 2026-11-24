@@ -17,6 +17,7 @@
     }
 
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     body { margin: 0; }
     p { line-height: 1.5; }
     header { border-bottom: 1px solid var(--line); }
@@ -73,13 +74,18 @@
     }
 
     nav button[aria-pressed="true"], .primary {
-      border-color: var(--green);
       background: var(--green);
+      border-color: var(--green);
       color: white;
     }
 
     .primary { padding: 11px 16px; }
-    .jump2 { border-color: #acc47d; background: var(--lime); color: var(--green); }
+
+    .jump2 {
+      border-color: #acc47d;
+      background: var(--lime);
+      color: var(--green);
+    }
 
     .layout {
       display: grid;
@@ -138,10 +144,23 @@
     .routes { margin-top: 10px; }
 
     .routes li {
-      padding: 5px 8px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 8px;
       border-radius: 8px;
       background: #eaf0d7;
       font-weight: 750;
+    }
+
+    .routes button { padding: 5px 9px; font-size: 13px; }
+
+    .routes button[aria-pressed="true"] {
+      border-color: #876129;
+      background: #fff0bc;
+      color: #563b13;
     }
 
     .sum-list li + li {
@@ -151,14 +170,22 @@
 
     #hint-button { margin-top: 14px; }
 
-    .hint {
+    .hint, .replay-status {
       margin: 10px 0 0;
       padding: 10px 12px;
       border-radius: 10px;
-      background: #ebefdd;
     }
 
-    .hint:empty { display: none; }
+    .hint { background: #ebefdd; }
+
+    .replay-status {
+      margin-bottom: 10px;
+      background: #fff0bc;
+      color: #563b13;
+      font-weight: 750;
+    }
+
+    .hint:empty, .replay-status:empty { display: none; }
     .summary { margin: 16px 0; }
     .summary h2 { margin-bottom: 8px; }
     table { width: 100%; border-collapse: collapse; text-align: left; }
@@ -170,7 +197,6 @@
     }
 
     th:last-child, td:last-child { text-align: right; }
-    td:first-child { width: 90px; }
     td:nth-child(2) { overflow-wrap: anywhere; }
     footer { padding: 8px 0 22px; color: #52675c; font-size: 14px; }
 
@@ -206,6 +232,8 @@
           <h2 id="level-title"></h2>
           <span id="position" class="position"></span>
         </div>
+
+        <p id="replay-status" class="replay-status" role="status"></p>
 
         <div class="scene">
           <canvas id="stairs" width="1200" height="680" aria-hidden="true"></canvas>
@@ -273,6 +301,8 @@
     const airSpeed = 285;
     const skyPadding = 115;
     const flashDuration = 300;
+    const replayJumpMs = 430;
+    const replayPauseMs = 190;
 
     let level = 1;
     let route = [];
@@ -281,8 +311,23 @@
     let previousTime = null;
     let buttonJump = null;
     let landingFlash = null;
+    let replay = null;
 
     const mat = { x: 0, y: floor, vx: 0, vy: 0, step: 0, airborne: false };
+
+    function routePositions(path) {
+      const positions = [0];
+
+      for (const jump of path) {
+        positions.push(positions[positions.length - 1] + Number(jump));
+      }
+
+      return positions;
+    }
+
+    function equation(path, sum) {
+      return `${[...path].join(' + ')} = ${sum}`;
+    }
 
     function routesTo(remaining) {
       if (remaining === 0) return [''];
@@ -291,6 +336,10 @@
       return [1, 2].flatMap(jump =>
         routesTo(remaining - jump).map(rest => `${jump}${rest}`)
       );
+    }
+
+    function routeEnd() {
+      return route.reduce((sum, jump) => sum + jump, 0);
     }
 
     function showHint() {
@@ -343,14 +392,6 @@
       return index < 0 || index >= level ? 0 : index + 1;
     }
 
-    function routeEnd() {
-      return route.reduce((sum, jump) => sum + jump, 0);
-    }
-
-    function equation(jumps, sum) {
-      return `${[...jumps].join(' + ')} = ${sum}`;
-    }
-
     function setPosition(step) {
       mat.step = step;
       mat.x = centerX(step);
@@ -366,6 +407,7 @@
       route = [];
       message = '';
       clearHint();
+      stopReplay();
       setPosition(0);
       render();
     }
@@ -451,6 +493,74 @@
       queueFrame();
     }
 
+    function updateReplayButtons() {
+      for (const button of get('routes').querySelectorAll('button[data-path]')) {
+        const active = replay?.path === button.dataset.path;
+        button.textContent = active ? 'Atura' : 'Reprodueix';
+        button.setAttribute('aria-pressed', String(active));
+
+        const action = active ? 'Atura' : 'Reprodueix';
+        button.setAttribute('aria-label', `${action} ${equation(button.dataset.path, level)}`);
+      }
+    }
+
+    function stopReplay() {
+      replay = null;
+      get('replay-status').textContent = '';
+      updateReplayButtons();
+    }
+
+    function toggleReplay(path) {
+      if (replay?.path === path) {
+        stopReplay();
+        draw();
+        return;
+      }
+
+      replay = {
+        path,
+        positions: routePositions(path),
+        start: performance.now()
+      };
+
+      get('replay-status').textContent =
+        `${equation(path, level)} · ${replay.positions.join(' → ')}`;
+
+      updateReplayButtons();
+      draw();
+
+      if (!reducedMotion.matches) queueFrame();
+    }
+
+    function renderRoutes(found) {
+      const list = get('routes');
+      const focusedPath = list.contains(document.activeElement)
+        ? document.activeElement.dataset.path
+        : undefined;
+
+      const items = [...found].map(path => {
+        const item = document.createElement('li');
+        const sum = document.createElement('span');
+        const button = document.createElement('button');
+
+        sum.textContent = equation(path, level);
+        button.type = 'button';
+        button.dataset.path = path;
+        button.addEventListener('click', () => toggleReplay(path));
+
+        item.append(sum, button);
+        return item;
+      });
+
+      list.replaceChildren(...items);
+      updateReplayButtons();
+
+      if (focusedPath) {
+        list.querySelector(`button[data-path="${focusedPath}"]`)
+          ?.focus({ preventScroll: true });
+      }
+    }
+
     function render() {
       const found = discoveries[level - 1];
       const complete = found.size === totals[level - 1];
@@ -469,16 +579,12 @@
       get('level-title').textContent = level === 1
         ? 'Escala d’1 esglaó'
         : `Escala de ${level} esglaons`;
-
-      get('position').textContent = mat.step === 0
-        ? 'A baix'
-        : `Esglaó ${mat.step} de ${level}`;
-
+      get('position').textContent = mat.step === 0 ? 'A baix' : `Esglaó ${mat.step} de ${level}`;
       get('route').textContent = route.length
         ? `${equation(route, total)} · ${route.length} ${route.length === 1 ? 'salt' : 'salts'}`
         : '0 esglaons pujats';
-
       get('feedback').textContent = message;
+
       get('one').disabled = mat.step >= level;
       get('two').disabled = mat.step + 2 > level;
       get('undo').disabled = mat.step === 0;
@@ -489,9 +595,7 @@
         ? `${found.size} · Escala completada`
         : `${found.size} ${countLabel}`;
 
-      get('routes').innerHTML = [...found]
-        .map(path => `<li>${equation(path, level)}</li>`)
-        .join('');
+      renderRoutes(found);
 
       get('summary').innerHTML = discoveries.map((paths, index) => {
         const size = index + 1;
@@ -551,7 +655,6 @@
 
     function updateMotion(dt) {
       moveHorizontally(dt);
-
       const surface = surfaceAt(mat.x);
       const surfaceY = heightAt(surface);
 
@@ -577,19 +680,23 @@
       const dt = previousTime === null ? 0 : Math.min(.025, (time - previousTime) / 1000);
       previousTime = time;
 
-      if (buttonJump) {
-        updateButtonJump(time);
-      } else {
-        updateMotion(dt);
-      }
+      if (buttonJump) updateButtonJump(time);
+      else updateMotion(dt);
 
       if (landingFlash && time - landingFlash.start >= flashDuration) {
         landingFlash = null;
       }
 
+      const replayAnimating = replay && !reducedMotion.matches;
+      if (replayAnimating &&
+          time - replay.start >= replay.path.length * (replayJumpMs + replayPauseMs) + 750) {
+        stopReplay();
+      }
+
       draw(time);
 
-      if (buttonJump || mat.airborne || held.size || Math.abs(mat.vx) > 1 || landingFlash) {
+      if (buttonJump || mat.airborne || held.size || Math.abs(mat.vx) > 1 ||
+          landingFlash || (replay && !reducedMotion.matches)) {
         queueFrame();
       } else {
         previousTime = null;
@@ -635,14 +742,13 @@
       const brush = background.getContext('2d');
 
       brush.setTransform(2, 0, 0, 2, 0, skyPadding * 2);
-
       const sky = brush.createLinearGradient(0, -skyPadding, 0, floor);
       sky.addColorStop(0, '#e5efd9');
       sky.addColorStop(.65, '#f4f3df');
       sky.addColorStop(1, '#dce8c9');
-
       brush.fillStyle = sky;
       brush.fillRect(0, -skyPadding, 600, background.height / 2);
+
       oval(brush, '#fff6d7', 474, -25, 28, 28);
 
       brush.beginPath();
@@ -656,9 +762,7 @@
       brush.fill();
 
       for (let i = 0; i < 17; i++) {
-        const x = 12 + i * 37;
-        const height = 38 + (i * 17 % 65);
-        drawTree(brush, x, 199, height, '#c2d5b7');
+        drawTree(brush, 12 + i * 37, 199, 38 + (i * 17 % 65), '#c2d5b7');
       }
 
       brush.beginPath();
@@ -672,16 +776,13 @@
       brush.fill();
 
       for (let i = 0; i < 9; i++) {
-        const x = 24 + i * 72;
-        const height = 32 + (i * 23 % 54);
-        drawTree(brush, x, 209, height, '#a9c2a3');
+        drawTree(brush, 24 + i * 72, 209, 32 + (i * 23 % 54), '#a9c2a3');
       }
 
       brush.fillStyle = '#839c70';
       brush.fillRect(0, floor, 600, background.height / 2 - skyPadding - floor);
       brush.fillStyle = '#a9bd89';
       brush.fillRect(0, floor, 600, 3);
-
       return background;
     }
 
@@ -690,9 +791,7 @@
       const y = heightAt(surface);
       if (mat.y > y + 1) return;
 
-      const distance = Math.max(0, y - mat.y);
-      const scale = Math.max(.46, 1 - distance / 190);
-
+      const scale = Math.max(.46, 1 - Math.max(0, y - mat.y) / 190);
       ctx.save();
 
       if (surface > 0) {
@@ -712,20 +811,34 @@
       const progress = Math.max(0, (time - landingFlash.start) / flashDuration);
       const x = leftEdge(landingFlash.step);
       const y = heightAt(landingFlash.step);
-      const width = stairWidth();
 
       ctx.save();
       ctx.globalAlpha = Math.max(0, 1 - progress) * .85;
       ctx.shadowColor = '#fff4ad';
       ctx.shadowBlur = 12;
       ctx.fillStyle = '#fff4ad';
-      ctx.fillRect(x + 2, y, width - 4, 4);
+      ctx.fillRect(x + 2, y, stairWidth() - 4, 4);
       ctx.restore();
     }
 
-    function drawMat() {
+    function drawMat(x, y, silhouette = false) {
       ctx.save();
-      ctx.translate(mat.x, mat.y);
+      ctx.translate(x, y);
+
+      if (silhouette) {
+        const color = '#ae7420';
+        ctx.globalAlpha = .55;
+
+        oval(ctx, color, -19, -17, 17, 9);
+        oval(ctx, color, 0, -17, 15, 16);
+        oval(ctx, color, -7, -4, 7, 4);
+        oval(ctx, color, 8, -4, 7, 4);
+        oval(ctx, color, 0, -47, 19, 15);
+        shape(ctx, color, [[-17, -51], [-19, -71], [-3, -59], [6, -59], [17, -71], [18, -49]]);
+
+        ctx.restore();
+        return;
+      }
 
       oval(ctx, '#dd7835', -19, -17, 16, 9);
       oval(ctx, '#fff9eb', -29, -18, 7, 7);
@@ -747,20 +860,52 @@
       ctx.restore();
     }
 
+    function drawReplay(time) {
+      if (!replay) return;
+
+      const { positions, start } = replay;
+      const jumpCount = positions.length - 1;
+      const segmentMs = replayJumpMs + replayPauseMs;
+      const elapsed = Math.max(0, time - start);
+      const staticView = reducedMotion.matches;
+      const index = Math.min(jumpCount - 1, Math.floor(elapsed / segmentMs));
+      const progress = staticView ? 1 : Math.min(1, (elapsed - index * segmentMs) / replayJumpMs);
+      const lastLanded = staticView ? jumpCount : index + Number(progress >= 1);
+
+      ctx.save();
+      ctx.strokeStyle = '#c48121';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+
+      for (const step of positions.slice(1, lastLanded + 1)) {
+        const left = leftEdge(step);
+        const top = heightAt(step);
+        ctx.beginPath();
+        ctx.moveTo(left + 6, top + 2);
+        ctx.lineTo(left + stairWidth() - 6, top + 2);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+
+      if (!staticView) {
+        const from = positions[index];
+        const to = positions[index + 1];
+        const x = centerX(from) + (centerX(to) - centerX(from)) * progress;
+        const y = heightAt(from) + (heightAt(to) - heightAt(from)) * progress
+          - Math.sin(Math.PI * progress) * 52;
+
+        drawMat(x, y, true);
+      }
+    }
+
     function draw(time = performance.now()) {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.drawImage(landscape, 0, 0);
       ctx.setTransform(2, 0, 0, 2, 0, skyPadding * 2);
 
       const width = stairWidth();
-      const visited = new Set();
-      let sum = 0;
-
-      for (const jump of route) {
-        sum += jump;
-        visited.add(sum);
-      }
-
+      const visited = new Set(routePositions(route));
       ctx.textAlign = 'center';
 
       for (let step = 1; step <= level; step++) {
@@ -774,7 +919,6 @@
         ctx.fillRect(x, y, width, 4);
         ctx.fillStyle = reached ? '#274d3c' : '#a4b897';
         ctx.fillRect(x, y + 4, 2, floor - y - 4);
-
         ctx.fillStyle = reached ? 'white' : '#163d31';
         ctx.font = 'bold 14px system-ui';
         ctx.fillText(step, x + width / 2, y + 19);
@@ -782,7 +926,8 @@
 
       drawLandingFlash(time);
       drawShadow();
-      drawMat();
+      drawReplay(time);
+      drawMat(mat.x, mat.y);
     }
 
     const landscape = makeLandscape();
@@ -790,7 +935,6 @@
     totals.forEach((_, index) => {
       const size = index + 1;
       const button = document.createElement('button');
-
       button.type = 'button';
       button.setAttribute('aria-keyshortcuts', String(size));
       button.addEventListener('click', () => selectLevel(size));
@@ -824,7 +968,9 @@
       const space = event.code === 'Space' || event.key === ' ';
       const arrow = event.key === 'ArrowLeft' || event.key === 'ArrowRight';
       if (!arrow && !space) return;
-      if (space && target === get('hint-button')) return;
+
+      if (space && (target === get('hint-button') ||
+          target.closest?.('#routes button'))) return;
 
       event.preventDefault();
 

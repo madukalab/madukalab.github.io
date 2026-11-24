@@ -20,8 +20,16 @@
     [hidden] { display: none !important; }
     body { margin: 0; }
     p { line-height: 1.5; }
-    button { font: inherit; cursor: pointer; }
-    button:disabled { cursor: default; opacity: .48; }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: default;
+      opacity: .48;
+    }
 
     button:focus-visible {
       outline: 3px solid #cf651f;
@@ -29,7 +37,11 @@
     }
 
     header { border-bottom: 1px solid var(--line); }
-    .wrap { width: min(1120px, calc(100% - 36px)); margin: auto; }
+
+    .wrap {
+      width: min(1120px, calc(100% - 36px));
+      margin: auto;
+    }
 
     .brand {
       display: flex;
@@ -50,7 +62,11 @@
       font-size: 24px;
     }
 
-    .brand small { color: #52675c; font-size: 13px; font-weight: 600; }
+    .brand small {
+      color: #52675c;
+      font-size: 13px;
+      font-weight: 600;
+    }
 
     h1 {
       margin: 24px 0 5px;
@@ -87,8 +103,11 @@
       font-weight: 800;
     }
 
-    .jump2 { border-color: #acc47d; background: var(--lime); color: var(--green); }
-    #start-game { margin: 12px 0 4px; }
+    .jump2 {
+      border-color: #acc47d;
+      background: var(--lime);
+      color: var(--green);
+    }
 
     .layout {
       display: grid;
@@ -144,17 +163,32 @@
     }
 
     .routes { margin-top: 10px; }
-    .routes li { padding: 5px 8px; border-radius: 8px; background: #eaf0d7; font-weight: 750; }
-    .sum-list li + li { padding-top: 6px; border-top: 1px solid var(--line); }
+
+    .routes li {
+      padding: 5px 8px;
+      border-radius: 8px;
+      background: #eaf0d7;
+      font-weight: 750;
+    }
+
+    .sum-list li + li {
+      padding-top: 6px;
+      border-top: 1px solid var(--line);
+    }
+
     .summary { margin: 16px 0; }
     .summary h2 { margin-bottom: 8px; }
-
     table { width: 100%; border-collapse: collapse; text-align: left; }
-    th, td { padding: 8px 5px; border-top: 1px solid var(--line); vertical-align: top; }
+
+    th, td {
+      padding: 8px 5px;
+      border-top: 1px solid var(--line);
+      vertical-align: top;
+    }
+
     th:last-child, td:last-child { text-align: right; }
     td:first-child { width: 90px; }
     td:nth-child(2) { overflow-wrap: anywhere; }
-
     footer { padding: 8px 0 22px; color: #52675c; font-size: 14px; }
 
     @media (max-width: 720px) {
@@ -194,8 +228,6 @@
           <div class="scene">
             <canvas id="stairs" width="1200" height="680" aria-hidden="true"></canvas>
           </div>
-
-          <button class="primary" id="start-game" type="button">Comença</button>
 
           <p id="route" class="route"></p>
           <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
@@ -259,7 +291,6 @@
     const walkSpeed = 165;
     const airSpeed = 285;
 
-    let started = false;
     let level = 1;
     let route = [];
     let message = '';
@@ -346,7 +377,6 @@
         const done = discoveries[index].size === totals[index];
         const label = size === 1 ? '1 esglaó' : `${size} esglaons`;
 
-        button.disabled = !started;
         button.textContent = done ? `${size} ✓` : size;
         button.setAttribute('aria-pressed', size === level);
         button.setAttribute('aria-label', done ? `${label}, escala completada` : label);
@@ -361,15 +391,15 @@
         : '0 esglaons pujats';
       get('feedback').textContent = message;
 
-      get('one').disabled = !started || step === level;
-      get('two').disabled = !started || step + 2 > level;
-      get('undo').disabled = !started || step === 0 || step === level;
-      get('restart').disabled = !started;
+      get('one').disabled = step === level;
+      get('two').disabled = step + 2 > level;
+      get('undo').disabled = step === 0 || step === level;
 
       const countLabel = found.size === 1 ? 'manera trobada' : 'maneres trobades';
       get('count').textContent = complete
         ? `${found.size} · Escala completada`
         : `${found.size} ${countLabel}`;
+
       get('routes').innerHTML = [...found]
         .map(path => `<li>${equation(path, level)}</li>`)
         .join('');
@@ -609,15 +639,8 @@
       get('one').focus({ preventScroll: true });
     });
 
-    get('start-game').addEventListener('click', () => {
-      started = true;
-      get('start-game').hidden = true;
-      render();
-      get('one').focus({ preventScroll: true });
-    }, { once: true });
-
     document.addEventListener('keydown', event => {
-      if (!started || event.defaultPrevented || event.isComposing ||
+      if (event.defaultPrevented || event.isComposing ||
           event.altKey || event.ctrlKey || event.metaKey) return;
 
       const target = event.target;

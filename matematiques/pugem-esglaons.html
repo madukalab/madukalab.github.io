@@ -1106,6 +1106,166 @@ function draw(time = performance.now()) {
       if (replay && !reducedMotion.matches) queueFrame();
     });
 
+// Celebració de recorreguts nous i efecte del doble salt.
+const celebrationDuration = 1400;
+const boostDustDuration = 360;
+
+let celebration = null;
+let boostDust = null;
+
+const celebrationStyles = document.createElement('style');
+celebrationStyles.textContent = `
+  .routes li.new-route {
+    background: #fff0bc;
+    box-shadow: inset 0 0 0 2px #c48121;
+  }
+`;
+document.head.append(celebrationStyles);
+
+const recordRouteNormally = recordRoute;
+recordRoute = function () {
+  const found = discoveries[level - 1];
+  const path = route.join('');
+  const wasNew = !found.has(path);
+
+  recordRouteNormally();
+
+  if (wasNew) {
+    celebration = {
+      path,
+      equation: equation(path, level),
+      complete: isComplete(level - 1),
+      start: performance.now()
+    };
+    queueFrame();
+  }
+};
+
+const renderRoutesNormally = renderRoutes;
+renderRoutes = function (found) {
+  renderRoutesNormally(found);
+
+  if (!celebration) return;
+
+  for (const button of get('routes').querySelectorAll('button[data-path]')) {
+    if (button.dataset.path === celebration.path) {
+      button.closest('li').classList.add('new-route');
+    }
+  }
+};
+
+const jumpWithKeyboardNormally = jumpWithKeyboard;
+jumpWithKeyboard = function () {
+  const previousJumps = mat.jumpsUsed;
+
+  jumpWithKeyboardNormally();
+
+  if (previousJumps === 1 && mat.jumpsUsed === 2 && !reducedMotion.matches) {
+    boostDust = {
+      x: mat.x,
+      y: mat.y,
+      start: performance.now()
+    };
+  }
+};
+
+const setPositionNormally = setPosition;
+setPosition = function (step) {
+  celebration = null;
+  boostDust = null;
+  setPositionNormally(step);
+};
+
+function drawBoostDust(time) {
+  if (!boostDust || reducedMotion.matches) return;
+
+  const progress = clamp((time - boostDust.start) / boostDustDuration, 0, 1);
+
+  ctx.save();
+  ctx.globalAlpha = .8 * (1 - progress);
+
+  for (let index = 0; index < 10; index++) {
+    const direction = index % 2 === 0 ? -1 : 1;
+    const spread = 12 + (index % 5) * 5;
+    const x = boostDust.x + direction * (4 + spread * progress);
+    const y = boostDust.y + 4 + (9 + (index % 3) * 7) * progress;
+    const radius = (2 + (index % 3)) * (1 - .55 * progress);
+
+    oval(ctx, '#fff3c6', x, y, radius, radius);
+  }
+
+  ctx.restore();
+}
+
+function drawRouteCelebration(time) {
+  if (!celebration) return;
+
+  const elapsed = Math.max(0, time - celebration.start);
+  const animated = !reducedMotion.matches;
+  const fadeIn = clamp(elapsed / 120, 0, 1);
+  const fadeOut = clamp((celebrationDuration - elapsed) / 260, 0, 1);
+
+  ctx.save();
+  ctx.globalAlpha = animated ? Math.min(fadeIn, fadeOut) : 1;
+  ctx.font = '800 23px system-ui';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const padding = 18;
+  const width = ctx.measureText(celebration.equation).width + 2 * padding;
+  const x = worldWidth / 2;
+  const top = -skyPadding + 14 + (animated ? (1 - fadeIn) * 8 : 0);
+
+  ctx.fillStyle = '#fff0bc';
+  ctx.fillRect(x - width / 2, top, width, 40);
+  ctx.strokeStyle = '#c48121';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x - width / 2, top, width, 40);
+
+  ctx.fillStyle = '#563b13';
+  ctx.fillText(celebration.equation, x, top + 20);
+  ctx.restore();
+}
+
+const drawMatNormally = drawMat;
+drawMat = function (time) {
+  let bounce = 0;
+
+  if (celebration?.complete && !reducedMotion.matches &&
+      mat.step === level && !mat.airborne && !buttonJump) {
+    const elapsed = time - celebration.start;
+    const progress = clamp((elapsed - 150) / 420, 0, 1);
+    bounce = Math.sin(Math.PI * progress) * 17;
+  }
+
+  // El desplaçament s’aplica només al dibuix del personatge.
+  ctx.save();
+  ctx.translate(0, -bounce);
+  drawMatNormally(time);
+  ctx.restore();
+};
+
+const drawNormally = draw;
+draw = function (time = performance.now()) {
+  if (celebration && time - celebration.start >= celebrationDuration) {
+    celebration = null;
+
+    for (const item of get('routes').querySelectorAll('.new-route')) {
+      item.classList.remove('new-route');
+    }
+  }
+
+  if (boostDust && time - boostDust.start >= boostDustDuration) {
+    boostDust = null;
+  }
+
+  drawNormally(time);
+  drawBoostDust(time);
+  drawRouteCelebration(time);
+
+  if (celebration || boostDust) queueFrame();
+};
+    
     restart();
   </script>
 </body>

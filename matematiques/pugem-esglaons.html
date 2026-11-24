@@ -20,16 +20,8 @@
     [hidden] { display: none !important; }
     body { margin: 0; }
     p { line-height: 1.5; }
-
-    button {
-      font: inherit;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      cursor: default;
-      opacity: .48;
-    }
+    button { font: inherit; cursor: pointer; }
+    button:disabled { cursor: default; opacity: .48; }
 
     button:focus-visible {
       outline: 3px solid #cf651f;
@@ -37,11 +29,7 @@
     }
 
     header { border-bottom: 1px solid var(--line); }
-
-    .wrap {
-      width: min(1120px, calc(100% - 36px));
-      margin: auto;
-    }
+    .wrap { width: min(1120px, calc(100% - 36px)); margin: auto; }
 
     .brand {
       display: flex;
@@ -62,11 +50,7 @@
       font-size: 24px;
     }
 
-    .brand small {
-      color: #52675c;
-      font-size: 13px;
-      font-weight: 600;
-    }
+    .brand small { color: #52675c; font-size: 13px; font-weight: 600; }
 
     h1 {
       margin: 24px 0 5px;
@@ -88,7 +72,7 @@
       font-weight: 800;
     }
 
-    nav button[aria-pressed="true"] {
+    nav button[aria-pressed="true"], .primary {
       border-color: var(--green);
       background: var(--green);
       color: white;
@@ -98,8 +82,6 @@
       padding: 11px 16px;
       border: 1px solid var(--green);
       border-radius: 10px;
-      background: var(--green);
-      color: white;
       font-weight: 800;
     }
 
@@ -187,7 +169,6 @@
     }
 
     th:last-child, td:last-child { text-align: right; }
-    td:first-child { width: 90px; }
     td:nth-child(2) { overflow-wrap: anywhere; }
     footer { padding: 8px 0 22px; color: #52675c; font-size: 14px; }
 
@@ -215,62 +196,60 @@
       Cada vegada que trobis una manera nova de pujar, suma 1 al recompte.
     </p>
 
-    <div id="game">
-      <nav id="levels" aria-label="Tria el nombre d’esglaons"></nav>
+    <nav id="levels" aria-label="Tria el nombre d’esglaons"></nav>
 
-      <div class="layout">
-        <section class="card" aria-labelledby="level-title">
-          <div class="bar">
-            <h2 id="level-title"></h2>
-            <span id="position" class="position"></span>
-          </div>
+    <div class="layout">
+      <section class="card" aria-labelledby="level-title">
+        <div class="bar">
+          <h2 id="level-title"></h2>
+          <span id="position" class="position"></span>
+        </div>
 
-          <div class="scene">
-            <canvas id="stairs" width="1200" height="680" aria-hidden="true"></canvas>
-          </div>
+        <div class="scene">
+          <canvas id="stairs" width="1200" height="680" aria-hidden="true"></canvas>
+        </div>
 
-          <p id="route" class="route"></p>
-          <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+        <p id="route" class="route"></p>
+        <p id="feedback" class="feedback" role="status"></p>
 
-          <div class="moves">
-            <button class="primary" id="one" type="button">↑ Puja 1</button>
-            <button class="primary jump2" id="two" type="button">↑ Puja 2</button>
-            <button class="secondary" id="undo" type="button">Desfés el salt</button>
-            <button class="secondary" id="restart" type="button">Torna a baix</button>
-          </div>
+        <div class="moves">
+          <button class="primary" id="one" type="button">↑ Puja 1</button>
+          <button class="primary jump2" id="two" type="button">↑ Puja 2</button>
+          <button class="secondary" id="undo" type="button">Desfés el salt</button>
+          <button class="secondary" id="restart" type="button">Torna a baix</button>
+        </div>
 
-          <p class="keyboard">
-            Prem <kbd>Espai</kbd> per saltar. Fes servir <kbd>←</kbd> i <kbd>→</kbd>
-            per caminar i dirigir el salt. Per pujar dos esglaons de cop,
-            mantén <kbd>→</kbd> mentre ets a l’aire.
-          </p>
-        </section>
+        <p class="keyboard">
+          Mou en MAT amb <kbd>←</kbd> i <kbd>→</kbd>.
+          Prem <kbd>Espai</kbd> per saltar i dirigeix-lo amb les fletxes.
+          Per baixar, també pots caminar cap a l’esquerra fins a la vora.
+        </p>
+      </section>
 
-        <section class="card" aria-labelledby="routes-title">
-          <h2 id="routes-title">Recorreguts descoberts</h2>
-          <p id="count" class="count"></p>
-          <ul id="routes" class="routes" role="list"></ul>
-          <p id="hint">
-            Prova de canviar l’ordre dels salts.
-            Pujar 1 i després 2 fa el mateix recorregut que pujar 2 i després 1?
-          </p>
-        </section>
-      </div>
-
-      <section class="card summary">
-        <h2>La teva taula</h2>
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Esglaons</th>
-              <th scope="col">Sumes trobades</th>
-              <th scope="col">Total trobat</th>
-            </tr>
-          </thead>
-          <tbody id="summary"></tbody>
-        </table>
+      <section class="card" aria-labelledby="routes-title">
+        <h2 id="routes-title">Recorreguts descoberts</h2>
+        <p id="count" class="count"></p>
+        <ul id="routes" class="routes" role="list"></ul>
+        <p id="hint">
+          Prova de canviar l’ordre dels salts.
+          Pujar 1 i després 2 fa el mateix recorregut que pujar 2 i després 1?
+        </p>
       </section>
     </div>
+
+    <section class="card summary">
+      <h2>La teva taula</h2>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Esglaons</th>
+            <th scope="col">Sumes trobades</th>
+            <th scope="col">Total trobat</th>
+          </tr>
+        </thead>
+        <tbody id="summary"></tbody>
+      </table>
+    </section>
 
     <footer>PCMAT · Tasca diagnòstica</footer>
   </main>
@@ -283,25 +262,57 @@
     const ctx = canvas.getContext('2d');
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
     const held = new Set();
-
     const floor = 213;
-    const skyPadding = 100;
     const gravity = 1050;
     const jumpSpeed = 490;
     const walkSpeed = 165;
     const airSpeed = 285;
+    const skyPadding = 115;
 
     let level = 1;
     let route = [];
     let message = '';
     let frame = null;
-    let walkOffset = 0;
-    let physicsFrame = null;
-    let lastTime = null;
-    let velocityX = 0;
-    let flight = null;
+    let previousTime = null;
+    let buttonJump = null;
 
-    function position() {
+    const mat = {
+      x: 0,
+      y: floor,
+      vx: 0,
+      vy: 0,
+      step: 0,
+      airborne: false
+    };
+
+    function stairWidth() {
+      return Math.min(93, 438 / level);
+    }
+
+    function stairOrigin() {
+      return (600 - stairWidth() * level) / 2 + 17;
+    }
+
+    function heightAt(step) {
+      return floor - step * Math.min(33, 124 / level);
+    }
+
+    function leftEdge(step) {
+      return stairOrigin() + (step - 1) * stairWidth();
+    }
+
+    function centerX(step) {
+      return step === 0
+        ? stairOrigin() - 40
+        : leftEdge(step) + stairWidth() / 2;
+    }
+
+    function surfaceAt(x) {
+      const index = Math.floor((x - stairOrigin()) / stairWidth());
+      return index < 0 || index >= level ? 0 : index + 1;
+    }
+
+    function routeEnd() {
       return route.reduce((sum, jump) => sum + jump, 0);
     }
 
@@ -309,74 +320,104 @@
       return `${[...jumps].join(' + ')} = ${sum}`;
     }
 
+    function setPosition(step) {
+      mat.step = step;
+      mat.x = centerX(step);
+      mat.y = heightAt(step);
+      mat.vx = 0;
+      mat.vy = 0;
+      mat.airborne = false;
+      buttonJump = null;
+    }
+
     function restart() {
       route = [];
-      walkOffset = 0;
-      stopMotion();
       message = '';
+      setPosition(0);
       render();
     }
 
-    function move(jump, landingOffset = null) {
-      const previous = position();
-      const step = previous + jump;
-      if (step > level || flight) return;
+    function recordRoute() {
+      const found = discoveries[level - 1];
+      const path = route.join('');
 
-      stopMotion();
-      const previousOffset = walkOffset;
-      walkOffset = landingOffset ?? 0;
-      route.push(jump);
+      if (found.has(path)) {
+        message = `Ja havies trobat aquesta manera. El recompte continua a ${found.size}.`;
+        return;
+      }
+
+      found.add(path);
+      message = `Una manera nova! ${found.size - 1} + 1 = ${found.size}.`;
+
+      if (found.size === totals[level - 1]) {
+        message += ' Has completat l’escala!';
+      }
+    }
+
+    function land(step) {
+      const from = mat.step;
+      mat.step = step;
+      mat.y = heightAt(step);
+      mat.vy = 0;
+      mat.airborne = false;
       message = '';
 
-      if (step === level) {
-        const found = discoveries[level - 1];
-        const path = route.join('');
-
-        if (found.has(path)) {
-          message = `Ja havies trobat aquesta manera. El recompte continua a ${found.size}.`;
-        } else {
-          found.add(path);
-          message = `Una manera nova! ${found.size - 1} + 1 = ${found.size}.`;
-
-          if (found.size === totals[level - 1]) {
-            message += ' Has completat l’escala!';
-          }
-        }
+      if (step < from) {
+        let end = routeEnd();
+        while (end > step) end -= route.pop();
+      } else if (step > from && from === routeEnd() && step - from <= 2) {
+        route.push(step - from);
+        if (step === level) recordRoute();
       }
 
-      render(landingOffset === null ? previous : step, previousOffset);
-
-      if (step === level) {
-        get('restart').focus({ preventScroll: true });
-      } else if (jump === 2 && get('two').disabled) {
-        get('one').focus({ preventScroll: true });
+      if (step !== routeEnd()) {
+        message = 'Torna a l’últim esglaó verd o a baix per reprendre el recorregut.';
       }
+
+      render();
     }
 
     function undo() {
-      if (!route.length || position() === level) return;
+      if (mat.airborne || buttonJump || mat.step === 0) return;
 
-      route.pop();
-      walkOffset = 0;
-      stopMotion();
+      let end = routeEnd();
+      if (end === mat.step) end -= route.pop();
+      setPosition(end);
       message = '';
       render();
 
-      if (get('undo').disabled) {
-        get('one').focus({ preventScroll: true });
-      }
+      if (get('undo').disabled) get('one').focus({ preventScroll: true });
     }
 
-    function render(previous = position(), previousOffset = walkOffset) {
-      const step = position();
+    function jumpWithButton(distance) {
+      const destination = mat.step + distance;
+      if (mat.airborne || buttonJump || destination > level) return;
+
+      if (reducedMotion.matches) {
+        mat.x = centerX(destination);
+        land(destination);
+        return;
+      }
+
+      mat.vx = 0;
+      buttonJump = {
+        destination,
+        fromX: mat.x,
+        fromY: mat.y,
+        start: performance.now()
+      };
+      queueFrame();
+    }
+
+    function render() {
       const found = discoveries[level - 1];
       const complete = found.size === totals[level - 1];
+      const total = routeEnd();
 
       [...get('levels').children].forEach((button, index) => {
         const size = index + 1;
         const done = discoveries[index].size === totals[index];
         const label = size === 1 ? '1 esglaó' : `${size} esglaons`;
-
         button.textContent = done ? `${size} ✓` : size;
         button.setAttribute('aria-pressed', size === level);
         button.setAttribute('aria-label', done ? `${label}, escala completada` : label);
@@ -385,21 +426,20 @@
       get('level-title').textContent = level === 1
         ? 'Escala d’1 esglaó'
         : `Escala de ${level} esglaons`;
-      get('position').textContent = step === 0 ? 'A baix' : `Esglaó ${step} de ${level}`;
+      get('position').textContent = mat.step === 0 ? 'A baix' : `Esglaó ${mat.step} de ${level}`;
       get('route').textContent = route.length
-        ? `${equation(route, step)} · ${route.length} ${route.length === 1 ? 'salt' : 'salts'}`
+        ? `${equation(route, total)} · ${route.length} ${route.length === 1 ? 'salt' : 'salts'}`
         : '0 esglaons pujats';
       get('feedback').textContent = message;
 
-      get('one').disabled = step === level;
-      get('two').disabled = step + 2 > level;
-      get('undo').disabled = step === 0 || step === level;
+      get('one').disabled = mat.step >= level;
+      get('two').disabled = mat.step + 2 > level;
+      get('undo').disabled = mat.step === 0;
 
       const countLabel = found.size === 1 ? 'manera trobada' : 'maneres trobades';
       get('count').textContent = complete
         ? `${found.size} · Escala completada`
         : `${found.size} ${countLabel}`;
-
       get('routes').innerHTML = [...found]
         .map(path => `<li>${equation(path, level)}</li>`)
         .join('');
@@ -414,136 +454,101 @@
         return `<tr><th scope="row">${size}</th><td>${list}</td><td>${paths.size}${mark}</td></tr>`;
       }).join('');
 
-      if (frame !== null) cancelAnimationFrame(frame);
-      frame = null;
+      draw();
+    }
 
-      if (previous === step || reducedMotion.matches) {
-        draw(step, 0);
+    function queueFrame() {
+      if (frame === null) frame = requestAnimationFrame(update);
+    }
+
+    function updateButtonJump(time) {
+      const { destination, fromX, fromY, start } = buttonJump;
+      const progress = Math.min(1, Math.max(0, (time - start) / 360));
+      mat.x = fromX + (centerX(destination) - fromX) * progress;
+      mat.y = fromY + (heightAt(destination) - fromY) * progress
+        - Math.sin(Math.PI * progress) * 58;
+
+      if (progress === 1) {
+        buttonJump = null;
+        land(destination);
+        if (destination === level) get('restart').focus({ preventScroll: true });
+      }
+    }
+
+    function moveHorizontally(dt) {
+      const direction = Number(held.has('ArrowRight')) - Number(held.has('ArrowLeft'));
+      const targetSpeed = direction * (mat.airborne ? airSpeed : walkSpeed);
+      mat.vx += (targetSpeed - mat.vx) * (1 - Math.exp(-17 * dt));
+
+      const nextX = Math.max(38, Math.min(562, mat.x + mat.vx * dt));
+      const currentSurface = surfaceAt(mat.x);
+      const nextSurface = surfaceAt(nextX);
+
+      // Els esglaons més alts fan de paret fins que en MAT hi passa per sobre.
+      const hitsWall = nextSurface !== currentSurface && heightAt(nextSurface) < mat.y;
+      const exceedsJump = nextSurface > mat.step + 2;
+
+      if (hitsWall || exceedsJump) {
+        if (nextX > mat.x) {
+          mat.x = leftEdge(nextSurface) - .01;
+        } else if (currentSurface > 0) {
+          mat.x = leftEdge(currentSurface) + .01;
+        }
+        mat.vx = 0;
         return;
       }
 
-      const startTime = performance.now();
+      mat.x = nextX;
+    }
 
-      function animate(time) {
-        const progress = Math.min(1, (time - startTime) / 320);
-        const animatedStep = previous + (step - previous) * progress;
-        const lift = Math.sin(Math.PI * progress) * 32;
-        const offset = previousOffset * (1 - progress);
+    function updateMotion(dt) {
+      moveHorizontally(dt);
 
-        draw(animatedStep, lift, offset);
-        frame = progress < 1 ? requestAnimationFrame(animate) : null;
+      const surface = surfaceAt(mat.x);
+      const surfaceY = heightAt(surface);
+
+      if (!mat.airborne && surfaceY > mat.y) {
+        mat.airborne = true;
+        mat.vy = 0;
       }
 
-      frame = requestAnimationFrame(animate);
-    }
+      if (!mat.airborne) return;
 
-    function stairWidth() {
-      return Math.min(93, 438 / level);
-    }
+      const nextY = mat.y + mat.vy * dt + .5 * gravity * dt * dt;
+      mat.vy += gravity * dt;
 
-    function stairOrigin() {
-      return (600 - stairWidth() * level) / 2 + 17;
-    }
-
-    function stairHeight(step) {
-      return floor - step * Math.min(33, 124 / level);
-    }
-
-    function centerX(step) {
-      return step === 0
-        ? stairOrigin() - 40
-        : stairOrigin() + (step - .5) * stairWidth();
-    }
-
-    function leftEdge(step) {
-      return step === 0 ? 38 : stairOrigin() + (step - 1) * stairWidth();
-    }
-
-    function rightEdge(step) {
-      return stairOrigin() + step * stairWidth();
-    }
-
-    function stopMotion() {
-      if (physicsFrame !== null) cancelAnimationFrame(physicsFrame);
-      physicsFrame = null;
-      lastTime = null;
-      velocityX = 0;
-      flight = null;
-    }
-
-    function queueMotion() {
-      if (physicsFrame === null) {
-        physicsFrame = requestAnimationFrame(updateMotion);
-      }
-    }
-
-    function updateMotion(time) {
-      physicsFrame = null;
-      const dt = lastTime === null ? 0 : Math.min(.025, (time - lastTime) / 1000);
-      lastTime = time;
-
-      const step = position();
-      const direction = Number(held.has('ArrowRight')) - Number(held.has('ArrowLeft'));
-      const targetSpeed = direction * (flight ? airSpeed : walkSpeed);
-      velocityX += (targetSpeed - velocityX) * (1 - Math.exp(-17 * dt));
-
-      if (flight) {
-        const previousY = flight.y;
-        flight.y += flight.velocityY * dt + .5 * gravity * dt * dt;
-        flight.velocityY += gravity * dt;
-
-        const lastStep = Math.min(step + 2, level);
-        let limit = rightEdge(lastStep) - 2;
-
-        for (let next = step + 1; next <= lastStep; next++) {
-          if (previousY > stairHeight(next) && flight.x < leftEdge(next)) {
-            limit = leftEdge(next) - 2;
-            break;
-          }
-        }
-
-        flight.x = Math.max(leftEdge(step) + 2, Math.min(limit, flight.x + velocityX * dt));
-
-        if (flight.velocityY >= 0) {
-          for (let landed = lastStep; landed >= step; landed--) {
-            if (flight.x < leftEdge(landed) ||
-                flight.x >= rightEdge(landed) ||
-                flight.y < stairHeight(landed)) continue;
-
-            const offset = flight.x - centerX(landed);
-            flight = null;
-
-            if (landed > step) {
-              move(landed - step, offset);
-              if (held.size) queueMotion();
-              return;
-            }
-
-            walkOffset = offset;
-            break;
-          }
-        }
+      if (mat.vy >= 0 && nextY >= surfaceY) {
+        land(surface);
       } else {
-        const x = centerX(step) + walkOffset + velocityX * dt;
-        const boundedX = Math.max(leftEdge(step) + 2, Math.min(rightEdge(step) - 2, x));
-        walkOffset = boundedX - centerX(step);
+        mat.y = nextY;
+      }
+    }
+
+    function update(time) {
+      frame = null;
+      const dt = previousTime === null ? 0 : Math.min(.025, (time - previousTime) / 1000);
+      previousTime = time;
+
+      if (buttonJump) {
+        updateButtonJump(time);
+      } else {
+        updateMotion(dt);
       }
 
-      draw(step, 0, walkOffset, flight);
+      draw();
 
-      if (flight || held.size || Math.abs(velocityX) > 1) {
-        queueMotion();
+      if (buttonJump || mat.airborne || held.size || Math.abs(mat.vx) > 1) {
+        queueFrame();
       } else {
-        lastTime = null;
-        velocityX = 0;
+        previousTime = null;
+        mat.vx = 0;
       }
     }
 
     function shape(fill, points) {
-      const [[firstX, firstY], ...rest] = points;
       ctx.beginPath();
-      ctx.moveTo(firstX, firstY);
-      for (const [x, y] of rest) ctx.lineTo(x, y);
+      ctx.moveTo(...points[0]);
+      for (const point of points.slice(1)) ctx.lineTo(...point);
       ctx.closePath();
       ctx.fillStyle = fill;
       ctx.fill();
@@ -556,49 +561,9 @@
       ctx.fill();
     }
 
-    function draw(step, lift, offset = walkOffset, airborne = null) {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.setTransform(2, 0, 0, 2, 0, skyPadding * 2);
-
-      const width = stairWidth();
-      const origin = stairOrigin();
-      const visited = new Set();
-      let sum = 0;
-
-      for (const jump of route) {
-        sum += jump;
-        visited.add(sum);
-      }
-
-      ctx.fillStyle = '#c9d4aa';
-      ctx.fillRect(0, floor, 600, 27);
-      ctx.textAlign = 'center';
-
-      for (let i = 1; i <= level; i++) {
-        const x = origin + (i - 1) * width;
-        const y = stairHeight(i);
-        const reached = visited.has(i);
-
-        ctx.fillStyle = reached ? '#35604d' : '#aec49b';
-        ctx.fillRect(x, y, width, floor - y);
-        ctx.fillStyle = reached ? '#d6ed9e' : '#718e72';
-        ctx.fillRect(x, y, width, 4);
-        ctx.fillStyle = reached ? 'white' : '#163d31';
-        ctx.font = 'bold 14px system-ui';
-        ctx.fillText(i, x + width / 2, y + 19);
-      }
-
-      const startX = origin - 40;
-      const x = step < 1
-        ? startX + step * (40 + width / 2)
-        : origin + (step - .5) * width;
-
+    function drawMat() {
       ctx.save();
-      ctx.translate(
-        airborne ? airborne.x : x + offset,
-        airborne ? airborne.y : stairHeight(step) - lift
-      );
+      ctx.translate(mat.x, mat.y);
 
       oval('#dd7835', -19, -17, 16, 9);
       oval('#fff9eb', -29, -18, 7, 7);
@@ -620,6 +585,41 @@
       ctx.restore();
     }
 
+    function draw() {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.setTransform(2, 0, 0, 2, 0, skyPadding * 2);
+
+      const width = stairWidth();
+      const visited = new Set();
+      let sum = 0;
+
+      for (const jump of route) {
+        sum += jump;
+        visited.add(sum);
+      }
+
+      ctx.fillStyle = '#c9d4aa';
+      ctx.fillRect(0, floor, 600, canvas.height / 2 - skyPadding - floor);
+      ctx.textAlign = 'center';
+
+      for (let step = 1; step <= level; step++) {
+        const x = leftEdge(step);
+        const y = heightAt(step);
+        const reached = visited.has(step);
+
+        ctx.fillStyle = reached ? '#35604d' : '#aec49b';
+        ctx.fillRect(x, y, width, floor - y);
+        ctx.fillStyle = reached ? '#d6ed9e' : '#718e72';
+        ctx.fillRect(x, y, width, 4);
+        ctx.fillStyle = reached ? 'white' : '#163d31';
+        ctx.font = 'bold 14px system-ui';
+        ctx.fillText(step, x + width / 2, y + 19);
+      }
+
+      drawMat();
+    }
+
     totals.forEach((_, index) => {
       const button = document.createElement('button');
       button.type = 'button';
@@ -630,8 +630,8 @@
       get('levels').append(button);
     });
 
-    get('one').addEventListener('click', () => move(1));
-    get('two').addEventListener('click', () => move(2));
+    get('one').addEventListener('click', () => jumpWithButton(1));
+    get('two').addEventListener('click', () => jumpWithButton(2));
     get('undo').addEventListener('click', undo);
 
     get('restart').addEventListener('click', () => {
@@ -651,21 +651,16 @@
       if (!arrow && !space) return;
 
       event.preventDefault();
-      if (arrow) held.add(event.key);
-      if (frame !== null) return;
 
-      if (space && !event.repeat && !flight) {
-        const step = position();
-        flight = {
-          x: centerX(step) + walkOffset,
-          y: stairHeight(step),
-          velocityY: -jumpSpeed
-        };
-
-        if (!held.size) velocityX = 0;
+      if (arrow) {
+        held.add(event.key);
+      } else if (!event.repeat && !mat.airborne && !buttonJump) {
+        mat.airborne = true;
+        mat.vy = -jumpSpeed;
+        if (!held.size) mat.vx = 0;
       }
 
-      queueMotion();
+      queueFrame();
     });
 
     document.addEventListener('keyup', event => {
@@ -674,10 +669,10 @@
 
     window.addEventListener('blur', () => {
       held.clear();
-      velocityX = 0;
+      mat.vx = 0;
     });
 
-    render();
+    restart();
   </script>
 </body>
 </html>

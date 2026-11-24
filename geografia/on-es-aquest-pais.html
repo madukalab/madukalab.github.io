@@ -6,6 +6,7 @@
   <title>On és aquest país? · MADUKA</title>
   <link rel="icon" href="../favicon.png?v=2">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+
   <style>
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
@@ -46,7 +47,7 @@
     }
 
     .round, .controls { padding: 12px 16px; }
-    .level { margin: 0 0 5px; color: #b3d6f2; font-size: .85rem; font-weight: 700; }
+    #level { margin: 0 0 5px; color: #b3d6f2; font-size: .85rem; font-weight: 700; }
     #counter { color: #bed0df; font-size: .9rem; }
 
     #streak {
@@ -58,11 +59,11 @@
       font-weight: 800;
     }
 
-    .progress { display: flex; gap: 5px; padding: 0 16px 10px; }
-    .progress span { flex: 1; height: 5px; border-radius: 6px; background: #30455a; }
-    .progress .current { background: #91c8f3; }
-    .progress .hit { background: #36e8a5; }
-    .progress .miss { background: #ff8d80; }
+    #progress { display: flex; gap: 5px; padding: 0 16px 10px; }
+    #progress span { flex: 1; height: 5px; border-radius: 6px; background: #30455a; }
+    #progress .current { background: #91c8f3; }
+    #progress .hit { background: #36e8a5; }
+    #progress .miss { background: #ff8d80; }
 
     .map-frame { position: relative; isolation: isolate; }
 
@@ -78,8 +79,8 @@
     #feedback { flex: 1 1 250px; margin: 0; color: #d4e4ef; }
 
     button {
-      min-height: 40px;
-      padding: 7px 12px;
+      min-height: 42px;
+      padding: 8px 14px;
       border: 1px solid #46637a;
       border-radius: 10px;
       background: #1c3349;
@@ -92,6 +93,28 @@
     button:hover { filter: brightness(1.15); }
     .primary { background: #72f0be; color: #08251d; border-color: #72f0be; }
     :focus-visible { outline: 3px solid #a6e0ff; outline-offset: 3px; }
+
+    #round-intro {
+      width: min(440px, calc(100% - 32px));
+      padding: clamp(24px, 7vw, 44px);
+      border: 1px solid #53768d;
+      border-radius: 24px;
+      background: radial-gradient(ellipse at top, #203d52, #101f30 72%);
+      color: #f2f7fb;
+      text-align: center;
+      box-shadow: 0 24px 80px #0009;
+    }
+
+    #round-intro[open] { animation: dialog-in .24s ease-out both; }
+    #round-intro::backdrop { background: #040b15b8; backdrop-filter: blur(4px); }
+    #intro-title { font-size: clamp(32px, 8vw, 50px); letter-spacing: -.045em; }
+    #intro-info { margin: 12px 0 24px; color: #c5ddeb; }
+    #start-round { min-width: 145px; }
+
+    @keyframes dialog-in {
+      from { opacity: 0; transform: translateY(12px) scale(.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
 
     .pin {
       position: relative;
@@ -174,7 +197,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .pin, .points, #confetti i { animation: none; }
+      #round-intro[open], .pin, .points, #confetti i { animation: none; }
       path.leaflet-interactive { transition: none; }
     }
   </style>
@@ -192,9 +215,10 @@
     <section class="game" aria-label="Joc del mapamundi">
       <div class="round">
         <div>
-          <p id="level" class="level"></p>
-          <h2 id="question" aria-live="polite">Preparant el mapa…</h2>
+          <p id="level"></p>
+          <h2 id="question" tabindex="-1" aria-live="polite">Preparant el mapa…</h2>
         </div>
+
         <div class="stats">
           <span id="counter"></span>
           <strong id="score"></strong>
@@ -202,7 +226,7 @@
         </div>
       </div>
 
-      <div id="progress" class="progress" aria-hidden="true"></div>
+      <div id="progress" aria-hidden="true"></div>
 
       <div class="map-frame">
         <div id="map" role="region" aria-label="Mapamundi interactiu"></div>
@@ -218,6 +242,12 @@
       </div>
     </section>
   </main>
+
+  <dialog id="round-intro" aria-labelledby="intro-title" aria-describedby="intro-info">
+    <h2 id="intro-title"></h2>
+    <p id="intro-info"></p>
+    <button id="start-round" type="button" class="primary" autofocus>Comença</button>
+  </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
@@ -243,10 +273,15 @@
     const review = document.getElementById("review");
     const next = document.getElementById("next");
     const confetti = document.getElementById("confetti");
+    const intro = document.getElementById("round-intro");
+    const introTitle = document.getElementById("intro-title");
+    const introInfo = document.getElementById("intro-info");
+    const startRoundButton = document.getElementById("start-round");
 
     const regionNames = new Intl.DisplayNames(["ca"], { type: "region" });
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
     const layers = new Map();
+
     const land = { color: "#52766f", weight: .8, fillColor: "#c8dbbc", fillOpacity: 1 };
     const hover = { color: "#f6bb4c", weight: 1.4, fillColor: "#ffdf83" };
     const correct = { color: "#e5fff3", weight: 2, fillColor: "#31eba4" };
@@ -269,8 +304,8 @@
     }
 
     function countryCode(properties) {
-      const special = { France: "FR", Norway: "NO", Kosovo: "XK" };
       if (/^[A-Z]{2}$/.test(properties.ISO_A2 ?? "")) return properties.ISO_A2;
+      const special = { France: "FR", Norway: "NO", Kosovo: "XK" };
       return special[properties.ADMIN] || null;
     }
 
@@ -285,9 +320,9 @@
     function chooseCountries(level) {
       const available = level.codes.split(" ").filter(code => layers.has(code));
 
-      for (let i = available.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [available[i], available[j]] = [available[j], available[i]];
+      for (let index = available.length - 1; index > 0; index--) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [available[index], available[randomIndex]] = [available[randomIndex], available[index]];
       }
 
       return available.slice(0, questionsPerRound);
@@ -305,12 +340,37 @@
 
         if (result) {
           segment.className = result.hit ? "hit" : "miss";
-        } else if (index === questionIndex) {
+        } else if (phase !== "intro" && index === questionIndex) {
           segment.className = "current";
         }
 
         return segment;
       }));
+    }
+
+    function showRoundIntro() {
+      phase = "intro";
+      questions = selections[levelIndex];
+      questionIndex = 0;
+      roundStart = results.length;
+
+      const number = levelIndex + 1;
+      const label = reviewing ? `Bloc de repàs ${number}` : `Ronda ${number}`;
+      const description = reviewing ? "Països pendents" : levels[levelIndex].name;
+      const count = questions.length === 1 ? "1 pregunta" : `${questions.length} preguntes`;
+
+      levelLabel.textContent = `${label}/${selections.length} · ${description}`;
+      question.textContent = "A punt per començar?";
+      counter.textContent = "";
+      feedback.textContent = "";
+      skip.hidden = true;
+      next.hidden = true;
+      review.hidden = true;
+      updateStats();
+
+      introTitle.textContent = label;
+      introInfo.textContent = `${description} · ${count}`;
+      intro.showModal();
     }
 
     function showQuestion() {
@@ -319,9 +379,10 @@
       countries.setStyle(land);
       showWorld();
 
-      const name = document.createElement("strong");
-      name.textContent = nameOf(questions[questionIndex]);
-      question.replaceChildren("Troba al mapa · ", name);
+      const country = document.createElement("strong");
+      country.textContent = nameOf(questions[questionIndex]);
+      question.replaceChildren("Troba al mapa · ", country);
+
       counter.textContent = `Pregunta ${questionIndex + 1}/${questions.length}`;
       feedback.textContent = "Clica el país. Pots arrossegar el mapa i fer zoom amb la roda.";
       skip.hidden = false;
@@ -329,45 +390,33 @@
       updateStats();
     }
 
-    function startRound() {
-      questions = selections[levelIndex];
-      questionIndex = 0;
-      roundStart = results.length;
-      levelLabel.textContent =
-        `Ronda ${levelIndex + 1}/${levels.length} · ${levels[levelIndex].name}`;
-      showQuestion();
+    function clearConfetti() {
+      clearTimeout(confettiTimer);
+      confetti.replaceChildren();
     }
 
     function startSession(missedCountries = null) {
-      clearTimeout(confettiTimer);
-      confetti.replaceChildren();
+      clearConfetti();
       pins.clearLayers();
+      effects.clearLayers();
+      countries.setStyle(land);
+      showWorld();
+
       results = [];
-      roundStart = 0;
       streak = 0;
       levelIndex = 0;
-      review.hidden = true;
       reviewing = Boolean(missedCountries);
 
       if (reviewing) {
         selections = [];
-        for (let i = 0; i < missedCountries.length; i += questionsPerRound) {
-          selections.push(missedCountries.slice(i, i + questionsPerRound));
+        for (let index = 0; index < missedCountries.length; index += questionsPerRound) {
+          selections.push(missedCountries.slice(index, index + questionsPerRound));
         }
-        startReviewRound();
-        return;
+      } else {
+        selections = levels.map(chooseCountries);
       }
 
-      selections = levels.map(chooseCountries);
-      startRound();
-    }
-
-    function startReviewRound() {
-      questions = selections[levelIndex];
-      questionIndex = 0;
-      roundStart = results.length;
-      levelLabel.textContent = `Repàs · Bloc ${levelIndex + 1}/${selections.length}`;
-      showQuestion();
+      showRoundIntro();
     }
 
     function addPin(position, hit) {
@@ -404,7 +453,6 @@
       setTimeout(() => effects.removeLayer(marker), 1550);
     }
 
-    // Per als països amb territoris dispersos, centra la vista en el polígon principal.
     function mainBounds(layer) {
       const geometry = layer.feature.geometry;
       if (geometry.type !== "MultiPolygon") return layer.getBounds();
@@ -415,9 +463,9 @@
       for (const [ring] of geometry.coordinates) {
         let twiceArea = 0;
 
-        for (let i = 1; i < ring.length; i++) {
-          const [x1, y1] = ring[i - 1];
-          const [x2, y2] = ring[i];
+        for (let index = 1; index < ring.length; index++) {
+          const [x1, y1] = ring[index - 1];
+          const [x2, y2] = ring[index];
           twiceArea += x1 * y2 - y1 * x2;
         }
 
@@ -428,16 +476,14 @@
         }
       }
 
-      return L.latLngBounds(largest.map(([lng, lat]) => [lat, lng]));
+      return L.latLngBounds(largest.map(([longitude, latitude]) => [latitude, longitude]));
     }
 
     function reveal(target, position) {
       target.setStyle(correct).bringToFront();
 
-      const bounds = L.latLngBounds(
-        mainBounds(target).getSouthWest(),
-        mainBounds(target).getNorthEast()
-      );
+      const targetBounds = mainBounds(target);
+      const bounds = L.latLngBounds(targetBounds.getSouthWest(), targetBounds.getNorthEast());
       if (position) bounds.extend(position);
 
       map.stop();
@@ -451,9 +497,7 @@
     }
 
     function showNextButton() {
-      next.textContent = questionIndex + 1 === questions.length
-        ? "Veure resultat"
-        : "Següent";
+      next.textContent = questionIndex + 1 === questions.length ? "Veure resultat" : "Següent";
       next.hidden = false;
     }
 
@@ -486,8 +530,8 @@
 
       function showCorrection() {
         feedback.textContent = layer
-          ? `Has clicat ${label}. En verd tens la resposta: ${targetName}.`
-          : `En verd tens la resposta: ${targetName}.`;
+          ? `Has clicat ${label}. El país correcte és ${targetName}, en verd al mapa.`
+          : `El país correcte és ${targetName}, en verd al mapa.`;
         reveal(target, position);
         showNextButton();
       }
@@ -505,27 +549,17 @@
       }
     }
 
-    function showMapResults() {
-      effects.clearLayers();
-      countries.setStyle(land);
-      showWorld();
-
-      for (const result of results) {
-        if (result.hit) layers.get(result.code).setStyle(correct);
-      }
-    }
-
     function celebrate() {
       if (reducedMotion.matches) return;
+      clearConfetti();
 
-      clearTimeout(confettiTimer);
       const colors = ["#72f0be", "#ffdf83", "#ff897a", "#9dd8ff", "#d4a6f7"];
       const pieces = document.createDocumentFragment();
 
-      for (let i = 0; i < 48; i++) {
+      for (let index = 0; index < 48; index++) {
         const piece = document.createElement("i");
         piece.style.left = `${Math.random() * 100}%`;
-        piece.style.background = colors[i % colors.length];
+        piece.style.background = colors[index % colors.length];
         piece.style.setProperty("--time", `${1.4 + Math.random()}s`);
         piece.style.setProperty("--delay", `${Math.random() * .45}s`);
         piece.style.setProperty("--drift", `${Math.random() * 130 - 65}px`);
@@ -533,11 +567,17 @@
       }
 
       confetti.replaceChildren(pieces);
-      confettiTimer = setTimeout(() => confetti.replaceChildren(), 3000);
+      confettiTimer = setTimeout(clearConfetti, 3000);
     }
 
     function finishRound() {
-      showMapResults();
+      effects.clearLayers();
+      countries.setStyle(land);
+      showWorld();
+
+      for (const result of results) {
+        if (result.hit) layers.get(result.code).setStyle(correct);
+      }
 
       const roundHits = results.slice(roundStart).filter(result => result.hit).length;
       const hasNextRound = levelIndex + 1 < selections.length;
@@ -547,20 +587,23 @@
         question.textContent = reviewing ? "Bloc completat!" : "Ronda completada!";
         counter.textContent = `${roundHits} de ${questions.length} encerts`;
         feedback.textContent = reviewing
-          ? "Segueix amb els països pendents del repàs."
-          : `Ara ve el nivell ${levels[levelIndex + 1].name.toLowerCase()}. Conserves els punts i les xinxetes.`;
+          ? "Continua amb els països pendents del repàs."
+          : `Nivell següent: ${levels[levelIndex + 1].name.toLowerCase()}. Conserves els punts i les xinxetes.`;
         next.textContent = reviewing ? "Bloc següent" : "Ronda següent";
       } else {
         phase = "finished";
         const hits = results.filter(result => result.hit).length;
         const perfect = hits === results.length;
+
         question.textContent = perfect
           ? "Ple d’encerts!"
           : reviewing ? "Repàs completat!" : "Partida acabada!";
+
         counter.textContent = `${hits} de ${results.length} encerts`;
         feedback.textContent = hits
-          ? `Les xinxetes del mapa marquen els teus encerts: ${hits}.`
+          ? "Cada xinxeta clavada al mapa marca un encert."
           : "Pots tornar a buscar els països amb el botó de repàs.";
+
         review.hidden = perfect;
         next.textContent = "Nova partida";
         updateStats();
@@ -568,6 +611,16 @@
 
       if (roundHits === questions.length) celebrate();
     }
+
+    intro.addEventListener("cancel", event => event.preventDefault());
+
+    startRoundButton.addEventListener("click", () => {
+      if (phase !== "intro") return;
+
+      intro.close();
+      showQuestion();
+      question.focus({ preventScroll: true });
+    });
 
     world.addEventListener("click", showWorld);
     skip.addEventListener("click", () => answer(null, null, "", null));
@@ -578,11 +631,9 @@
       if (phase === "finished") {
         startSession();
       } else if (phase === "round-end") {
-        clearTimeout(confettiTimer);
-        confetti.replaceChildren();
+        clearConfetti();
         levelIndex++;
-        if (reviewing) startReviewRound();
-        else startRound();
+        showRoundIntro();
       } else if (phase === "answer") {
         if (questionIndex + 1 === questions.length) {
           finishRound();
@@ -610,6 +661,7 @@
         });
 
         map.zoomControl.getContainer().setAttribute("aria-label", "Controls de zoom");
+
         L.control.attribution({ prefix: false }).addTo(map).addAttribution(
           '<a href="https://www.naturalearthdata.com/">Natural Earth</a> · ' +
           '<a href="https://leafletjs.com/">Leaflet</a>'
@@ -647,8 +699,8 @@
         }).addTo(map);
 
         for (const level of levels) {
-          const count = level.codes.split(" ").filter(code => layers.has(code)).length;
-          if (count < questionsPerRound) {
+          const available = level.codes.split(" ").filter(code => layers.has(code));
+          if (available.length < questionsPerRound) {
             throw new Error(`No hi ha prou països al nivell ${level.name}.`);
           }
         }

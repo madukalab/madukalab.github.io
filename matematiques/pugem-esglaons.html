@@ -304,6 +304,7 @@
           Tria l’escala amb <kbd>1</kbd> a <kbd>6</kbd>.
           Mou en MAT amb <kbd>←</kbd> i <kbd>→</kbd>.
           Prem <kbd>Espai</kbd> per saltar i torna’l a prémer a l’aire per fer un doble salt.
+          Amb l’astronauta, mantén <kbd>Espai</kbd> premut per quedar-te a l’aire i deixa’l anar per baixar.
           Prem <kbd>Q</kbd> per saludar.
           Si surts per una vora, reapareixes per l’altra.
         </p>
@@ -355,7 +356,7 @@
       const walkSpeed = 165;
       const airSpeed = 285;
       const waveMs = 720;
-      const celebrationMs = 6000;
+      const celebrationMs = 4000;
       const replayJumpMs = 430;
       const replaySegmentMs = 620;
       const dayDurationMs = 6 * 60 * 1000;
@@ -457,6 +458,7 @@
       let frame = null;
       let previousTime = null;
       let buttonJump = null;
+      let jumpHeld = false;
       let landing = null;
       let boost = null;
       let replay = null;
@@ -540,6 +542,7 @@
           step, airborne: false, jumps: 0, facing: 1, turn: 1, stride: 0
         });
         buttonJump = null;
+        jumpHeld = false;
         landing = null;
         boost = null;
         celebration = null;
@@ -826,6 +829,14 @@
         }
 
         if (!mat.airborne) return;
+
+        if (jumpHeld && mat.jumps > 0 && outfits[outfitIndex].style === 'astronaut') {
+          // Atura el descens al punt més alt i mantén el moviment horitzontal.
+          const riseTime = clamp(-mat.vy / gravity, 0, dt);
+          mat.y += mat.vy * riseTime + .5 * gravity * riseTime * riseTime;
+          mat.vy = Math.min(0, mat.vy + gravity * dt);
+          return;
+        }
 
         const nextY = mat.y + mat.vy * dt + .5 * gravity * dt * dt;
         mat.vy += gravity * dt;
@@ -1932,14 +1943,19 @@
           held.add(event.key);
           queueFrame();
         } else if (!event.repeat) {
+          jumpHeld = true;
           jumpByKeyboard();
         }
       });
 
-      document.addEventListener('keyup', event => held.delete(event.key));
+      document.addEventListener('keyup', event => {
+        held.delete(event.key);
+        if (event.code === 'Space' || event.key === ' ') jumpHeld = false;
+      });
 
       window.addEventListener('blur', () => {
         held.clear();
+        jumpHeld = false;
         mat.vx = 0;
       });
 

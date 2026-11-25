@@ -122,10 +122,15 @@
     }
 
     canvas { display: block; width: 100%; }
-    #change-look {
+    .customization {
       position: absolute;
       right: 10px;
       bottom: 10px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .customization button {
       display: grid;
       place-items: center;
       width: 44px;
@@ -139,7 +144,7 @@
       line-height: 1;
     }
 
-    #change-look:hover { background: #ffe9a5; }
+    .customization button:hover { background: #ffe9a5; }
 
     .route { margin: 10px 0 6px; font-weight: 800; }
     .feedback { margin: 6px 0 0; color: #425c4e; }
@@ -235,11 +240,18 @@
 
         <div class="scene">
           <canvas id="stairs" width="1200" height="780" aria-hidden="true"></canvas>
-          <button id="change-look" type="button"
-                  aria-label="Canvia l’aspecte d’en MAT. Aspecte actual: MAT clàssic"
-                  title="Canvia l’aspecte d’en MAT">
-            <span aria-hidden="true">🦊</span>
-          </button>
+          <div class="customization" role="group" aria-label="Personalitza en MAT">
+            <button id="change-look" type="button"
+                    aria-label="Canvia l’aspecte d’en MAT. Aspecte actual: MAT clàssic"
+                    title="Canvia l’aspecte d’en MAT">
+              <span aria-hidden="true">🦊</span>
+            </button>
+            <button id="change-item" type="button"
+                    aria-label="Canvia l’objecte de la mà. Objecte actual: llibreta"
+                    title="Canvia l’objecte de la mà">
+              <span aria-hidden="true">✋</span>
+            </button>
+          </div>
         </div>
 
         <p id="route" class="route"></p>
@@ -344,21 +356,23 @@
           badge: '◉', airtime: .92, effect: 'jet', color: '#b6f898', life: 310 }
       ];
 
-      const heldItems = {
-        classic: 'notebook',
-        explorer: 'compass',
-        astronaut: 'rock',
-        pirate: 'map',
-        wizard: 'wand',
-        runner: 'stopwatch',
-        chef: 'spoon',
-        musician: 'maracas',
-        diver: 'flashlight',
-        robot: 'wrench'
-      };
+      const heldItems = [
+        { style: 'notebook', name: 'llibreta' },
+        { style: 'compass', name: 'brúixola' },
+        { style: 'rock', name: 'pedra' },
+        { style: 'map', name: 'mapa' },
+        { style: 'wand', name: 'vareta' },
+        { style: 'stopwatch', name: 'cronòmetre' },
+        { style: 'spoon', name: 'cullera' },
+        { style: 'maracas', name: 'maraques' },
+        { style: 'flashlight', name: 'llanterna' },
+        { style: 'wrench', name: 'clau anglesa' },
+        { style: null, name: 'cap objecte' }
+      ];
 
       // Estat del vestuari i del paisatge
       let outfitIndex = 0;
+      let heldItemIndex = 0;
       let trail = [];
       let lastTrailAt = -Infinity;
 
@@ -474,6 +488,14 @@
         const name = outfits[outfitIndex].name;
         get('change-look').setAttribute('aria-label', 'Canvia l’aspecte d’en MAT. Aspecte actual: ' + name);
         get('look-announcement').textContent = 'Aspecte actual: ' + name;
+        draw();
+      }
+
+      function changeItem() {
+        heldItemIndex = (heldItemIndex + 1) % heldItems.length;
+        const { name } = heldItems[heldItemIndex];
+        get('change-item').setAttribute('aria-label', 'Canvia l’objecte de la mà. Objecte actual: ' + name);
+        get('look-announcement').textContent = 'Objecte actual: ' + name;
         draw();
       }
 
@@ -1595,7 +1617,7 @@
           ctx.font = outfit.style === 'classic' ? 'bold 7px system-ui' : 'bold 12px system-ui';
           ctx.fillStyle = outfit.ink;
           ctx.fillText(outfit.badge, 0, -14);
-          drawMatArm(outfit, -side, -22, armAngle + armSwing, heldItems[outfit.style]);
+          drawMatArm(outfit, -side, -22, armAngle + armSwing, heldItems[heldItemIndex].style);
         }
 
         ctx.restore();
@@ -1812,6 +1834,11 @@
         if (event.detail > 0) event.currentTarget.blur();
       });
 
+      get('change-item').addEventListener('click', event => {
+        changeItem();
+        if (event.detail > 0) event.currentTarget.blur();
+      });
+
       get('one').addEventListener('click', () => jumpByButton(1));
       get('two').addEventListener('click', () => jumpByButton(2));
       get('undo').addEventListener('click', undo);
@@ -1848,7 +1875,7 @@
         const space = event.code === 'Space' || event.key === ' ';
         const arrow = event.key === 'ArrowLeft' || event.key === 'ArrowRight';
         if (!arrow && !space) return;
-        if (space && target.closest?.('#change-look, #hint-button, #routes button')) return;
+        if (space && target.closest?.('.customization button, #hint-button, #routes button')) return;
 
         event.preventDefault();
 

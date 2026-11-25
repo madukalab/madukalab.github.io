@@ -71,8 +71,6 @@
     }
 
     .jump2 { background: #d6ed9e; border-color: #acc47d; color: var(--green); }
-    #change-look { background: #fff3cb; border-color: #c9aa68; }
-    #change-look span { margin-right: 5px; }
 
     .visually-hidden {
       position: absolute;
@@ -116,6 +114,7 @@
     }
 
     .scene {
+      position: relative;
       overflow: hidden;
       border: 1px solid #cbd7bf;
       border-radius: 14px;
@@ -123,9 +122,29 @@
     }
 
     canvas { display: block; width: 100%; }
-    .route { margin: 12px 0 4px; font-weight: 800; }
-    .feedback { min-height: 25px; margin: 0 0 10px; color: #425c4e; }
-    .keyboard { margin: 10px 0 0; color: #40574c; font-size: 14px; }
+    #change-look {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border: 1px solid #c9aa68;
+      border-radius: 50%;
+      background: #fff3cb;
+      box-shadow: 0 2px 6px #163d3140;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    #change-look:hover { background: #ffe9a5; }
+
+    .route { margin: 10px 0 6px; font-weight: 800; }
+    .feedback { margin: 6px 0 0; color: #425c4e; }
+    .feedback:empty { margin: 0; }
+    .keyboard { margin: 8px 0 0; color: #40574c; font-size: 14px; }
     .count { margin: 7px 0; }
 
     .routes, .sum-list {
@@ -202,11 +221,6 @@
 
     <div class="game-toolbar">
       <nav id="levels" aria-label="Tria el nombre d’esglaons"></nav>
-<button id="change-look" type="button"
-        aria-label="MAT clàssic. Canvia de vestimenta a l’atzar"
-        title="Canvia de vestimenta a l’atzar">
-  <strong id="look-name">MAT clàssic</strong>
-</button>
       <span id="look-announcement" class="visually-hidden" role="status"></span>
     </div>
 
@@ -221,10 +235,14 @@
 
         <div class="scene">
           <canvas id="stairs" width="1200" height="780" aria-hidden="true"></canvas>
+          <button id="change-look" type="button"
+                  aria-label="Canvia l’aspecte d’en MAT. Aspecte actual: MAT clàssic"
+                  title="Canvia l’aspecte d’en MAT">
+            <span aria-hidden="true">🦊</span>
+          </button>
         </div>
 
         <p id="route" class="route"></p>
-        <p id="feedback" class="feedback" role="status"></p>
 
         <div class="moves">
           <button id="one" class="primary" type="button">↑ Puja 1</button>
@@ -232,6 +250,8 @@
           <button id="undo" type="button">Desfés el salt</button>
           <button id="restart" type="button">Torna a baix</button>
         </div>
+
+        <p id="feedback" class="feedback" role="status"></p>
 
         <p class="keyboard">
           Tria l’escala amb <kbd>1</kbd> a <kbd>6</kbd>.
@@ -272,6 +292,7 @@
     (() => {
       'use strict';
 
+      // Configuració del joc
       const get = id => document.getElementById(id);
       const canvas = get('stairs');
       const ctx = canvas.getContext('2d');
@@ -292,6 +313,9 @@
       const replaySegmentMs = 620;
       const dayDurationMs = 6 * 60 * 1000;
       const initialDayPhase = .22;
+      const birdFirstFlightMs = 8000;
+      const birdIntervalMs = 23000;
+      const birdFlightMs = 10500;
       const dayStartedAt = performance.now();
 
       const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -320,6 +344,20 @@
           badge: '◉', airtime: .92, effect: 'jet', color: '#b6f898', life: 310 }
       ];
 
+      const heldItems = {
+        classic: 'notebook',
+        explorer: 'compass',
+        astronaut: 'rock',
+        pirate: 'map',
+        wizard: 'wand',
+        runner: 'stopwatch',
+        chef: 'spoon',
+        musician: 'maracas',
+        diver: 'flashlight',
+        robot: 'wrench'
+      };
+
+      // Estat del vestuari i del paisatge
       let outfitIndex = 0;
       let trail = [];
       let lastTrailAt = -Infinity;
@@ -347,6 +385,7 @@
         brightness: .45 + (index % 5) * .12
       }));
 
+      // Recorreguts possibles i estat de la partida
       function routesTo(remaining) {
         if (remaining === 0) return [''];
         if (remaining < 0) return [];
@@ -375,6 +414,7 @@
       let celebration = null;
       let waveStart = null;
 
+      // Geometria de l’escala
       function stairWidth() {
         return Math.min(93, 438 / level);
       }
@@ -404,6 +444,7 @@
         return index < 0 || index >= level ? 0 : index + 1;
       }
 
+      // Recorreguts i accions de la partida
       function routeEnd() {
         return route.reduce((sum, jump) => sum + jump, 0);
       }
@@ -431,8 +472,7 @@
         outfitIndex = pick >= outfitIndex ? pick + 1 : pick;
 
         const name = outfits[outfitIndex].name;
-        get('look-name').textContent = name;
-        get('change-look').setAttribute('aria-label', name + '. Canvia de vestimenta a l’atzar');
+        get('change-look').setAttribute('aria-label', 'Canvia l’aspecte d’en MAT. Aspecte actual: ' + name);
         get('look-announcement').textContent = 'Aspecte actual: ' + name;
         draw();
       }
@@ -586,6 +626,7 @@
         queueFrame();
       }
 
+      // Reproducció i actualització de la interfície
       function updateRouteMarkers() {
         for (const button of get('routes').querySelectorAll('button[data-path]')) {
           const path = button.dataset.path;
@@ -679,19 +720,20 @@
         draw();
       }
 
+      // Bucle d’animació i moviment
       function queueFrame() {
         if (frame === null) frame = requestAnimationFrame(update);
       }
 
-function moveHorizontally(dt) {
-  const direction = Number(held.has('ArrowRight')) - Number(held.has('ArrowLeft'));
-  const walkingSpeed = outfits[outfitIndex].style === 'runner'
-    ? walkSpeed * 1.50
-    : walkSpeed;
-  const speed = direction * (mat.airborne ? airSpeed : walkingSpeed);
+      function moveHorizontally(dt) {
+        const direction = Number(held.has('ArrowRight')) - Number(held.has('ArrowLeft'));
+        const walkingSpeed = outfits[outfitIndex].style === 'runner'
+          ? walkSpeed * 1.50
+          : walkSpeed;
+        const speed = direction * (mat.airborne ? airSpeed : walkingSpeed);
 
-  mat.vx += (speed - mat.vx) * (1 - Math.exp(-17 * dt));
-  if (direction) mat.facing = direction;
+        mat.vx += (speed - mat.vx) * (1 - Math.exp(-17 * dt));
+        if (direction) mat.facing = direction;
 
         const nextX = mat.x + mat.vx * dt;
         if (nextX >= worldWidth + margin) {
@@ -799,11 +841,12 @@ function moveHorizontally(dt) {
         }
 
         updateJumpTrail(time);
+        const birdFlight = birdFlightAt(time);
         const turning = Math.abs(mat.turn - mat.facing) > .01;
 
         if (buttonJump || mat.airborne || held.size || Math.abs(mat.vx) > 1 || turning ||
             landing || boost || celebration || trail.length || waveStart !== null ||
-            (replay && !reduced.matches)) {
+            birdFlight || (replay && !reduced.matches)) {
           queueFrame();
         } else {
           previousTime = null;
@@ -811,9 +854,10 @@ function moveHorizontally(dt) {
           mat.turn = mat.facing;
         }
 
-        draw(time);
+        draw(time, birdFlight);
       }
 
+      // Dibuix al canvas
       function oval(context, color, x, y, rx, ry) {
         context.beginPath();
         context.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
@@ -1079,6 +1123,7 @@ function moveHorizontally(dt) {
         }
       }
 
+      // Personatge, vestuari i plataformes
       function drawAccessory(style) {
         switch (style) {
           case 'explorer':
@@ -1158,6 +1203,315 @@ function moveHorizontally(dt) {
 
       const ears = [[-17, -51], [-19, -71], [-3, -59], [6, -59], [17, -71], [18, -49]];
 
+      function drawHeldItem(item) {
+        switch (item) {
+          case 'notebook':
+            box(ctx, '#193f30', -8, -11, 16, 20);
+            box(ctx, '#f4edd1', -5, -9, 11, 16);
+            box(ctx, '#6c9a75', -8, -11, 3, 20);
+            box(ctx, '#315a43', -3, -6, 7, 2);
+            box(ctx, '#8aa17d', -3, -1, 6, 1.5);
+            box(ctx, '#8aa17d', -3, 3, 6, 1.5);
+            break;
+
+          case 'compass':
+            oval(ctx, '#805524', 0, 0, 10, 10);
+            oval(ctx, '#ffedb1', 0, 0, 7.5, 7.5);
+            polygon(ctx, '#b73542', [[0, -7], [2.5, 1], [0, 3], [-2.5, 1]]);
+            polygon(ctx, '#31586c', [[0, 7], [2.5, -1], [0, -3], [-2.5, -1]]);
+            oval(ctx, '#805524', 0, 0, 1.3, 1.3);
+            break;
+
+          case 'rock':
+            polygon(ctx, '#777f99', [
+              [-10, 0], [-6, -8], [2, -11], [10, -4], [8, 7], [-5, 8]
+            ]);
+            polygon(ctx, '#bbc3d8', [[-6, -8], [2, -11], [10, -4], [1, 0]]);
+            oval(ctx, '#59647c', -4, 2, 2.4, 1.7);
+            oval(ctx, '#d7dfef', 4, -4, 2.1, 1.6);
+            break;
+
+          case 'map':
+            polygon(ctx, '#f4d48e', [
+              [-10, -8], [-4, -10], [3, -7], [10, -9],
+              [9, 8], [2, 10], [-4, 7], [-10, 9]
+            ]);
+            ctx.strokeStyle = '#997445';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(-7, 4);
+            ctx.quadraticCurveTo(-1, -7, 3, 1);
+            ctx.stroke();
+            ctx.strokeStyle = '#a3263d';
+            ctx.beginPath();
+            ctx.moveTo(3, -5);
+            ctx.lineTo(8, 0);
+            ctx.moveTo(8, -5);
+            ctx.lineTo(3, 0);
+            ctx.stroke();
+            break;
+
+          case 'wand':
+            box(ctx, '#5d386e', -2, -9, 4, 20);
+            polygon(ctx, '#ffdc65', [
+              [0, -21], [2, -15], [8, -13], [2, -11],
+              [0, -5], [-2, -11], [-8, -13], [-2, -15]
+            ]);
+            oval(ctx, '#fff6ce', 0, -13, 2, 2);
+            break;
+
+          case 'stopwatch':
+            box(ctx, '#4c5364', -2, -13, 4, 5);
+            oval(ctx, '#46536a', 0, 0, 9, 10);
+            oval(ctx, '#f7fcff', 0, 0, 6.5, 7.5);
+            ctx.strokeStyle = '#c83448';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(3, -4);
+            ctx.stroke();
+            break;
+
+          case 'spoon':
+            box(ctx, '#885127', -2.5, -3, 5, 15);
+            oval(ctx, '#b4753d', 0, -8, 6, 8);
+            oval(ctx, '#d29a5c', 0, -9, 3.5, 5);
+            break;
+
+          case 'maracas':
+            ctx.save();
+            ctx.rotate(-.4);
+            box(ctx, '#78482d', -2, -2, 4, 12);
+            oval(ctx, '#f2b84f', 0, -6, 6, 7);
+            box(ctx, '#b63d55', -5, -8, 10, 3);
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(6, 2);
+            ctx.rotate(.35);
+            box(ctx, '#78482d', -1.5, -1, 3, 9);
+            oval(ctx, '#83bfa2', 0, -5, 5, 6);
+            box(ctx, '#286c66', -4, -7, 8, 2.5);
+            ctx.restore();
+            break;
+
+          case 'flashlight':
+            box(ctx, '#b17933', -3.5, -3, 7, 13);
+            box(ctx, '#e4a34b', -5, -9, 10, 8);
+            oval(ctx, '#fff6bf', 0, -9, 4.5, 2.6);
+            ctx.save();
+            ctx.globalAlpha = .45;
+            polygon(ctx, '#fff5ad', [[-4, -9], [4, -9], [9, -20], [-9, -20]]);
+            ctx.restore();
+            break;
+
+          case 'wrench':
+            box(ctx, '#8a9daa', -2.5, -4, 5, 15);
+            polygon(ctx, '#b2c4cf', [
+              [-7, -12], [-4, -15], [-2, -9], [2, -9],
+              [4, -15], [7, -12], [5, -5], [-5, -5]
+            ]);
+            oval(ctx, '#526975', 0, 8, 1.5, 1.5);
+            break;
+        }
+      }
+
+      function drawMatArm(outfit, side, shoulderY, angle, item = null) {
+        ctx.save();
+        ctx.translate(side * 11, shoulderY);
+        ctx.scale(side, 1);
+        ctx.rotate(angle);
+
+        oval(ctx, outfit.coat, 6, 0, 9, 4.2);
+        oval(ctx, '#e7823d', 13, 0, 4.5, 3.8);
+
+        if (item !== null) {
+          ctx.translate(15, 0);
+          ctx.rotate(-angle);
+          ctx.translate(4, 4);
+          drawHeldItem(item);
+          oval(ctx, '#e7823d', -4, -3, 3, 2.5);
+        }
+
+        ctx.restore();
+      }
+
+      function drawJumpPlatform(style, x, y, pose) {
+        const time = performance.now();
+        const animated = !reduced.matches;
+        const pulse = animated ? Math.sin(time / 85) : 0;
+        const direction = pose.turn < 0 ? -1 : 1;
+        const width = .65 + .35 * Math.abs(pose.turn);
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(width * direction, 1);
+
+        switch (style) {
+          case 'classic':
+            // Monopatí de PCMAT.
+            oval(ctx, '#324d40', -14, 7, 4, 4);
+            oval(ctx, '#324d40', 14, 7, 4, 4);
+            polygon(ctx, '#184738', [
+              [-26, -9], [-19, -5], [19, -5], [26, -9],
+              [24, 0], [17, 3], [-17, 3], [-24, 0]
+            ]);
+            box(ctx, '#a8d078', -18, -5, 36, 3);
+            ctx.save();
+            ctx.scale(direction, 1);
+            ctx.fillStyle = '#fff9eb';
+            ctx.font = 'bold 6px system-ui';
+            ctx.textAlign = 'center';
+            ctx.fillText('PCMAT', 0, 1);
+            ctx.restore();
+            break;
+
+          case 'explorer':
+            // Tronc amb escorça i fulles.
+            oval(ctx, '#734a2e', 0, 0, 25, 8);
+            box(ctx, '#9a6a38', -20, -6, 40, 9);
+            box(ctx, '#c58e56', -17, -6, 33, 2);
+            oval(ctx, '#d5a567', 21, 0, 5, 7);
+            oval(ctx, '#9b6c41', 21, 0, 2.5, 4);
+            oval(ctx, '#8abe61', -22, -7 + pulse, 7, 3);
+            oval(ctx, '#5c8d47', -27, -4, 6, 2.5);
+            break;
+
+          case 'astronaut': {
+            const rising = buttonJump
+              ? time - buttonJump.start < buttonJump.duration / 2
+              : mat.vy < 0;
+            const flame = animated ? (rising ? 18 : 10) + pulse * 2 : 8;
+
+            for (const nozzleX of [-12, 12]) {
+              polygon(ctx, '#f5a64f', [
+                [nozzleX - 4, 8], [nozzleX + 4, 8], [nozzleX, 8 + flame]
+              ]);
+              polygon(ctx, '#fff0a4', [
+                [nozzleX - 2, 8], [nozzleX + 2, 8], [nozzleX, 8 + flame * .65]
+              ]);
+              box(ctx, '#435971', nozzleX - 5, 4, 10, 5);
+            }
+
+            polygon(ctx, '#54718d', [[-23, -7], [23, -7], [19, 5], [-19, 5]]);
+            box(ctx, '#d7ecf8', -21, -8, 42, 4);
+            box(ctx, '#8ca7bb', -17, -3, 34, 3);
+            oval(ctx, '#a8f4e6', -16, 1, 2, 2);
+            oval(ctx, '#a8f4e6', 16, 1, 2, 2);
+            break;
+          }
+
+          case 'pirate':
+            ctx.rotate(pulse * .06);
+            polygon(ctx, '#6b3d33', [
+              [-28, -8], [28, -8], [20, 6], [11, 9], [-16, 9], [-24, 3]
+            ]);
+            box(ctx, '#d69b61', -24, -8, 48, 3);
+            box(ctx, '#754a34', -20, -25, 2, 18);
+            polygon(ctx, '#fff0c1', [[-20, -24], [-9, -12], [-20, -12]]);
+            oval(ctx, '#e9c074', -13, 2, 2, 2);
+            oval(ctx, '#e9c074', 0, 2, 2, 2);
+            oval(ctx, '#e9c074', 13, 2, 2, 2);
+            break;
+
+          case 'wizard':
+            ctx.rotate(pulse * .055);
+            polygon(ctx, '#70439a', [
+              [-27, -9], [-20, -6], [20, -6], [27, -10],
+              [23, 4], [-23, 4]
+            ]);
+            box(ctx, '#f4c76b', -21, -5, 42, 2);
+            box(ctx, '#af79cb', -18, 0, 36, 3);
+
+            for (const fringeX of [-21, -15, 15, 21]) {
+              const sway = pulse * (fringeX < 0 ? -2 : 2);
+              polygon(ctx, '#f4c76b', [
+                [fringeX - 1, 3], [fringeX + 1, 3], [fringeX + sway, 9]
+              ]);
+            }
+            break;
+
+          case 'runner':
+            // Vambeta gegant amb sola blanca.
+            polygon(ctx, '#bd2739', [
+              [-23, -8], [6, -8], [14, -13], [20, -9],
+              [27, -2], [27, 5], [-23, 5]
+            ]);
+            box(ctx, '#fff5dc', -24, 3, 51, 4);
+            box(ctx, '#f5a14c', -20, 7, 43, 2);
+            box(ctx, '#fff5dc', 6, -5, 9, 2);
+            box(ctx, '#fff5dc', 10, -1, 9, 2);
+
+            if (animated) {
+              box(ctx, '#ffae58', -38 - pulse * 3, -4, 10, 1.5);
+              box(ctx, '#ffae58', -34 + pulse * 2, 2, 6, 1.5);
+            }
+            break;
+
+          case 'chef':
+            // Paella amb mànec i bombolles de vapor.
+            box(ctx, '#714a39', -32, -3, 12, 4);
+            oval(ctx, '#50565d', 0, 0, 24, 8);
+            oval(ctx, '#a2a5a1', 0, -5, 24, 4);
+            oval(ctx, '#f0c472', 0, -5, 19, 2.5);
+
+            for (const bubbleX of [-18, 17, 22]) {
+              const offset = animated ? (Math.sin(time / 140 + bubbleX) + 1) * 3 : 2;
+              oval(ctx, '#fff7e6', bubbleX, -10 - offset, 2.5, 2.5);
+            }
+            break;
+
+          case 'musician':
+            box(ctx, '#28364d', -24, -7, 48, 15);
+            box(ctx, '#566e8c', -25, -9, 50, 4);
+            oval(ctx, '#121d31', -12, 1, 7, 5);
+            oval(ctx, '#121d31', 12, 1, 7, 5);
+            oval(ctx, '#ffd783', -12, 1, 2.5 + pulse * .6, 2.5);
+            oval(ctx, '#ffd783', 12, 1, 2.5 + pulse * .6, 2.5);
+
+            ctx.strokeStyle = '#ffdf90';
+            ctx.lineWidth = 1.5;
+            for (const side of [-1, 1]) {
+              ctx.beginPath();
+              ctx.moveTo(side * 27, -3);
+              ctx.quadraticCurveTo(side * (33 + pulse * 2), 1, side * 27, 5);
+              ctx.stroke();
+            }
+            break;
+
+          case 'diver':
+            oval(ctx, '#e1a34e', 0, 1, 25, 9);
+            box(ctx, '#f3cc78', -15, -8, 30, 4);
+            oval(ctx, '#26516c', 12, 0, 6, 6);
+            oval(ctx, '#a3e8ee', 12, 0, 4, 4);
+            box(ctx, '#875630', -29, -1, 5, 3);
+            ctx.save();
+            ctx.translate(-30, 0);
+            ctx.rotate(animated ? time / 55 : 0);
+            oval(ctx, '#ffe69a', 0, 0, 2, 7);
+            ctx.restore();
+            break;
+
+          case 'robot':
+            polygon(ctx, '#7896a5', [
+              [-24, -7], [24, -7], [19, 5], [-19, 5]
+            ]);
+            box(ctx, '#c6d6da', -22, -8, 44, 4);
+
+            for (const jetX of [-13, 13]) {
+              box(ctx, '#334b59', jetX - 4, 3, 8, 4);
+              polygon(ctx, '#a6f2a7', [
+                [jetX - 3, 7], [jetX + 3, 7], [jetX, 16 + pulse * 3]
+              ]);
+            }
+
+            oval(ctx, '#baf4b2', 0, 1, 3, 2);
+            break;
+        }
+
+        ctx.restore();
+      }
+
       function drawFox(x, y, pose) {
         const { turn, stride, pace, air, squash, ghost, wave = null } = pose;
         const outfit = outfits[outfitIndex];
@@ -1168,11 +1522,23 @@ function moveHorizontally(dt) {
         const fur = ghost ? '#ae7420' : '#dd7835';
         const cream = ghost ? fur : '#fff9eb';
         const coat = ghost ? fur : outfit.coat;
+        const shoulderY = -22 - bob + (air ? 2 : 0);
+        const armAngle = air ? .95 : 1.22;
+        const armSwing = Math.sin(stride) * pace * .28;
+        const inFlight = buttonJump || (mat.airborne && mat.jumps > 0);
+
+        if (!ghost && inFlight) {
+          drawJumpPlatform(outfit.style, x, air ? y : y + 8, pose);
+        }
 
         ctx.save();
         ctx.translate(x, y);
         ctx.scale((.65 + .35 * Math.abs(turn)) * (1 + squash * .08), 1 - squash * .16);
         if (ghost) ctx.globalAlpha = .55;
+
+        if (!ghost && wave === null) {
+          drawMatArm(outfit, side, shoulderY, armAngle - armSwing);
+        }
 
         ctx.save();
         ctx.scale(side, 1);
@@ -1229,11 +1595,13 @@ function moveHorizontally(dt) {
           ctx.font = outfit.style === 'classic' ? 'bold 7px system-ui' : 'bold 12px system-ui';
           ctx.fillStyle = outfit.ink;
           ctx.fillText(outfit.badge, 0, -14);
+          drawMatArm(outfit, -side, -22, armAngle + armSwing, heldItems[outfit.style]);
         }
 
         ctx.restore();
       }
 
+      // Reproducció, celebració i ocells
       function drawReplay(time) {
         if (!replay) return;
 
@@ -1325,69 +1693,69 @@ function moveHorizontally(dt) {
         ctx.restore();
       }
 
-      const birdFirstFlightMs = 8000;
-const birdIntervalMs = 23000;
-const birdFlightMs = 10500;
+      function birdFlightAt(time) {
+        if (reduced.matches) return null;
 
-function drawSkyBirds(time) {
-  if (reduced.matches) return;
+        const elapsed = time - dayStartedAt;
+        const sinceFirstFlight = elapsed - birdFirstFlightMs;
+        if (sinceFirstFlight < 0) return null;
 
-  const elapsed = time - dayStartedAt;
-  const sinceFirstFlight = elapsed - birdFirstFlightMs;
-  if (sinceFirstFlight < 0) return;
+        const dayPhase = (initialDayPhase + elapsed / dayDurationMs) % 1;
+        const daylight = Math.min(
+          clamp(dayPhase / .04, 0, 1),
+          clamp((.52 - dayPhase) / .06, 0, 1)
+        );
 
-  const dayPhase = (initialDayPhase + elapsed / dayDurationMs) % 1;
-  const daylight = Math.min(
-    clamp(dayPhase / .04, 0, 1),
-    clamp((.52 - dayPhase) / .06, 0, 1)
-  );
+        if (daylight === 0) return null;
 
-  if (daylight === 0) return;
+        const flight = Math.floor(sinceFirstFlight / birdIntervalMs);
+        const flightTime = sinceFirstFlight % birdIntervalMs;
+        return flightTime < birdFlightMs ? { flight, flightTime, daylight } : null;
+      }
 
-  const flight = Math.floor(sinceFirstFlight / birdIntervalMs);
-  const flightTime = sinceFirstFlight % birdIntervalMs;
-  if (flightTime >= birdFlightMs) return;
+      function drawSkyBirds(birdFlight) {
+        if (!birdFlight) return;
 
-  const direction = flight % 2 === 0 ? 1 : -1;
-  const birdCount = flight % 3 === 1 ? 2 : 1;
+        const { flight, flightTime, daylight } = birdFlight;
 
-  ctx.save();
-  ctx.strokeStyle = '#34433e';
-  ctx.lineWidth = 1.6;
-  ctx.lineCap = 'round';
+        const direction = flight % 2 === 0 ? 1 : -1;
+        const birdCount = flight % 3 === 1 ? 2 : 1;
 
-  for (let index = 0; index < birdCount; index++) {
-    const progress = (flightTime - index * 480) / (birdFlightMs - 500);
-    if (progress < 0 || progress > 1) continue;
+        ctx.save();
+        ctx.strokeStyle = '#34433e';
+        ctx.lineWidth = 1.6;
+        ctx.lineCap = 'round';
 
-    const distance = mix(-20, worldWidth + 20, progress);
-    const x = direction === 1 ? distance : worldWidth - distance;
-    const y = -sky + 91 + index * 10
-      + Math.sin(progress * Math.PI * 2 + flight) * 6;
+        for (let index = 0; index < birdCount; index++) {
+          const progress = (flightTime - index * 480) / (birdFlightMs - 500);
+          if (progress < 0 || progress > 1) continue;
 
-    const flap = Math.sin(flightTime / 86 + index * 1.4);
-    const wingTip = -3 - flap * 4;
+          const distance = mix(-20, worldWidth + 20, progress);
+          const x = direction === 1 ? distance : worldWidth - distance;
+          const y = -sky + 91 + index * 10
+            + Math.sin(progress * Math.PI * 2 + flight) * 6;
 
-    ctx.globalAlpha = .72 * daylight;
-    ctx.beginPath();
-    ctx.moveTo(x - 7, y + wingTip);
-    ctx.quadraticCurveTo(x - 4, y - 5, x, y);
-    ctx.quadraticCurveTo(x + 4, y - 5, x + 7, y + wingTip);
-    ctx.stroke();
-  }
+          const flap = Math.sin(flightTime / 86 + index * 1.4);
+          const wingTip = -3 - flap * 4;
 
-  ctx.restore();
+          ctx.globalAlpha = .72 * daylight;
+          ctx.beginPath();
+          ctx.moveTo(x - 7, y + wingTip);
+          ctx.quadraticCurveTo(x - 4, y - 5, x, y);
+          ctx.quadraticCurveTo(x + 4, y - 5, x + 7, y + wingTip);
+          ctx.stroke();
+        }
 
-  // Manté el vol fluid encara que en MAT estigui quiet.
-  queueFrame();
-}
+        ctx.restore();
+      }
 
-      function draw(time = performance.now()) {
+      // Composició de l’escena
+      function draw(time = performance.now(), birdFlight = birdFlightAt(time)) {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.drawImage(landscape, 0, 0);
         ctx.setTransform(2, 0, 0, 2, 0, sky * 2);
 
-        drawSkyBirds(time);
+        drawSkyBirds(birdFlight);
         drawStairs();
         drawShadow();
 
@@ -1429,6 +1797,7 @@ function drawSkyBirds(time) {
         drawCelebration(time);
       }
 
+      // Controls i inici del joc
       solutions.forEach((_, index) => {
         const size = index + 1;
         const button = document.createElement('button');
@@ -1503,422 +1872,6 @@ function drawSkyBirds(time) {
         if (replay && !reduced.matches) queueFrame();
       });
 
-// Mou el vestuari a la fila de controls, just sota el joc.
-document.querySelector('.moves').prepend(get('change-look'));
-
-const heldItems = {
-  classic: 'notebook',
-  explorer: 'compass',
-  astronaut: 'rock',
-  pirate: 'map',
-  wizard: 'wand',
-  runner: 'stopwatch',
-  chef: 'spoon',
-  musician: 'maracas',
-  diver: 'flashlight',
-  robot: 'wrench'
-};
-
-function drawHeldItem(item) {
-  switch (item) {
-    case 'notebook':
-      box(ctx, '#193f30', -8, -11, 16, 20);
-      box(ctx, '#f4edd1', -5, -9, 11, 16);
-      box(ctx, '#6c9a75', -8, -11, 3, 20);
-      box(ctx, '#315a43', -3, -6, 7, 2);
-      box(ctx, '#8aa17d', -3, -1, 6, 1.5);
-      box(ctx, '#8aa17d', -3, 3, 6, 1.5);
-      break;
-
-    case 'compass':
-      oval(ctx, '#805524', 0, 0, 10, 10);
-      oval(ctx, '#ffedb1', 0, 0, 7.5, 7.5);
-      polygon(ctx, '#b73542', [[0, -7], [2.5, 1], [0, 3], [-2.5, 1]]);
-      polygon(ctx, '#31586c', [[0, 7], [2.5, -1], [0, -3], [-2.5, -1]]);
-      oval(ctx, '#805524', 0, 0, 1.3, 1.3);
-      break;
-
-    case 'rock':
-      polygon(ctx, '#777f99', [
-        [-10, 0], [-6, -8], [2, -11], [10, -4], [8, 7], [-5, 8]
-      ]);
-      polygon(ctx, '#bbc3d8', [[-6, -8], [2, -11], [10, -4], [1, 0]]);
-      oval(ctx, '#59647c', -4, 2, 2.4, 1.7);
-      oval(ctx, '#d7dfef', 4, -4, 2.1, 1.6);
-      break;
-
-    case 'map':
-      polygon(ctx, '#f4d48e', [
-        [-10, -8], [-4, -10], [3, -7], [10, -9],
-        [9, 8], [2, 10], [-4, 7], [-10, 9]
-      ]);
-      ctx.strokeStyle = '#997445';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(-7, 4);
-      ctx.quadraticCurveTo(-1, -7, 3, 1);
-      ctx.stroke();
-      ctx.strokeStyle = '#a3263d';
-      ctx.beginPath();
-      ctx.moveTo(3, -5);
-      ctx.lineTo(8, 0);
-      ctx.moveTo(8, -5);
-      ctx.lineTo(3, 0);
-      ctx.stroke();
-      break;
-
-    case 'wand':
-      box(ctx, '#5d386e', -2, -9, 4, 20);
-      polygon(ctx, '#ffdc65', [
-        [0, -21], [2, -15], [8, -13], [2, -11],
-        [0, -5], [-2, -11], [-8, -13], [-2, -15]
-      ]);
-      oval(ctx, '#fff6ce', 0, -13, 2, 2);
-      break;
-
-    case 'stopwatch':
-      box(ctx, '#4c5364', -2, -13, 4, 5);
-      oval(ctx, '#46536a', 0, 0, 9, 10);
-      oval(ctx, '#f7fcff', 0, 0, 6.5, 7.5);
-      ctx.strokeStyle = '#c83448';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(3, -4);
-      ctx.stroke();
-      break;
-
-    case 'spoon':
-      box(ctx, '#885127', -2.5, -3, 5, 15);
-      oval(ctx, '#b4753d', 0, -8, 6, 8);
-      oval(ctx, '#d29a5c', 0, -9, 3.5, 5);
-      break;
-
-    case 'maracas':
-      ctx.save();
-      ctx.rotate(-.4);
-      box(ctx, '#78482d', -2, -2, 4, 12);
-      oval(ctx, '#f2b84f', 0, -6, 6, 7);
-      box(ctx, '#b63d55', -5, -8, 10, 3);
-      ctx.restore();
-
-      ctx.save();
-      ctx.translate(6, 2);
-      ctx.rotate(.35);
-      box(ctx, '#78482d', -1.5, -1, 3, 9);
-      oval(ctx, '#83bfa2', 0, -5, 5, 6);
-      box(ctx, '#286c66', -4, -7, 8, 2.5);
-      ctx.restore();
-      break;
-
-    case 'flashlight':
-      box(ctx, '#b17933', -3.5, -3, 7, 13);
-      box(ctx, '#e4a34b', -5, -9, 10, 8);
-      oval(ctx, '#fff6bf', 0, -9, 4.5, 2.6);
-      ctx.save();
-      ctx.globalAlpha = .45;
-      polygon(ctx, '#fff5ad', [[-4, -9], [4, -9], [9, -20], [-9, -20]]);
-      ctx.restore();
-      break;
-
-    case 'wrench':
-      box(ctx, '#8a9daa', -2.5, -4, 5, 15);
-      polygon(ctx, '#b2c4cf', [
-        [-7, -12], [-4, -15], [-2, -9], [2, -9],
-        [4, -15], [7, -12], [5, -5], [-5, -5]
-      ]);
-      oval(ctx, '#526975', 0, 8, 1.5, 1.5);
-      break;
-  }
-}
-
-const drawFoxBody = drawFox;
-
-drawFox = function (x, y, pose) {
-  if (!pose.ghost) {
-    const outfit = outfits[outfitIndex];
-    const side = pose.turn < 0 ? -1 : 1;
-    const stride = Math.sin(pose.stride);
-    const bob = Math.abs(stride) * pose.pace * 2;
-    const width = .65 + .35 * Math.abs(pose.turn);
-
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(width * (1 + pose.squash * .08), 1 - pose.squash * .16);
-
-    // La pota que porta l’objecte queda lliure quan l’altra saluda.
-    ctx.translate(-side * 11, -22 - bob + (pose.air ? 2 : 0));
-    ctx.scale(-side, 1);
-    ctx.rotate((pose.air ? -.18 : .22) + stride * pose.pace * .18);
-    oval(ctx, outfit.coat, 7, 2, 10, 4.5);
-    oval(ctx, '#e7823d', 15, 3, 4.8, 4.2);
-    ctx.translate(20, 5);
-    drawHeldItem(heldItems[outfit.style]);
-    ctx.restore();
-  }
-
-  drawFoxBody(x, y, pose);
-};
-
-      // Situa el botó a la dreta, immediatament després del marc del joc.
-const wardrobeRow = document.createElement('div');
-wardrobeRow.style.display = 'flex';
-wardrobeRow.style.justifyContent = 'flex-end';
-wardrobeRow.style.marginTop = '8px';
-
-const wardrobeButton = get('change-look');
-wardrobeButton.style.width = '160px';
-wardrobeButton.style.height = '40px';
-wardrobeButton.style.padding = '0 10px';
-wardrobeButton.style.whiteSpace = 'nowrap';
-
-document.querySelector('.scene').after(wardrobeRow);
-wardrobeRow.append(wardrobeButton);
-
-function drawMatArm(outfit, side, shoulderY, angle, item = null) {
-  ctx.save();
-  ctx.translate(side * 11, shoulderY);
-  ctx.scale(side, 1);
-  ctx.rotate(angle);
-
-  oval(ctx, outfit.coat, 6, 0, 9, 4.2);
-  oval(ctx, '#e7823d', 13, 0, 4.5, 3.8);
-
-  if (item !== null) {
-    ctx.translate(15, 0);
-    ctx.rotate(-angle);
-    ctx.translate(4, 4);
-    drawHeldItem(item);
-    oval(ctx, '#e7823d', -4, -3, 3, 2.5);
-  }
-
-  ctx.restore();
-}
-
-drawFox = function (x, y, pose) {
-  if (pose.ghost) {
-    drawFoxBody(x, y, pose);
-    return;
-  }
-
-  const outfit = outfits[outfitIndex];
-  const side = pose.turn < 0 ? -1 : 1;
-  const stride = Math.sin(pose.stride);
-  const swing = stride * pose.pace * .28;
-  const bob = Math.abs(stride) * pose.pace * 2;
-  const shoulderY = -22 - bob + (pose.air ? 2 : 0);
-  const bodyWidth = .65 + .35 * Math.abs(pose.turn);
-  const armAngle = pose.air ? .95 : 1.22;
-
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(bodyWidth * (1 + pose.squash * .08), 1 - pose.squash * .16);
-
-  if (pose.wave == null) {
-    drawMatArm(outfit, side, shoulderY, armAngle - swing);
-  }
-
-  ctx.restore();
-
-  drawFoxBody(x, y, pose);
-
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(bodyWidth * (1 + pose.squash * .08), 1 - pose.squash * .16);
-  drawMatArm(outfit, -side, shoulderY, armAngle + swing, heldItems[outfit.style]);
-  ctx.restore();
-};
-
- const drawFoxWithItems = drawFox;
-
-function drawJumpPlatform(style, x, y, pose) {
-  const time = performance.now();
-  const animated = !reduced.matches;
-  const pulse = animated ? Math.sin(time / 85) : 0;
-  const direction = pose.turn < 0 ? -1 : 1;
-  const width = .65 + .35 * Math.abs(pose.turn);
-
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(width * direction, 1);
-
-  switch (style) {
-    case 'classic':
-      // Monopatí de PCMAT.
-      oval(ctx, '#324d40', -14, 7, 4, 4);
-      oval(ctx, '#324d40', 14, 7, 4, 4);
-      polygon(ctx, '#184738', [
-        [-26, -9], [-19, -5], [19, -5], [26, -9],
-        [24, 0], [17, 3], [-17, 3], [-24, 0]
-      ]);
-      box(ctx, '#a8d078', -18, -5, 36, 3);
-      ctx.save();
-      ctx.scale(direction, 1);
-      ctx.fillStyle = '#fff9eb';
-      ctx.font = 'bold 6px system-ui';
-      ctx.textAlign = 'center';
-      ctx.fillText('PCMAT', 0, 1);
-      ctx.restore();
-      break;
-
-    case 'explorer':
-      // Tronc amb escorça i fulles.
-      oval(ctx, '#734a2e', 0, 0, 25, 8);
-      box(ctx, '#9a6a38', -20, -6, 40, 9);
-      box(ctx, '#c58e56', -17, -6, 33, 2);
-      oval(ctx, '#d5a567', 21, 0, 5, 7);
-      oval(ctx, '#9b6c41', 21, 0, 2.5, 4);
-      oval(ctx, '#8abe61', -22, -7 + pulse, 7, 3);
-      oval(ctx, '#5c8d47', -27, -4, 6, 2.5);
-      break;
-
-    case 'astronaut': {
-      const rising = buttonJump
-        ? time - buttonJump.start < buttonJump.duration / 2
-        : mat.vy < 0;
-      const flame = animated ? (rising ? 18 : 10) + pulse * 2 : 8;
-
-      for (const nozzleX of [-12, 12]) {
-        polygon(ctx, '#f5a64f', [
-          [nozzleX - 4, 8], [nozzleX + 4, 8], [nozzleX, 8 + flame]
-        ]);
-        polygon(ctx, '#fff0a4', [
-          [nozzleX - 2, 8], [nozzleX + 2, 8], [nozzleX, 8 + flame * .65]
-        ]);
-        box(ctx, '#435971', nozzleX - 5, 4, 10, 5);
-      }
-
-      polygon(ctx, '#54718d', [[-23, -7], [23, -7], [19, 5], [-19, 5]]);
-      box(ctx, '#d7ecf8', -21, -8, 42, 4);
-      box(ctx, '#8ca7bb', -17, -3, 34, 3);
-      oval(ctx, '#a8f4e6', -16, 1, 2, 2);
-      oval(ctx, '#a8f4e6', 16, 1, 2, 2);
-      break;
-    }
-
-    case 'pirate':
-      ctx.rotate(pulse * .06);
-      polygon(ctx, '#6b3d33', [
-        [-28, -8], [28, -8], [20, 6], [11, 9], [-16, 9], [-24, 3]
-      ]);
-      box(ctx, '#d69b61', -24, -8, 48, 3);
-      box(ctx, '#754a34', -20, -25, 2, 18);
-      polygon(ctx, '#fff0c1', [[-20, -24], [-9, -12], [-20, -12]]);
-      oval(ctx, '#e9c074', -13, 2, 2, 2);
-      oval(ctx, '#e9c074', 0, 2, 2, 2);
-      oval(ctx, '#e9c074', 13, 2, 2, 2);
-      break;
-
-    case 'wizard':
-      ctx.rotate(pulse * .055);
-      polygon(ctx, '#70439a', [
-        [-27, -9], [-20, -6], [20, -6], [27, -10],
-        [23, 4], [-23, 4]
-      ]);
-      box(ctx, '#f4c76b', -21, -5, 42, 2);
-      box(ctx, '#af79cb', -18, 0, 36, 3);
-
-      for (const fringeX of [-21, -15, 15, 21]) {
-        const sway = pulse * (fringeX < 0 ? -2 : 2);
-        polygon(ctx, '#f4c76b', [
-          [fringeX - 1, 3], [fringeX + 1, 3], [fringeX + sway, 9]
-        ]);
-      }
-      break;
-
-    case 'runner':
-      // Vambeta gegant amb sola blanca.
-      polygon(ctx, '#bd2739', [
-        [-23, -8], [6, -8], [14, -13], [20, -9],
-        [27, -2], [27, 5], [-23, 5]
-      ]);
-      box(ctx, '#fff5dc', -24, 3, 51, 4);
-      box(ctx, '#f5a14c', -20, 7, 43, 2);
-      box(ctx, '#fff5dc', 6, -5, 9, 2);
-      box(ctx, '#fff5dc', 10, -1, 9, 2);
-
-      if (animated) {
-        box(ctx, '#ffae58', -38 - pulse * 3, -4, 10, 1.5);
-        box(ctx, '#ffae58', -34 + pulse * 2, 2, 6, 1.5);
-      }
-      break;
-
-    case 'chef':
-      // Paella amb mànec i bombolles de vapor.
-      box(ctx, '#714a39', -32, -3, 12, 4);
-      oval(ctx, '#50565d', 0, 0, 24, 8);
-      oval(ctx, '#a2a5a1', 0, -5, 24, 4);
-      oval(ctx, '#f0c472', 0, -5, 19, 2.5);
-
-      for (const bubbleX of [-18, 17, 22]) {
-        const offset = animated ? (Math.sin(time / 140 + bubbleX) + 1) * 3 : 2;
-        oval(ctx, '#fff7e6', bubbleX, -10 - offset, 2.5, 2.5);
-      }
-      break;
-
-    case 'musician':
-      box(ctx, '#28364d', -24, -7, 48, 15);
-      box(ctx, '#566e8c', -25, -9, 50, 4);
-      oval(ctx, '#121d31', -12, 1, 7, 5);
-      oval(ctx, '#121d31', 12, 1, 7, 5);
-      oval(ctx, '#ffd783', -12, 1, 2.5 + pulse * .6, 2.5);
-      oval(ctx, '#ffd783', 12, 1, 2.5 + pulse * .6, 2.5);
-
-      ctx.strokeStyle = '#ffdf90';
-      ctx.lineWidth = 1.5;
-      for (const side of [-1, 1]) {
-        ctx.beginPath();
-        ctx.moveTo(side * 27, -3);
-        ctx.quadraticCurveTo(side * (33 + pulse * 2), 1, side * 27, 5);
-        ctx.stroke();
-      }
-      break;
-
-    case 'diver':
-      oval(ctx, '#e1a34e', 0, 1, 25, 9);
-      box(ctx, '#f3cc78', -15, -8, 30, 4);
-      oval(ctx, '#26516c', 12, 0, 6, 6);
-      oval(ctx, '#a3e8ee', 12, 0, 4, 4);
-      box(ctx, '#875630', -29, -1, 5, 3);
-      ctx.save();
-      ctx.translate(-30, 0);
-      ctx.rotate(animated ? time / 55 : 0);
-      oval(ctx, '#ffe69a', 0, 0, 2, 7);
-      ctx.restore();
-      break;
-
-    case 'robot':
-      polygon(ctx, '#7896a5', [
-        [-24, -7], [24, -7], [19, 5], [-19, 5]
-      ]);
-      box(ctx, '#c6d6da', -22, -8, 44, 4);
-
-      for (const jetX of [-13, 13]) {
-        box(ctx, '#334b59', jetX - 4, 3, 8, 4);
-        polygon(ctx, '#a6f2a7', [
-          [jetX - 3, 7], [jetX + 3, 7], [jetX, 16 + pulse * 3]
-        ]);
-      }
-
-      oval(ctx, '#baf4b2', 0, 1, 3, 2);
-      break;
-  }
-
-  ctx.restore();
-}
-
-drawFox = function (x, y, pose) {
-  const inFlight = Boolean(buttonJump) || (mat.airborne && mat.jumps > 0);
-
-  if (!pose.ghost && inFlight) {
-    const style = outfits[outfitIndex].style;
-    const platformY = pose.air ? y : y + 8;
-    drawJumpPlatform(style, x, platformY, pose);
-  }
-
-  drawFoxWithItems(x, y, pose);
-};
-      
       paintLandscape(initialDayPhase);
       restart();
       document.addEventListener('visibilitychange', syncLandscapeClock);

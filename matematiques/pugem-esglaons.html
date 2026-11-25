@@ -1097,6 +1097,34 @@
         ctx.restore();
       }
 
+      function drawCompletionGlow(time) {
+        if (!celebration?.finished) return;
+
+        const elapsed = time - celebration.start;
+        if (elapsed < 0 || elapsed >= 1800) return;
+
+        const width = stairWidth();
+        ctx.save();
+        ctx.strokeStyle = '#fff1a1';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#ffd05a';
+        ctx.shadowBlur = reduced.matches ? 0 : 12;
+
+        for (let step = 1; step <= level; step++) {
+          const delay = (step - 1) * 100;
+          const first = clamp((elapsed - delay) / 520, 0, 1);
+          const second = clamp((elapsed - delay - 700) / 520, 0, 1);
+          ctx.globalAlpha = reduced.matches ? .9
+            : Math.max(Math.sin(first * Math.PI), Math.sin(second * Math.PI) * .8);
+          if (ctx.globalAlpha < .01) continue;
+
+          const y = stepHeight(step);
+          ctx.strokeRect(leftEdge(step) + 2, y + 2, width - 4, floor - y - 4);
+        }
+
+        ctx.restore();
+      }
+
       function drawShadow() {
         const step = surfaceAt(mat.x);
         const y = stepHeight(step);
@@ -1841,6 +1869,7 @@
         drawSkyBirds(birdFlight);
         const replayFrame = replayFrameAt(time);
         drawStairs(replayFrame ? replay.path.slice(0, replayFrame.landed) : route);
+        drawCompletionGlow(time);
         drawShadow();
 
         if (landing && landing.step > 0 && !reduced.matches) {

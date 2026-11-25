@@ -1325,11 +1325,69 @@ function moveHorizontally(dt) {
         ctx.restore();
       }
 
+      const birdFirstFlightMs = 8000;
+const birdIntervalMs = 23000;
+const birdFlightMs = 10500;
+
+function drawSkyBirds(time) {
+  if (reduced.matches) return;
+
+  const elapsed = time - dayStartedAt;
+  const sinceFirstFlight = elapsed - birdFirstFlightMs;
+  if (sinceFirstFlight < 0) return;
+
+  const dayPhase = (initialDayPhase + elapsed / dayDurationMs) % 1;
+  const daylight = Math.min(
+    clamp(dayPhase / .04, 0, 1),
+    clamp((.52 - dayPhase) / .06, 0, 1)
+  );
+
+  if (daylight === 0) return;
+
+  const flight = Math.floor(sinceFirstFlight / birdIntervalMs);
+  const flightTime = sinceFirstFlight % birdIntervalMs;
+  if (flightTime >= birdFlightMs) return;
+
+  const direction = flight % 2 === 0 ? 1 : -1;
+  const birdCount = flight % 3 === 1 ? 2 : 1;
+
+  ctx.save();
+  ctx.strokeStyle = '#34433e';
+  ctx.lineWidth = 1.6;
+  ctx.lineCap = 'round';
+
+  for (let index = 0; index < birdCount; index++) {
+    const progress = (flightTime - index * 480) / (birdFlightMs - 500);
+    if (progress < 0 || progress > 1) continue;
+
+    const distance = mix(-20, worldWidth + 20, progress);
+    const x = direction === 1 ? distance : worldWidth - distance;
+    const y = -sky + 91 + index * 10
+      + Math.sin(progress * Math.PI * 2 + flight) * 6;
+
+    const flap = Math.sin(flightTime / 86 + index * 1.4);
+    const wingTip = -3 - flap * 4;
+
+    ctx.globalAlpha = .72 * daylight;
+    ctx.beginPath();
+    ctx.moveTo(x - 7, y + wingTip);
+    ctx.quadraticCurveTo(x - 4, y - 5, x, y);
+    ctx.quadraticCurveTo(x + 4, y - 5, x + 7, y + wingTip);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+
+  // Manté el vol fluid encara que en MAT estigui quiet.
+  queueFrame();
+}
+
       function draw(time = performance.now()) {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.drawImage(landscape, 0, 0);
         ctx.setTransform(2, 0, 0, 2, 0, sky * 2);
 
+        drawSkyBirds(time);
         drawStairs();
         drawShadow();
 

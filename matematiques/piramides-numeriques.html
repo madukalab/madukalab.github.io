@@ -3728,11 +3728,21 @@ document.addEventListener('visibilitychange', () => {
         'Manuel Ortiz i Casrello',
         'Manuel Oriz i Castello',
         'Manuel Orti z i Castello'
+        'Manuel Ortiz i Castelló 676767676767',
+        'manuel ortis',
+        'manuel',
+        'escola manuel ortis i castego',
+        'escola Manuel Ortiz Castellò Juneda',
+        'escola manuel ortic castello',
+        'manuel orytis',
       ]
     ],
     [
       'Escola La Bassa',
       ['La Bassa']
+    ],
+    [
+      'Escola Sant Salvador',
     ],
     [
       'Escola Minyons d’Urgell',
@@ -3741,6 +3751,8 @@ document.addEventListener('visibilitychange', () => {
         "Minyons d' Urgell",
         'Minyons',
         'Minyonsdurgell'
+        'minyons d'urgell AURA',
+        'Minions d'Urgell',
       ]
     ],
     [
@@ -3752,6 +3764,12 @@ document.addEventListener('visibilitychange', () => {
         'Jaumebalmes',
         'Jaume Balmes s',
         'Jaume Bames',
+        'Escalated jammer blames Cervera',
+        'balmes',
+        'Jaume',
+        'jaumes balmes',
+        'Escola Joume Balmes',
+        'escola jaume balmes cervera 2026',
       ]
     ],
     [
@@ -3784,6 +3802,7 @@ document.addEventListener('visibilitychange', () => {
         'Eugeni d,Ors',
         'Eugeni d Ors de Valls',
         'Eugeni d Ors Valls'
+        'ecola eugeni dors',
       ]
     ],
     [
@@ -3798,6 +3817,7 @@ document.addEventListener('visibilitychange', () => {
         'Mosen Josep Arques',
         'Mn. Josep Arques',
         'Arques'
+        'Josep Arques',
       ]
     ],
     [
@@ -3807,6 +3827,7 @@ document.addEventListener('visibilitychange', () => {
     [
       'Escola Riu Segre',
       ['Riu Segre']
+      'ESCOLA RIU SEGR',
     ],
     [
       'Escola Dolors Martí i Badia',
@@ -3869,6 +3890,19 @@ document.addEventListener('visibilitychange', () => {
   // Si un àlies apareix amb dues variants de l’escola,
   // conserva la puntuació més alta.
 
+  const hiddenSchools = new Set(
+  [
+    'Escola inventada',
+    'hola',
+    '6è',
+    'Escola Anti 67',
+    'PCMAT',
+    'EPDA',
+    '5è',
+    
+  ].map(schoolKey)
+);
+  
   function calculateSchools(entries) {
     const schools = new Map();
 
@@ -3980,10 +4014,6 @@ document.addEventListener('visibilitychange', () => {
       Carregant la classificació…
     </p>
 
-    <p class="school-ranking-note">
-      Els registres antics de Jaume Balmes sense municipi
-      es mostren separats.
-    </p>
   `;
 
   layout.append(panel);

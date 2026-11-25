@@ -235,6 +235,81 @@
       nav button { padding: 8px 11px; }
       .summary { font-size: 14px; }
     }
+    .scene.awaiting-start { min-height: 330px; aspect-ratio: 1200 / 780; }
+    .scene.awaiting-start canvas {
+      position: absolute;
+      inset: 0;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .controls-screen {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: grid;
+      place-items: center;
+      padding: 12px;
+      background: rgba(21, 40, 37, .76);
+    }
+
+    .controls-screen[hidden] { display: none; }
+
+    .controls-panel {
+      width: min(100%, 365px);
+      padding: clamp(12px, 3vw, 22px);
+      border: 2px solid #a0b79a;
+      border-radius: 12px;
+      background: #263f38;
+      color: #fff9e8;
+      box-shadow: 0 5px 0 #122924, 0 12px 28px rgba(9, 24, 21, .35);
+    }
+
+    .controls-panel h2 {
+      margin: 0 0 10px;
+      color: #fff9e8;
+      font: 800 clamp(17px, 4vw, 23px)/1.1 ui-monospace, monospace;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .controls-list { display: grid; gap: 5px; margin: 0 0 12px; }
+    .controls-list div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      min-height: 29px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: #324e45;
+    }
+
+    .controls-list dt { font-size: 13px; font-weight: 700; }
+    .controls-list dd { margin: 0; white-space: nowrap; }
+    .controls-list kbd {
+      display: inline-block;
+      min-width: 22px;
+      padding: 2px 5px;
+      border: 1px solid #a0b79a;
+      border-bottom-width: 3px;
+      border-radius: 4px;
+      background: #172f29;
+      color: #fff4cf;
+      font: 700 12px/1 ui-monospace, monospace;
+      text-align: center;
+    }
+
+    #play-game {
+      width: 100%;
+      padding: 7px 12px;
+      border: 1px solid #eaca78;
+      border-bottom: 4px solid #997136;
+      border-radius: 6px;
+      background: #f4d784;
+      color: #263229;
+      font-weight: 900;
+    }
   </style>
 </head>
 
@@ -254,7 +329,7 @@
     </p>
 
     <div class="game-toolbar">
-      <nav id="levels" aria-label="Tria el nombre d’esglaons"></nav>
+      <nav id="levels" inert aria-label="Tria el nombre d’esglaons"></nav>
       <span id="look-announcement" class="visually-hidden" role="status"></span>
     </div>
 
@@ -267,9 +342,9 @@
 
         <p id="replay-status" class="replay-status" role="status"></p>
 
-        <div class="scene">
+        <div class="scene awaiting-start">
           <canvas id="stairs" width="1200" height="780" aria-hidden="true"></canvas>
-          <div class="customization" role="group" aria-label="Personalitza en MAT">
+          <div class="customization" inert role="group" aria-label="Personalitza en MAT">
             <button id="change-look" type="button"
                     aria-label="Canvia l’aspecte d’en MAT. Aspecte actual: MAT clàssic"
                     title="Canvia l’aspecte d’en MAT">
@@ -281,6 +356,19 @@
               <span aria-hidden="true">✋</span>
             </button>
           </div>
+          <section id="controls-screen" class="controls-screen" aria-labelledby="controls-title">
+            <div class="controls-panel">
+              <h2 id="controls-title">Controls</h2>
+              <dl class="controls-list">
+                <div><dt>Mou en MAT</dt><dd><kbd>←</kbd> <kbd>→</kbd></dd></div>
+                <div><dt>Salta</dt><dd><kbd>Espai</kbd></dd></div>
+                <div><dt>Doble salt</dt><dd><kbd>Espai</kbd> × 2</dd></div>
+                <div><dt>Tria l’escala</dt><dd><kbd>1</kbd>–<kbd>6</kbd></dd></div>
+                <div><dt>Saluda</dt><dd><kbd>Q</kbd></dd></div>
+              </dl>
+              <button id="play-game" type="button" autofocus>Jugar</button>
+            </div>
+          </section>
         </div>
 
         <div class="route-bar">
@@ -291,7 +379,7 @@
           </div>
         </div>
 
-        <div class="moves">
+        <div class="moves" inert>
           <button id="one" class="primary" type="button">↑ Puja 1</button>
           <button id="two" class="primary jump2" type="button">↑ Puja 2</button>
           <button id="undo" type="button">Desfés el salt</button>
@@ -310,7 +398,7 @@
         </p>
       </section>
 
-      <section class="card" aria-labelledby="routes-title">
+      <section class="card" inert aria-labelledby="routes-title">
         <h2 id="routes-title">Recorreguts descoberts</h2>
         <p id="count" class="count"></p>
         <ul id="routes" class="routes" role="list"></ul>
@@ -367,7 +455,8 @@
       const birdFirstFlightMs = 8000;
       const birdIntervalMs = 23000;
       const birdFlightMs = 10500;
-      const dayStartedAt = performance.now();
+      let dayStartedAt = performance.now();
+      let playing = false;
 
       const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
       const mix = (from, to, fraction) => from + (to - from) * fraction;
@@ -1051,7 +1140,7 @@
       }
 
       function syncLandscapeClock() {
-        if (document.hidden) {
+        if (!playing || document.hidden) {
           if (landscapeInterval !== null) clearInterval(landscapeInterval);
           landscapeInterval = null;
           return;
@@ -1977,7 +2066,7 @@
       });
 
       document.addEventListener('keydown', event => {
-        if (event.defaultPrevented || event.isComposing || event.altKey ||
+        if (!playing || event.defaultPrevented || event.isComposing || event.altKey ||
             event.ctrlKey || event.metaKey) return;
 
         const target = event.target;
@@ -2034,7 +2123,21 @@
       paintLandscape(initialDayPhase);
       restart();
       document.addEventListener('visibilitychange', syncLandscapeClock);
-      syncLandscapeClock();
+
+      get('play-game').addEventListener('click', () => {
+        playing = true;
+        dayStartedAt = performance.now();
+        const screen = get('controls-screen');
+        screen.hidden = true;
+        screen.parentElement.classList.remove('awaiting-start');
+        for (const control of document.querySelectorAll(
+          '#levels, .customization, .moves, [aria-labelledby="routes-title"]'
+        )) {
+          control.inert = false;
+        }
+        get('one').focus({ preventScroll: true });
+        syncLandscapeClock();
+      }, { once: true });
     })();
   </script>
 </body>

@@ -146,7 +146,36 @@
 
     .customization button:hover { background: #ffe9a5; }
 
-    .route { margin: 10px 0 6px; font-weight: 800; }
+    .route-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0 12px;
+      margin: 10px 0 6px;
+    }
+
+    .jump-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 10px;
+      font-size: 13px;
+    }
+
+    .jump-legend span::before {
+      display: inline-block;
+      width: .8em;
+      height: .8em;
+      margin-right: .35em;
+      border-radius: 3px;
+      background: var(--jump-color);
+      content: "";
+    }
+
+    .jump-legend span:first-child { --jump-color: #417558; }
+    .jump-legend span:last-child { --jump-color: #356c9e; }
+
+    .route { margin: 0; font-weight: 800; }
     .feedback { margin: 6px 0 0; color: #425c4e; }
     .feedback:empty { margin: 0; }
     .keyboard { margin: 8px 0 0; color: #40574c; font-size: 14px; }
@@ -254,7 +283,13 @@
           </div>
         </div>
 
-        <p id="route" class="route"></p>
+        <div class="route-bar">
+          <p id="route" class="route"></p>
+          <div class="jump-legend" aria-label="Colors dels salts">
+            <span>Salt d’1 esglaó</span>
+            <span>Salt de 2 esglaons</span>
+          </div>
+        </div>
 
         <div class="moves">
           <button id="one" class="primary" type="button">↑ Puja 1</button>
@@ -585,7 +620,7 @@
         }
 
         if (step !== routeEnd()) {
-          message = 'Torna a l’últim esglaó verd o a baix per reprendre el recorregut.';
+          message = 'Torna a l’últim esglaó del recorregut o a baix per reprendre el recorregut.';
         }
 
         if (!reduced.matches) {
@@ -1008,8 +1043,20 @@
         if (landscapeInterval === null) landscapeInterval = setInterval(refreshLandscape, 120);
       }
 
-      function drawStairs() {
-        const visited = new Set(positions(route));
+      const stairColors = [
+        { top: '#e1ebce', bottom: '#a9bd95', border: '#6f8b69', edge: '#84a479', ink: '#163d31' },
+        { top: '#417558', bottom: '#28513e', border: '#234a37', edge: '#d6ed9e', ink: '#fffef4' },
+        { top: '#356c9e', bottom: '#23476d', border: '#193852', edge: '#a9ddff', ink: '#fffef4' }
+      ];
+
+      function drawStairs(path) {
+        const stepColors = [0];
+        for (const jump of path) {
+          const distance = Number(jump);
+          for (let offset = 0; offset < distance; offset++) {
+            stepColors.push(distance);
+          }
+        }
         const width = stairWidth();
         ctx.save();
         ctx.font = 'bold 17px system-ui';
@@ -1020,17 +1067,17 @@
           const x = leftEdge(step);
           const y = stepHeight(step);
           const height = floor - y;
-          const reached = visited.has(step);
+          const colors = stairColors[stepColors[step] ?? 0];
           const face = ctx.createLinearGradient(0, y, 0, floor);
-          face.addColorStop(0, reached ? '#417558' : '#e1ebce');
-          face.addColorStop(1, reached ? '#28513e' : '#a9bd95');
+          face.addColorStop(0, colors.top);
+          face.addColorStop(1, colors.bottom);
 
           box(ctx, 'rgba(22, 61, 49, .18)', x + 3, y + 3, width, height);
           box(ctx, face, x, y, width, height);
-          ctx.strokeStyle = reached ? '#234a37' : '#6f8b69';
+          ctx.strokeStyle = colors.border;
           ctx.strokeRect(x + .5, y + .5, width - 1, height - 1);
-          box(ctx, reached ? '#d6ed9e' : '#84a479', x + 1, y + 1, width - 2, 4);
-          ctx.fillStyle = reached ? '#fffef4' : '#163d31';
+          box(ctx, colors.edge, x + 1, y + 1, width - 2, 4);
+          ctx.fillStyle = colors.ink;
           ctx.fillText(String(step), x + width / 2, y + Math.min(19, (height + 4) / 2));
         }
 
@@ -1624,8 +1671,8 @@
       }
 
       // Reproducció, celebració i ocells
-      function drawReplay(time) {
-        if (!replay) return;
+      function replayFrameAt(time) {
+        if (!replay) return null;
 
         const elapsed = Math.max(0, time - replay.start);
         const count = replay.steps.length - 1;
@@ -1633,22 +1680,23 @@
         const progress = clamp((elapsed - index * replaySegmentMs) / replayJumpMs, 0, 1);
         const landed = reduced.matches ? count : index + Number(progress === 1);
 
-        for (const step of replay.steps.slice(1, landed + 1)) {
-          box(ctx, '#c48121', leftEdge(step) + 6, stepHeight(step), stairWidth() - 12, 4);
-        }
+        return { index, progress, landed };
+      }
 
-        if (!reduced.matches) {
-          const from = replay.steps[index];
-          const to = replay.steps[index + 1];
-          const x = mix(centerX(from), centerX(to), progress);
-          const y = mix(stepHeight(from), stepHeight(to), progress)
-            - Math.sin(Math.PI * progress) * 52;
+      function drawReplay(replayFrame) {
+        if (!replayFrame || reduced.matches) return;
 
-          drawFox(x, y, {
-            turn: 1, stride: 0, pace: 0, air: progress > 0 && progress < 1,
-            squash: 0, ghost: true
-          });
-        }
+        const { index, progress } = replayFrame;
+        const from = replay.steps[index];
+        const to = replay.steps[index + 1];
+        const x = mix(centerX(from), centerX(to), progress);
+        const y = mix(stepHeight(from), stepHeight(to), progress)
+          - Math.sin(Math.PI * progress) * 52;
+
+        drawFox(x, y, {
+          turn: 1, stride: 0, pace: 0, air: progress > 0 && progress < 1,
+          squash: 0, ghost: true
+        });
       }
 
       function drawConfetti(elapsed, finished) {
@@ -1778,7 +1826,8 @@
         ctx.setTransform(2, 0, 0, 2, 0, sky * 2);
 
         drawSkyBirds(birdFlight);
-        drawStairs();
+        const replayFrame = replayFrameAt(time);
+        drawStairs(replayFrame ? replay.path.slice(0, replayFrame.landed) : route);
         drawShadow();
 
         if (landing && landing.step > 0 && !reduced.matches) {
@@ -1794,7 +1843,7 @@
         drawDust(landing, 300, time, true);
         drawDust(boost, 360, time, false);
         drawJumpTrail(time);
-        drawReplay(time);
+        drawReplay(replayFrame);
 
         let bounce = 0;
         if (celebration?.finished && mat.step === level &&

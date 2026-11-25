@@ -358,7 +358,7 @@
       const walkSpeed = 165;
       const airSpeed = 285;
       const waveMs = 720;
-      const celebrationMs = 2100;
+      const celebrationMs = 3500;
       const replayJumpMs = 430;
       const replaySegmentMs = 620;
       const dayDurationMs = 6 * 60 * 1000;
@@ -809,8 +809,12 @@
 
         const current = surfaceAt(mat.x);
         const next = surfaceAt(nextX);
+        const astronautFlying = mat.airborne && mat.jumps > 0 &&
+          outfits[outfitIndex].style === 'astronaut';
+
+        const exceedsJumpRange = !astronautFlying && next > mat.step + mat.jumps;
         const blocked = next > 0 && next !== current &&
-          (stepHeight(next) < mat.y || next > mat.step + mat.jumps);
+          (stepHeight(next) < mat.y || exceedsJumpRange);
 
         if (blocked) {
           mat.x = nextX > mat.x ? leftEdge(next) - .01 : leftEdge(next) + stairWidth() + .01;

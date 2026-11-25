@@ -683,11 +683,15 @@
         if (frame === null) frame = requestAnimationFrame(update);
       }
 
-      function moveHorizontally(dt) {
-        const direction = Number(held.has('ArrowRight')) - Number(held.has('ArrowLeft'));
-        const speed = direction * (mat.airborne ? airSpeed : walkSpeed);
-        mat.vx += (speed - mat.vx) * (1 - Math.exp(-17 * dt));
-        if (direction) mat.facing = direction;
+function moveHorizontally(dt) {
+  const direction = Number(held.has('ArrowRight')) - Number(held.has('ArrowLeft'));
+  const walkingSpeed = outfits[outfitIndex].style === 'runner'
+    ? walkSpeed * 1.35
+    : walkSpeed;
+  const speed = direction * (mat.airborne ? airSpeed : walkingSpeed);
+
+  mat.vx += (speed - mat.vx) * (1 - Math.exp(-17 * dt));
+  if (direction) mat.facing = direction;
 
         const nextX = mat.x + mat.vx * dt;
         if (nextX >= worldWidth + margin) {
@@ -1603,8 +1607,15 @@ const wardrobeRow = document.createElement('div');
 wardrobeRow.style.display = 'flex';
 wardrobeRow.style.justifyContent = 'flex-end';
 wardrobeRow.style.marginTop = '8px';
+
+const wardrobeButton = get('change-look');
+wardrobeButton.style.width = '160px';
+wardrobeButton.style.height = '40px';
+wardrobeButton.style.padding = '0 10px';
+wardrobeButton.style.whiteSpace = 'nowrap';
+
 document.querySelector('.scene').after(wardrobeRow);
-wardrobeRow.append(get('change-look'));
+wardrobeRow.append(wardrobeButton);
 
 function drawMatArm(outfit, side, shoulderY, angle, item = null) {
   ctx.save();
@@ -1612,15 +1623,15 @@ function drawMatArm(outfit, side, shoulderY, angle, item = null) {
   ctx.scale(side, 1);
   ctx.rotate(angle);
 
-  oval(ctx, outfit.coat, 7, 0, 10, 4.5);
-  oval(ctx, '#e7823d', 16, 0, 5, 4);
+  oval(ctx, outfit.coat, 6, 0, 9, 4.2);
+  oval(ctx, '#e7823d', 13, 0, 4.5, 3.8);
 
   if (item !== null) {
-    ctx.translate(21, 0);
-    // Manté l’objecte dret mentre el braç es balanceja.
+    ctx.translate(15, 0);
     ctx.rotate(-angle);
+    ctx.translate(4, 4);
     drawHeldItem(item);
-    oval(ctx, '#e7823d', -3, 2, 3, 2.5);
+    oval(ctx, '#e7823d', -4, -3, 3, 2.5);
   }
 
   ctx.restore();
@@ -1635,34 +1646,28 @@ drawFox = function (x, y, pose) {
   const outfit = outfits[outfitIndex];
   const side = pose.turn < 0 ? -1 : 1;
   const stride = Math.sin(pose.stride);
-  const swing = stride * pose.pace * .42;
+  const swing = stride * pose.pace * .28;
   const bob = Math.abs(stride) * pose.pace * 2;
   const shoulderY = -22 - bob + (pose.air ? 2 : 0);
   const bodyWidth = .65 + .35 * Math.abs(pose.turn);
+  const armAngle = pose.air ? .95 : 1.22;
 
-  // El braç lliure passa per darrere del cos. Amb Q, el dibuix
-  // del personatge ja s’encarrega de fer-lo saludar.
-  if (pose.wave == null) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(bodyWidth * (1 + pose.squash * .08), 1 - pose.squash * .16);
-    drawMatArm(outfit, side, shoulderY, pose.air ? -.38 : .78 - swing);
-    ctx.restore();
-  }
-
-  drawFoxBody(x, y, pose);
-
-  // El braç que duu l’objecte es pinta al davant, per sobre de la cua.
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(bodyWidth * (1 + pose.squash * .08), 1 - pose.squash * .16);
-  drawMatArm(
-    outfit,
-    -side,
-    shoulderY,
-    pose.air ? -.45 : -.16 + swing,
-    heldItems[outfit.style]
-  );
+
+  if (pose.wave == null) {
+    drawMatArm(outfit, side, shoulderY, armAngle - swing);
+  }
+
+  ctx.restore();
+
+  drawFoxBody(x, y, pose);
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(bodyWidth * (1 + pose.squash * .08), 1 - pose.squash * .16);
+  drawMatArm(outfit, -side, shoulderY, armAngle + swing, heldItems[outfit.style]);
   ctx.restore();
 };
       

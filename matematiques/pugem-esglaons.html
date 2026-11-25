@@ -2324,5 +2324,245 @@
       }, { once: true });
     })();
   </script>
+
+<style>
+  .fullscreen-tabs { display: none; }
+
+  #game-shell.is-fullscreen {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    isolation: isolate;
+    background: #172f29;
+  }
+
+  #game-shell.is-fullscreen.is-expanded { position: fixed; }
+
+  #game-shell.is-fullscreen .layout { display: contents; }
+
+  #game-shell.is-fullscreen #game-card {
+    position: absolute;
+    inset: 0;
+    display: block;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    background: transparent;
+  }
+
+  #game-shell.is-fullscreen #game-card .scene {
+    position: absolute;
+    inset: 0;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  #game-shell.is-fullscreen #game-card canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+  }
+
+  #game-shell.is-fullscreen #fullscreen-toggle {
+    top: 10px;
+    right: 10px;
+  }
+
+  #game-shell.is-fullscreen .game-toolbar {
+    position: absolute;
+    z-index: 7;
+    top: 10px;
+    left: 10px;
+    right: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin: 0;
+    pointer-events: none;
+  }
+
+  #game-shell.is-fullscreen #levels,
+  #game-shell.is-fullscreen .fullscreen-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 0;
+    padding: 4px;
+    border: 1px solid #b8c9ac;
+    border-radius: 11px;
+    background: rgba(31, 60, 49, .94);
+    pointer-events: auto;
+  }
+
+  #game-shell.is-fullscreen .fullscreen-tabs button {
+    padding: 7px 10px;
+    font-size: 13px;
+  }
+
+  #game-shell.is-fullscreen .fullscreen-tabs button[aria-expanded="true"] {
+    background: #f4d784;
+    border-color: #caa759;
+    color: #25382e;
+  }
+
+  #game-shell.is-fullscreen #game-card > .bar { display: none; }
+
+  #game-shell.is-fullscreen #game-card > :is(.replay-status, .route-bar, .feedback) {
+    position: absolute;
+    z-index: 2;
+    width: max-content;
+    max-width: min(90%, 620px);
+    min-height: 0;
+    max-height: 68px;
+    margin: 0;
+    padding: 6px 10px;
+    overflow: auto;
+    border-radius: 8px;
+    background: rgba(255, 253, 246, .95);
+    color: #163d31;
+  }
+
+  #game-shell.is-fullscreen #game-card > .replay-status {
+    top: 72px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff0bc;
+  }
+
+  #game-shell.is-fullscreen #game-card > .route-bar {
+    left: 50%;
+    bottom: 62px;
+    transform: translateX(-50%);
+  }
+
+  #game-shell.is-fullscreen #game-card > .feedback {
+    bottom: 104px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  #game-shell.is-fullscreen #game-card > .feedback:empty,
+  #game-shell.is-fullscreen #game-card > .replay-status:empty {
+    display: none;
+  }
+
+  #game-shell.is-fullscreen .route-bar .route { margin: 0; }
+
+  #game-shell.is-fullscreen #game-card > .moves {
+    position: absolute;
+    z-index: 2;
+    left: 10px;
+    bottom: 10px;
+    max-width: calc(100% - 112px);
+    padding: 5px;
+    border-radius: 11px;
+    background: rgba(31, 60, 49, .94);
+  }
+
+  #game-shell.is-fullscreen :is(#floating-routes, #floating-summary) {
+    position: absolute;
+    z-index: 8;
+    top: 66px;
+    right: 10px;
+    display: none;
+    width: min(360px, calc(100% - 20px));
+    max-height: calc(100% - 84px);
+    margin: 0;
+    padding: 14px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border: 2px solid #a0b79a;
+    background: #fffdf6;
+    box-shadow: 0 8px 25px rgba(15, 34, 27, .36);
+  }
+
+  #game-shell.is-fullscreen[data-panel="routes"] #floating-routes,
+  #game-shell.is-fullscreen[data-panel="summary"] #floating-summary {
+    display: block;
+  }
+
+  #game-shell.is-fullscreen:has(.awaiting-start)
+    :is(.game-toolbar, #game-card > .route-bar, #game-card > .moves) {
+    visibility: hidden;
+  }
+
+  @media (max-width: 700px) {
+    #game-shell.is-fullscreen :is(#floating-routes, #floating-summary) {
+      top: 112px;
+      max-height: calc(100% - 128px);
+    }
+
+    #game-shell.is-fullscreen #game-card > .replay-status { top: 112px; }
+    #game-shell.is-fullscreen .route-bar .jump-legend { display: none; }
+  }
+</style>
+
+<script>
+  (() => {
+    const shell = document.getElementById('game-shell');
+    const toolbar = shell.querySelector('.game-toolbar');
+    const routes = shell.querySelector('[aria-labelledby="routes-title"]');
+    const summary = shell.querySelector('.summary');
+
+    routes.id = 'floating-routes';
+    summary.id = 'floating-summary';
+
+    const tabs = document.createElement('div');
+    tabs.className = 'fullscreen-tabs';
+    tabs.setAttribute('role', 'group');
+    tabs.setAttribute('aria-label', 'Informació de la partida');
+
+    const buttons = [];
+
+    function showPanel(name) {
+      if (name) shell.dataset.panel = name;
+      else delete shell.dataset.panel;
+
+      for (const { button, panel } of buttons) {
+        button.setAttribute('aria-expanded', String(panel === name));
+      }
+    }
+
+    for (const [name, label] of [
+      ['routes', 'Recorreguts i pista'],
+      ['summary', 'Taula']
+    ]) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = label;
+      button.setAttribute('aria-controls', 'floating-' + name);
+      button.setAttribute('aria-expanded', 'false');
+
+      button.addEventListener('click', () => {
+        showPanel(shell.dataset.panel === name ? null : name);
+        button.blur();
+      });
+
+      // Amb el focus en una pestanya, Espai l’obre com un botó normal.
+      button.addEventListener('keydown', event => {
+        if (event.code === 'Space' || event.key === ' ') event.stopPropagation();
+      });
+
+      buttons.push({ button, panel: name });
+      tabs.append(button);
+    }
+
+    toolbar.append(tabs);
+
+    // En sortir de pantalla completa, es tanca el panell obert.
+    new MutationObserver(() => {
+      if (!shell.classList.contains('is-fullscreen')) showPanel(null);
+    }).observe(shell, { attributes: true, attributeFilter: ['class'] });
+  })();
+</script>
+  
 </body>
 </html>

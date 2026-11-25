@@ -1868,6 +1868,86 @@
         ctx.restore();
       }
 
+function drawMotoRider(x, y, pose) {
+  drawJumpPlatform('rider', x, y, pose);
+
+  const side = pose.turn < 0 ? -1 : 1;
+  const width = .65 + .35 * Math.abs(pose.turn);
+  const tuck = pose.air ? 4 : 0;
+  const shoulderY = -46 + tuck;
+
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Ha de mirar en el mateix sentit que la moto.
+  ctx.scale(side * width, 1);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // Braç de darrere. Aquesta mà continua al manillar quan saluda.
+  ctx.strokeStyle = '#7b1821';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(2, shoulderY + 1);
+  ctx.quadraticCurveTo(9, -32, 19, -35);
+  ctx.stroke();
+  oval(ctx, '#262a35', 19, -35, 3.5, 2.8);
+
+  // Granota inclinada endavant, amb el maluc a l’altura del seient.
+  polygon(ctx, '#cc2027', [
+    [-15, -25], [-11, -36], [-1, shoulderY - 6],
+    [8 + tuck, shoulderY - 3], [11 + tuck, shoulderY + 3],
+    [2, -33], [-4, -22]
+  ]);
+
+  polygon(ctx, '#fff0db', [
+    [-11, -35], [0, shoulderY - 4], [5, shoulderY - 2], [-6, -33]
+  ]);
+
+  // Cama flexionada, amb la bota sobre l’estrep.
+  ctx.beginPath();
+  ctx.moveTo(-9, -25);
+  ctx.quadraticCurveTo(1, -27, 6, -22);
+  ctx.lineTo(-4, -13);
+  ctx.strokeStyle = '#87212a';
+  ctx.lineWidth = 10;
+  ctx.stroke();
+  oval(ctx, '#f75445', 5, -22, 4.8, 3.7);
+  oval(ctx, '#252833', -1, -13, 6.5, 3.2);
+
+  // Braç de davant. Normalment va al manillar, amb Q s’aixeca.
+  const wave = pose.wave;
+  const raise = wave == null ? 0 : reduced.matches
+    ? 1
+    : clamp(Math.min(wave, 1 - wave) / .18, 0, 1);
+  const sway = wave == null || reduced.matches ? 0
+    : Math.sin(wave * Math.PI * 6) * raise * 3;
+  const handX = mix(22, 18, raise) + sway;
+  const handY = mix(-35, -65, raise);
+
+  ctx.beginPath();
+  ctx.moveTo(6 + tuck, shoulderY);
+  ctx.quadraticCurveTo(13, mix(-36, -42, raise), handX, handY);
+  ctx.strokeStyle = '#e93636';
+  ctx.lineWidth = 6.5;
+  ctx.stroke();
+  oval(ctx, '#252833', handX, handY, 4, 3.2);
+
+  // Casc integral amb visera, avançat respecte del cos.
+  const helmetX = 9 + tuck;
+  const helmetY = shoulderY - 12;
+  oval(ctx, '#cc2027', helmetX, helmetY, 13, 11.5);
+
+  polygon(ctx, '#252833', [
+    [helmetX - 3, helmetY - 2], [helmetX + 13, helmetY - 3],
+    [helmetX + 12, helmetY + 3], [helmetX + 1, helmetY + 3]
+  ]);
+
+  box(ctx, '#fff9eb', helmetX - 5, helmetY - 8, 9, 2);
+  box(ctx, '#7395aa', helmetX + 5, helmetY - 1, 6, 1);
+  ctx.restore();
+}
+      
       function drawFox(x, y, pose) {
         const { turn, stride, pace, air, squash, ghost, wave = null } = pose;
         const outfit = outfits[outfitIndex];
@@ -1883,13 +1963,17 @@
         const armSwing = Math.sin(stride) * pace * .28;
         const inFlight = buttonJump || (mat.airborne && mat.jumps > 0);
 
-        const riding = !ghost && outfit.style === 'rider';
-        if (riding || (!ghost && inFlight && outfit.style !== 'robot' && outfit.style !== 'runner')) {
-          drawJumpPlatform(outfit.style, x, riding || air ? y : y + 8, pose);
+                if (!ghost && outfit.style === 'rider') {
+          drawMotoRider(x, y, pose);
+          return;
+        }
+
+        if (!ghost && inFlight && outfit.style !== 'robot' && outfit.style !== 'runner') {
+          drawJumpPlatform(outfit.style, x, air ? y : y + 8, pose);
         }
 
         ctx.save();
-        ctx.translate(x, riding ? y - 23 : y);
+        ctx.translate(x, y);
         ctx.scale((.65 + .35 * Math.abs(turn)) * (1 + squash * .08), 1 - squash * .16);
         if (ghost) ctx.globalAlpha = .55;
 

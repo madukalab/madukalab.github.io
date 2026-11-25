@@ -1106,28 +1106,49 @@
         if (!celebration?.finished) return;
 
         const elapsed = time - celebration.start;
-        if (elapsed < 0 || elapsed >= 2600) return;
+        const duration = 3200;
+        if (elapsed < 0 || elapsed >= duration) return;
 
         const width = stairWidth();
+        const fade = clamp((duration - elapsed) / 550, 0, 1);
         ctx.save();
         ctx.strokeStyle = '#fff1a1';
-        ctx.lineWidth = 4;
         ctx.shadowColor = '#ffd05a';
-        ctx.shadowBlur = reduced.matches ? 0 : 18;
 
         for (let step = 1; step <= level; step++) {
-          const delay = (step - 1) * 100;
-          const first = clamp((elapsed - delay) / 520, 0, 1);
-          const second = clamp((elapsed - delay - 700) / 520, 0, 1);
-          const third = clamp((elapsed - delay - 1400) / 520, 0, 1);
-          ctx.globalAlpha = reduced.matches ? .9 : Math.max(
-            Math.sin(first * Math.PI), Math.sin(second * Math.PI) * .9,
-            Math.sin(third * Math.PI) * .8
-          );
-          if (ctx.globalAlpha < .01) continue;
-
+          const x = leftEdge(step);
           const y = stepHeight(step);
-          ctx.strokeRect(leftEdge(step) + 2, y + 2, width - 4, floor - y - 4);
+          const delay = (step - 1) * 120;
+          const sweep = clamp((elapsed - delay) / 720, 0, 1);
+          const echo = clamp((elapsed - delay - 1050) / 760, 0, 1);
+          const pulse = reduced.matches ? 0 : Math.max(
+            Math.sin(sweep * Math.PI), .78 * Math.sin(echo * Math.PI)
+          );
+
+          ctx.lineWidth = 2 + 2 * pulse;
+          ctx.globalAlpha = reduced.matches ? .85 : (.35 + .65 * pulse) * fade;
+          ctx.shadowBlur = pulse * 18;
+          ctx.strokeRect(x + 2, y + 2, width - 4, floor - y - 4);
+
+          if (pulse < .02) continue;
+
+          const shineX = x + 12 + (width - 24) * (sweep < 1 ? sweep : echo);
+          const shine = ctx.createLinearGradient(shineX - 12, 0, shineX + 12, 0);
+          shine.addColorStop(0, '#fff1a100');
+          shine.addColorStop(.5, '#fff8ce');
+          shine.addColorStop(1, '#fff1a100');
+
+          ctx.shadowBlur = 0;
+          ctx.globalAlpha = pulse * fade;
+          box(ctx, shine, x + 3, y + 3, width - 6, 6);
+
+          const sparkY = y - 4 - pulse * 5;
+          polygon(ctx, '#fff8ce', [
+            [shineX, sparkY - 5], [shineX + 2, sparkY - 1],
+            [shineX + 5, sparkY], [shineX + 2, sparkY + 1],
+            [shineX, sparkY + 5], [shineX - 2, sparkY + 1],
+            [shineX - 5, sparkY], [shineX - 2, sparkY - 1]
+          ]);
         }
 
         ctx.restore();
@@ -1751,25 +1772,23 @@
       function drawConfetti(elapsed, finished) {
         const colors = ['#f9c74f', '#ee784f', '#69a66b', '#4c9db7', '#ad79c7'];
 
-        for (const delay of finished ? [0, 380, 800, 1250] : [0]) {
-          const progress = (elapsed - delay) / (finished ? 1450 : 950);
-          if (progress < 0 || progress >= 1) continue;
+        const progress = elapsed / 950;
+        if (progress < 0 || progress >= 1) return;
 
-          const pieces = finished ? 42 : 16;
-          for (let index = 0; index < pieces; index++) {
-            const side = index % 2 === 0 ? -1 : 1;
-            const x = worldWidth / 2 + side * (78 + (38 + index * 17 % (finished ? 210 : 112)) * progress);
-            const y = -sky + 48 - (22 + index * 13 % 62) * progress + (finished ? 300 : 180) * progress * progress;
-            const size = 3 + index % 4;
+        const pieces = finished ? 8 : 16;
+        for (let index = 0; index < pieces; index++) {
+          const side = index % 2 === 0 ? -1 : 1;
+          const x = worldWidth / 2 + side * (78 + (38 + index * 17 % 112) * progress);
+          const y = -sky + 48 - (22 + index * 13 % 62) * progress + 180 * progress * progress;
+          const size = 3 + index % 4;
 
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate(index + side * progress * 8);
-            ctx.globalAlpha = 1 - clamp((progress - .55) / .45, 0, 1);
-            box(ctx, colors[index % colors.length], -size / 2, -2,
-              size, index % 3 === 0 ? size : 4);
-            ctx.restore();
-          }
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(index + side * progress * 8);
+          ctx.globalAlpha = 1 - clamp((progress - .55) / .45, 0, 1);
+          box(ctx, colors[index % colors.length], -size / 2, -2,
+            size, index % 3 === 0 ? size : 4);
+          ctx.restore();
         }
       }
 

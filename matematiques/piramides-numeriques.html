@@ -3597,5 +3597,533 @@ document.addEventListener('visibilitychange', () => {
     );
   })();
 </script>
+
+<style>
+  /* CLASSIFICACIONS */
+
+  .rankings-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr);
+    gap: 16px;
+    align-items: start;
+    margin-top: 20px;
+  }
+
+  .rankings-layout > .ranking-panel {
+    margin: 0;
+    padding: 20px;
+    border: 1px solid var(--line);
+  }
+
+  .school-ranking-intro,
+  .school-ranking-note {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .school-ranking-scroll {
+    overflow-x: auto;
+  }
+
+  .school-ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .school-ranking-table th,
+  .school-ranking-table td {
+    padding: 13px 7px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+
+  .school-ranking-table th {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .school-ranking-table td:nth-child(2) {
+    overflow-wrap: anywhere;
+  }
+
+  .school-ranking-table th:nth-child(3),
+  .school-ranking-table td:nth-child(3) {
+    text-align: center;
+  }
+
+  .school-ranking-table th:last-child,
+  .school-ranking-table td:last-child {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .school-ranking-table td:last-child {
+    font-weight: 900;
+  }
+
+  .school-ranking-table tbody tr:nth-child(1) {
+    background: #fff4cf;
+  }
+
+  .school-ranking-table tbody tr:nth-child(2) {
+    background: #edf0f3;
+  }
+
+  .school-ranking-table tbody tr:nth-child(3) {
+    background: #f5e7da;
+  }
+
+  body.marquez-theme
+  .school-ranking-table tbody tr:nth-child(1) {
+    background: #46351d;
+  }
+
+  body.marquez-theme
+  .school-ranking-table tbody tr:nth-child(2) {
+    background: #30343e;
+  }
+
+  body.marquez-theme
+  .school-ranking-table tbody tr:nth-child(3) {
+    background: #452b23;
+  }
+
+  #entry-school-choice {
+    width: 100%;
+  }
+
+  @media (max-width: 900px) {
+    .rankings-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+(() => {
+  'use strict';
+
+  // Evita afegir el bloc dues vegades.
+  if (document.getElementById('school-ranking')) {
+    return;
+  }
+
+  // Noms unificats i variants conegudes.
+  // Els municipis diferents es mantenen separats.
+
+  const schoolGroups = [
+    [
+      'Escola Manuel Ortiz i Castelló',
+      [
+        'Manuel Ortiz i Castello',
+        'Manuel Ortiz Castello',
+        'Manuel Ortiz',
+        'Manuel Ortiz i Catello',
+        'Manuel Ortiz i Castelló Juneda',
+        'Mauel Ortiz i Castello',
+        'Manuel Ortiz orca Juneda',
+        'Manuel Ortiz i Casrello',
+        'Manuel Oriz i Castello',
+        'Manuel Orti z i Castello'
+      ]
+    ],
+    [
+      'Escola La Bassa',
+      ['La Bassa']
+    ],
+    [
+      'Escola Minyons d’Urgell',
+      [
+        "Minyons d'Urgell",
+        "Minyons d' Urgell",
+        'Minyons',
+        'Minyonsdurgell'
+      ]
+    ],
+    [
+      'Escola Jaume Balmes · Cervera',
+      [
+        'Jaume Balmes Cervera',
+        'Escola Jaume Balmes de Cervera'
+      ]
+    ],
+    [
+      'Escola Jaume Balmes · Santa Bàrbara',
+      [
+        'Jaume Balmes Santa Bàrbara',
+        'Jaume Balmes de Santa Bàrbara'
+      ]
+    ],
+    [
+      'Jaume Balmes · municipi no indicat',
+      [
+        'Jaume Balmes',
+        'Jaumebalmes',
+        'Jaume Balmes s',
+        'Jaume Bames',
+        'Jaume Balmes Santa'
+      ]
+    ],
+    [
+      'Escola La Rabassa',
+      ['La Rabassa']
+    ],
+    [
+      'Escola Camps Elisis',
+      [
+        'Camps Elisis',
+        'Camps Elisi',
+        'Caps Elisis',
+        'Campselisis'
+      ]
+    ],
+    [
+      'Escola Eugeni d’Ors',
+      [
+        "Eugeni d'Ors",
+        'Eugenidors',
+        'Eugeni dors',
+        'Eugeni d,Ors',
+        'Eugeni d Ors de Valls',
+        'Eugeni d Ors Valls'
+      ]
+    ],
+    [
+      'Escola de Ponts',
+      ['Ponts']
+    ],
+    [
+      'Escola Mossèn Josep Arques',
+      [
+        'Mossèn Josep Arques',
+        'Mossen Josep Arques',
+        'Mosen Josep Arques',
+        'Mn. Josep Arques',
+        'Arques'
+      ]
+    ],
+    [
+      'Escola Les Muralles',
+      ['Les Muralles']
+    ],
+    [
+      'Escola Riu Segre',
+      ['Riu Segre']
+    ],
+    [
+      'Escola Dolors Martí i Badia',
+      [
+        'Dolors Martí i Badia',
+        'Dolors Marti i Badia',
+        'Dolors Martí',
+        'Dolors Marti'
+      ]
+    ],
+    [
+      'Escola Sant Josep de Calassanç',
+      [
+        'Sant Josep de Calassanç',
+        'Sant Josep de Calassanc'
+      ]
+    ],
+    [
+      'IE Castell d’Òdena',
+      [
+        "I.E Castell d'Odena",
+        "IE Castell d'Odena",
+        'IE Castell d Odena'
+      ]
+    ]
+  ];
+
+  function schoolKey(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase('ca')
+      .trim()
+      .replace(/^escola\s*/u, '')
+      .replace(/[^a-z0-9]/g, '');
+  }
+
+  const aliases = new Map();
+
+  schoolGroups.forEach(([name, variants]) => {
+    [name, ...variants].forEach(value => {
+      aliases.set(schoolKey(value), name);
+    });
+  });
+
+  function canonicalSchool(value) {
+    const clean = String(value || '')
+      .normalize('NFKC')
+      .trim()
+      .replace(/\s+/g, ' ');
+
+    if (!clean) {
+      return 'Escola no indicada';
+    }
+
+    return aliases.get(schoolKey(clean)) || clean;
+  }
+
+  // Suma una sola millor puntuació per àlies i escola.
+  // Si un àlies apareix amb dues variants de l’escola,
+  // conserva la puntuació més alta.
+
+  function calculateSchools(entries) {
+    const schools = new Map();
+
+    for (const entry of entries) {
+      const score = Number(entry.score);
+
+      const name = String(entry.name || '')
+        .normalize('NFKC')
+        .trim()
+        .replace(/\s+/g, ' ');
+
+      if (
+        !name ||
+        !Number.isSafeInteger(score) ||
+        score <= 0
+      ) {
+        continue;
+      }
+
+      const label = canonicalSchool(entry.school);
+      const key = schoolKey(label);
+
+      if (!schools.has(key)) {
+        schools.set(key, {
+          name: label,
+          players: new Map()
+        });
+      }
+
+      const school = schools.get(key);
+      const playerKey = name.toLocaleLowerCase('ca');
+
+      school.players.set(
+        playerKey,
+        Math.max(
+          score,
+          school.players.get(playerKey) || 0
+        )
+      );
+    }
+
+    return [...schools.values()]
+      .map(school => ({
+        name: school.name,
+        players: school.players.size,
+        score: [...school.players.values()].reduce(
+          (total, score) => total + score,
+          0
+        )
+      }))
+      .sort((a, b) =>
+        b.score - a.score ||
+        a.name.localeCompare(b.name, 'ca')
+      );
+  }
+
+  // Situa les dues classificacions sota el joc.
+
+  const individual = get('ranking-title')
+    .closest('.ranking-panel');
+
+  const layout = document.createElement('div');
+  layout.className = 'rankings-layout';
+
+  get('game-screen').append(layout);
+
+  individual.classList.add('card');
+  layout.append(individual);
+
+  const panel = document.createElement('section');
+
+  panel.id = 'school-ranking';
+  panel.className = 'card';
+
+  panel.setAttribute(
+    'aria-labelledby',
+    'school-ranking-title'
+  );
+
+  panel.innerHTML = `
+    <h2 id="school-ranking-title">
+      Classificació d’escoles
+    </h2>
+
+    <p class="school-ranking-intro">
+      Sumem la millor puntuació de cada àlies de l’escola.
+    </p>
+
+    <div class="school-ranking-scroll">
+      <table class="school-ranking-table">
+        <thead>
+          <tr>
+            <th scope="col">Pos.</th>
+            <th scope="col">Escola</th>
+            <th scope="col">Jugadors</th>
+            <th scope="col">Punts</th>
+          </tr>
+        </thead>
+
+        <tbody id="school-ranking-body"></tbody>
+      </table>
+    </div>
+
+    <p
+      id="school-ranking-status"
+      class="school-ranking-note"
+      role="status"
+    >
+      Carregant la classificació…
+    </p>
+
+    <p class="school-ranking-note">
+      Els registres antics de Jaume Balmes sense municipi
+      es mostren separats.
+    </p>
+  `;
+
+  layout.append(panel);
+
+  function renderSchools(entries) {
+    const body = get('school-ranking-body');
+    body.replaceChildren();
+
+    const schools = calculateSchools(entries);
+
+    schools.forEach((school, index) => {
+      const row = document.createElement('tr');
+
+      const values = [
+        ['🥇', '🥈', '🥉'][index] || String(index + 1),
+        school.name,
+        String(school.players),
+        school.score.toLocaleString('ca-ES')
+      ];
+
+      values.forEach(value => {
+        const cell = document.createElement('td');
+        cell.textContent = value;
+        row.append(cell);
+      });
+
+      body.append(row);
+    });
+
+    const players = schools.reduce(
+      (total, school) => total + school.players,
+      0
+    );
+
+    get('school-ranking-status').textContent = schools.length
+      ? schools.length + ' escoles · ' +
+        players + ' àlies amb puntuació'
+      : 'Encara no hi ha puntuacions carregades.';
+  }
+
+  // Reutilitza les dades que ja carrega el rànquing individual.
+  // S’actualitza també quan es registra una puntuació.
+
+  const originalShowRanking = showRanking;
+
+  showRanking = function(entries) {
+    originalShowRanking(entries);
+    renderSchools(entries);
+  };
+
+  if (rankingEntries.length) {
+    renderSchools(rankingEntries);
+  }
+
+  function syncRankingStatus() {
+    if (rankingBusy || !rankingEntries.length) {
+      get('school-ranking-status').textContent =
+        get('ranking-status').textContent;
+    }
+  }
+
+  new MutationObserver(syncRankingStatus).observe(
+    get('ranking-status'),
+    {
+      childList: true,
+      characterData: true,
+      subtree: true
+    }
+  );
+
+  syncRankingStatus();
+
+  // SELECTOR D’ESCOLA
+  // Conserva el camp original per enviar les dades
+  // amb el mateix format que utilitza el joc.
+
+  const schoolInput = get('entry-school');
+  const select = document.createElement('select');
+
+  select.id = 'entry-school-choice';
+  select.className = 'text-input';
+  select.required = true;
+
+  const placeholder = new Option(
+    'Selecciona la teva escola',
+    ''
+  );
+
+  placeholder.disabled = true;
+  placeholder.selected = true;
+
+  select.append(placeholder);
+
+  schoolGroups
+    .map(([name]) => name)
+    .filter(name => !name.includes('municipi no indicat'))
+    .sort((a, b) => a.localeCompare(b, 'ca'))
+    .forEach(name => {
+      select.append(new Option(name, name));
+    });
+
+  select.append(
+    new Option('Una altra escola…', '__other__')
+  );
+
+  schoolInput.before(select);
+
+  document.querySelector(
+    'label[for="entry-school"]'
+  ).htmlFor = select.id;
+
+  schoolInput.hidden = true;
+  schoolInput.required = false;
+
+  schoolInput.setAttribute(
+    'aria-label',
+    'Nom de l’altra escola'
+  );
+
+  schoolInput.placeholder =
+    'Escriu el nom complet de l’escola';
+
+  select.addEventListener('change', () => {
+    const other = select.value === '__other__';
+
+    schoolInput.hidden = !other;
+    schoolInput.required = other;
+    schoolInput.value = other ? '' : select.value;
+
+    if (other) {
+      schoolInput.focus();
+    }
+  });
+})();
+</script>
+  
 </body>
 </html>

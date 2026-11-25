@@ -1729,57 +1729,191 @@ drawFox = function (x, y, pose) {
   ctx.restore();
 };
 
-      const drawFoxWithItems = drawFox;
+ const drawFoxWithItems = drawFox;
 
-function drawRocketPlatform(x, y, pose) {
-  const rising = buttonJump
-    ? performance.now() - buttonJump.start < buttonJump.duration / 2
-    : mat.vy < 0;
-
-  const flicker = Math.sin(performance.now() / 45) * 2;
-  const flameLength = reduced.matches ? 8 : (rising ? 18 : 10) + flicker;
+function drawJumpPlatform(style, x, y, pose) {
+  const time = performance.now();
+  const animated = !reduced.matches;
+  const pulse = animated ? Math.sin(time / 85) : 0;
+  const direction = pose.turn < 0 ? -1 : 1;
   const width = .65 + .35 * Math.abs(pose.turn);
 
   ctx.save();
   ctx.translate(x, y);
-  ctx.scale(width, 1);
+  ctx.scale(width * direction, 1);
 
-  // Dos propulsors fan de base per a la plataforma.
-  for (const nozzleX of [-12, 12]) {
-    polygon(ctx, '#f5a64f', [
-      [nozzleX - 4, 8],
-      [nozzleX + 4, 8],
-      [nozzleX, 8 + flameLength]
-    ]);
+  switch (style) {
+    case 'classic':
+      // Monopatí de PCMAT.
+      oval(ctx, '#324d40', -14, 7, 4, 4);
+      oval(ctx, '#324d40', 14, 7, 4, 4);
+      polygon(ctx, '#184738', [
+        [-26, -9], [-19, -5], [19, -5], [26, -9],
+        [24, 0], [17, 3], [-17, 3], [-24, 0]
+      ]);
+      box(ctx, '#a8d078', -18, -5, 36, 3);
+      ctx.save();
+      ctx.scale(direction, 1);
+      ctx.fillStyle = '#fff9eb';
+      ctx.font = 'bold 6px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('PCMAT', 0, 1);
+      ctx.restore();
+      break;
 
-    polygon(ctx, '#fff0a4', [
-      [nozzleX - 2, 8],
-      [nozzleX + 2, 8],
-      [nozzleX, 8 + flameLength * .65]
-    ]);
+    case 'explorer':
+      // Tronc amb escorça i fulles.
+      oval(ctx, '#734a2e', 0, 0, 25, 8);
+      box(ctx, '#9a6a38', -20, -6, 40, 9);
+      box(ctx, '#c58e56', -17, -6, 33, 2);
+      oval(ctx, '#d5a567', 21, 0, 5, 7);
+      oval(ctx, '#9b6c41', 21, 0, 2.5, 4);
+      oval(ctx, '#8abe61', -22, -7 + pulse, 7, 3);
+      oval(ctx, '#5c8d47', -27, -4, 6, 2.5);
+      break;
 
-    box(ctx, '#435971', nozzleX - 5, 4, 10, 5);
+    case 'astronaut': {
+      const rising = buttonJump
+        ? time - buttonJump.start < buttonJump.duration / 2
+        : mat.vy < 0;
+      const flame = animated ? (rising ? 18 : 10) + pulse * 2 : 8;
+
+      for (const nozzleX of [-12, 12]) {
+        polygon(ctx, '#f5a64f', [
+          [nozzleX - 4, 8], [nozzleX + 4, 8], [nozzleX, 8 + flame]
+        ]);
+        polygon(ctx, '#fff0a4', [
+          [nozzleX - 2, 8], [nozzleX + 2, 8], [nozzleX, 8 + flame * .65]
+        ]);
+        box(ctx, '#435971', nozzleX - 5, 4, 10, 5);
+      }
+
+      polygon(ctx, '#54718d', [[-23, -7], [23, -7], [19, 5], [-19, 5]]);
+      box(ctx, '#d7ecf8', -21, -8, 42, 4);
+      box(ctx, '#8ca7bb', -17, -3, 34, 3);
+      oval(ctx, '#a8f4e6', -16, 1, 2, 2);
+      oval(ctx, '#a8f4e6', 16, 1, 2, 2);
+      break;
+    }
+
+    case 'pirate':
+      ctx.rotate(pulse * .06);
+      polygon(ctx, '#6b3d33', [
+        [-28, -8], [28, -8], [20, 6], [11, 9], [-16, 9], [-24, 3]
+      ]);
+      box(ctx, '#d69b61', -24, -8, 48, 3);
+      box(ctx, '#754a34', -20, -25, 2, 18);
+      polygon(ctx, '#fff0c1', [[-20, -24], [-9, -12], [-20, -12]]);
+      oval(ctx, '#e9c074', -13, 2, 2, 2);
+      oval(ctx, '#e9c074', 0, 2, 2, 2);
+      oval(ctx, '#e9c074', 13, 2, 2, 2);
+      break;
+
+    case 'wizard':
+      ctx.rotate(pulse * .055);
+      polygon(ctx, '#70439a', [
+        [-27, -9], [-20, -6], [20, -6], [27, -10],
+        [23, 4], [-23, 4]
+      ]);
+      box(ctx, '#f4c76b', -21, -5, 42, 2);
+      box(ctx, '#af79cb', -18, 0, 36, 3);
+
+      for (const fringeX of [-21, -15, 15, 21]) {
+        const sway = pulse * (fringeX < 0 ? -2 : 2);
+        polygon(ctx, '#f4c76b', [
+          [fringeX - 1, 3], [fringeX + 1, 3], [fringeX + sway, 9]
+        ]);
+      }
+      break;
+
+    case 'runner':
+      // Vambeta gegant amb sola blanca.
+      polygon(ctx, '#bd2739', [
+        [-23, -8], [6, -8], [14, -13], [20, -9],
+        [27, -2], [27, 5], [-23, 5]
+      ]);
+      box(ctx, '#fff5dc', -24, 3, 51, 4);
+      box(ctx, '#f5a14c', -20, 7, 43, 2);
+      box(ctx, '#fff5dc', 6, -5, 9, 2);
+      box(ctx, '#fff5dc', 10, -1, 9, 2);
+
+      if (animated) {
+        box(ctx, '#ffae58', -38 - pulse * 3, -4, 10, 1.5);
+        box(ctx, '#ffae58', -34 + pulse * 2, 2, 6, 1.5);
+      }
+      break;
+
+    case 'chef':
+      // Paella amb mànec i bombolles de vapor.
+      box(ctx, '#714a39', -32, -3, 12, 4);
+      oval(ctx, '#50565d', 0, 0, 24, 8);
+      oval(ctx, '#a2a5a1', 0, -5, 24, 4);
+      oval(ctx, '#f0c472', 0, -5, 19, 2.5);
+
+      for (const bubbleX of [-18, 17, 22]) {
+        const offset = animated ? (Math.sin(time / 140 + bubbleX) + 1) * 3 : 2;
+        oval(ctx, '#fff7e6', bubbleX, -10 - offset, 2.5, 2.5);
+      }
+      break;
+
+    case 'musician':
+      box(ctx, '#28364d', -24, -7, 48, 15);
+      box(ctx, '#566e8c', -25, -9, 50, 4);
+      oval(ctx, '#121d31', -12, 1, 7, 5);
+      oval(ctx, '#121d31', 12, 1, 7, 5);
+      oval(ctx, '#ffd783', -12, 1, 2.5 + pulse * .6, 2.5);
+      oval(ctx, '#ffd783', 12, 1, 2.5 + pulse * .6, 2.5);
+
+      ctx.strokeStyle = '#ffdf90';
+      ctx.lineWidth = 1.5;
+      for (const side of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(side * 27, -3);
+        ctx.quadraticCurveTo(side * (33 + pulse * 2), 1, side * 27, 5);
+        ctx.stroke();
+      }
+      break;
+
+    case 'diver':
+      oval(ctx, '#e1a34e', 0, 1, 25, 9);
+      box(ctx, '#f3cc78', -15, -8, 30, 4);
+      oval(ctx, '#26516c', 12, 0, 6, 6);
+      oval(ctx, '#a3e8ee', 12, 0, 4, 4);
+      box(ctx, '#875630', -29, -1, 5, 3);
+      ctx.save();
+      ctx.translate(-30, 0);
+      ctx.rotate(animated ? time / 55 : 0);
+      oval(ctx, '#ffe69a', 0, 0, 2, 7);
+      ctx.restore();
+      break;
+
+    case 'robot':
+      polygon(ctx, '#7896a5', [
+        [-24, -7], [24, -7], [19, 5], [-19, 5]
+      ]);
+      box(ctx, '#c6d6da', -22, -8, 44, 4);
+
+      for (const jetX of [-13, 13]) {
+        box(ctx, '#334b59', jetX - 4, 3, 8, 4);
+        polygon(ctx, '#a6f2a7', [
+          [jetX - 3, 7], [jetX + 3, 7], [jetX, 16 + pulse * 3]
+        ]);
+      }
+
+      oval(ctx, '#baf4b2', 0, 1, 3, 2);
+      break;
   }
-
-  // La part superior queda a l’altura de les potes recollides.
-  polygon(ctx, '#54718d', [
-    [-23, -7], [23, -7], [19, 5], [-19, 5]
-  ]);
-  box(ctx, '#d7ecf8', -21, -8, 42, 4);
-  box(ctx, '#8ca7bb', -17, -3, 34, 3);
-  oval(ctx, '#a8f4e6', -16, 1, 2, 2);
-  oval(ctx, '#a8f4e6', 16, 1, 2, 2);
 
   ctx.restore();
 }
 
 drawFox = function (x, y, pose) {
-  const astronaut = outfits[outfitIndex].style === 'astronaut';
   const inFlight = Boolean(buttonJump) || (mat.airborne && mat.jumps > 0);
 
-  if (!pose.ghost && astronaut && inFlight) {
+  if (!pose.ghost && inFlight) {
+    const style = outfits[outfitIndex].style;
     const platformY = pose.air ? y : y + 8;
-    drawRocketPlatform(x, platformY, pose);
+    drawJumpPlatform(style, x, platformY, pose);
   }
 
   drawFoxWithItems(x, y, pose);

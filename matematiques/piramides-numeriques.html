@@ -3893,7 +3893,7 @@ const schoolGroups = [
   // Si un àlies apareix amb dues variants de l’escola,
   // conserva la puntuació més alta.
 
-  const hiddenSchools = new Set(
+const hiddenSchools = new Set(
   [
     'Escola inventada',
     'hola',
@@ -3901,8 +3901,7 @@ const schoolGroups = [
     'Escola Anti 67',
     'PCMAT',
     'EPDA',
-    '5è',
-    
+    '5è'
   ].map(schoolKey)
 );
   
@@ -3925,8 +3924,12 @@ const schoolGroups = [
         continue;
       }
 
-      const label = canonicalSchool(entry.school);
-      const key = schoolKey(label);
+const label = canonicalSchool(entry.school);
+const key = schoolKey(label);
+
+if (hiddenSchools.has(key)) {
+  continue;
+}
 
       if (!schools.has(key)) {
         schools.set(key, {

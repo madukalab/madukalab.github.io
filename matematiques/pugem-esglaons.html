@@ -359,6 +359,7 @@
       const airSpeed = 285;
       const waveMs = 720;
       const celebrationMs = 2100;
+      const completionMs = 6000;
       const replayJumpMs = 430;
       const replaySegmentMs = 620;
       const dayDurationMs = 6 * 60 * 1000;
@@ -599,7 +600,11 @@
         found.add(path);
         const finished = complete(level - 1);
         message = 'Una manera nova! ' + (found.size - 1) + ' + 1 = ' + found.size + '.';
-        if (finished) message += ' Has completat l’escala!';
+        if (finished) {
+          message = 'Escala completada! Has trobat ' +
+            (found.size === 1 ? 'l’únic recorregut.' : 'els ' + found.size + ' recorreguts.');
+          if (level < solutions.length) message += ' Prova ara l’escala de ' + (level + 1) + ' esglaons!';
+        }
 
         celebration = { path, sum: equation(path, level), finished, start: performance.now() };
         queueFrame();
@@ -900,7 +905,7 @@
         if (boost && time - boost.start >= 360) boost = null;
         if (waveStart !== null && time - waveStart >= waveMs) waveStart = null;
 
-        if (celebration && time - celebration.start >= celebrationMs) {
+        if (celebration && time - celebration.start >= (celebration.finished ? completionMs : celebrationMs)) {
           celebration = null;
           updateRouteMarkers();
         }
@@ -1101,21 +1106,24 @@
         if (!celebration?.finished) return;
 
         const elapsed = time - celebration.start;
-        if (elapsed < 0 || elapsed >= 1800) return;
+        if (elapsed < 0 || elapsed >= 2600) return;
 
         const width = stairWidth();
         ctx.save();
         ctx.strokeStyle = '#fff1a1';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.shadowColor = '#ffd05a';
-        ctx.shadowBlur = reduced.matches ? 0 : 12;
+        ctx.shadowBlur = reduced.matches ? 0 : 18;
 
         for (let step = 1; step <= level; step++) {
           const delay = (step - 1) * 100;
           const first = clamp((elapsed - delay) / 520, 0, 1);
           const second = clamp((elapsed - delay - 700) / 520, 0, 1);
-          ctx.globalAlpha = reduced.matches ? .9
-            : Math.max(Math.sin(first * Math.PI), Math.sin(second * Math.PI) * .8);
+          const third = clamp((elapsed - delay - 1400) / 520, 0, 1);
+          ctx.globalAlpha = reduced.matches ? .9 : Math.max(
+            Math.sin(first * Math.PI), Math.sin(second * Math.PI) * .9,
+            Math.sin(third * Math.PI) * .8
+          );
           if (ctx.globalAlpha < .01) continue;
 
           const y = stepHeight(step);
@@ -1743,15 +1751,15 @@
       function drawConfetti(elapsed, finished) {
         const colors = ['#f9c74f', '#ee784f', '#69a66b', '#4c9db7', '#ad79c7'];
 
-        for (const delay of finished ? [0, 380] : [0]) {
-          const progress = (elapsed - delay) / 950;
+        for (const delay of finished ? [0, 380, 800, 1250] : [0]) {
+          const progress = (elapsed - delay) / (finished ? 1450 : 950);
           if (progress < 0 || progress >= 1) continue;
 
-          const pieces = finished ? 26 : 16;
+          const pieces = finished ? 42 : 16;
           for (let index = 0; index < pieces; index++) {
             const side = index % 2 === 0 ? -1 : 1;
-            const x = worldWidth / 2 + side * (78 + (38 + index * 17 % 112) * progress);
-            const y = -sky + 48 - (22 + index * 13 % 62) * progress + 180 * progress * progress;
+            const x = worldWidth / 2 + side * (78 + (38 + index * 17 % (finished ? 210 : 112)) * progress);
+            const y = -sky + 48 - (22 + index * 13 % 62) * progress + (finished ? 300 : 180) * progress * progress;
             const size = 3 + index % 4;
 
             ctx.save();
@@ -1770,7 +1778,8 @@
 
         const elapsed = Math.max(0, time - celebration.start);
         const enter = clamp(elapsed / 320, 0, 1);
-        const fade = clamp((celebrationMs - elapsed) / 280, 0, 1);
+        const duration = celebration.finished ? completionMs : celebrationMs;
+        const fade = clamp((duration - elapsed) / 280, 0, 1);
         const pop = .78 + .22 * enter + .15 * Math.sin(Math.PI * enter);
         const title = celebration.finished ? 'Escala completada!' : 'Ruta nova!';
 
@@ -1788,19 +1797,27 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.font = '800 23px system-ui';
-        const width = Math.max(190, ctx.measureText(celebration.sum).width + 40);
+        const width = Math.max(celebration.finished ? 240 : 190,
+          ctx.measureText(celebration.sum).width + 40);
+        const height = celebration.finished ? 84 : 62;
 
-        box(ctx, 'rgba(22, 61, 49, .18)', -width / 2 + 3, -27, width, 62);
-        box(ctx, celebration.finished ? '#ffe19a' : '#fff3cb', -width / 2, -31, width, 62);
+        box(ctx, 'rgba(22, 61, 49, .18)', -width / 2 + 3, -27, width, height);
+        box(ctx, celebration.finished ? '#ffe19a' : '#fff3cb', -width / 2, -31, width, height);
         ctx.strokeStyle = '#be842f';
         ctx.lineWidth = 2;
-        ctx.strokeRect(-width / 2, -31, width, 62);
+        ctx.strokeRect(-width / 2, -31, width, height);
         ctx.fillStyle = '#654211';
         ctx.font = '800 13px system-ui';
         ctx.fillText(title, 0, -13);
         ctx.fillStyle = '#163d31';
         ctx.font = '800 23px system-ui';
         ctx.fillText(celebration.sum, 0, 12);
+        if (celebration.finished) {
+          const total = solutions[level - 1].length;
+          ctx.fillStyle = '#654211';
+          ctx.font = '700 13px system-ui';
+          ctx.fillText(total + ' de ' + total + ' combinacions', 0, 36);
+        }
         ctx.restore();
       }
 

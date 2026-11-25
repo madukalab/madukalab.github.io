@@ -48,7 +48,7 @@
     }
 
     .intro { margin: 0 0 20px; color: #40574c; }
-    nav, .moves { display: flex; flex-wrap: wrap; gap: 8px; }
+    nav, .moves, .wardrobe { display: flex; flex-wrap: wrap; gap: 8px; }
     nav { margin-bottom: 16px; }
 
     button {
@@ -72,6 +72,18 @@
     }
 
     .jump2 { background: #d6ed9e; border-color: #acc47d; color: var(--green); }
+
+    .wardrobe {
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .wardrobe button {
+      background: #fff3cb;
+      border-color: #c9aa68;
+    }
+
+    .look-name { color: #52675c; font-size: 14px; }
 
     .layout {
       display: grid;
@@ -159,9 +171,11 @@
     .hint:empty, .replay-status:empty { display: none; }
     .summary { margin: 16px 0; }
     .summary h2 { margin-bottom: 8px; }
+
     table { width: 100%; border-collapse: collapse; text-align: left; }
     th, td { padding: 8px 5px; border-top: 1px solid var(--line); vertical-align: top; }
     th:last-child, td:last-child { text-align: right; }
+    td:nth-child(2) { overflow-wrap: anywhere; }
     .sum-list li + li { padding-top: 6px; border-top: 1px solid var(--line); }
     small, footer { color: #52675c; }
     footer { padding: 8px 0 22px; font-size: 14px; }
@@ -174,6 +188,7 @@
     }
   </style>
 </head>
+
 <body>
   <header>
     <div class="wrap brand">
@@ -184,6 +199,7 @@
 
   <main class="wrap">
     <h1>Pugem esglaons!</h1>
+
     <p class="intro">
       Ajuda en MAT a arribar a dalt amb salts d’1 o de 2 esglaons.
       Cada recorregut nou suma 1 al recompte.
@@ -201,7 +217,12 @@
         <p id="replay-status" class="replay-status" role="status"></p>
 
         <div class="scene">
-          <canvas id="stairs" width="1200" height="720" aria-hidden="true"></canvas>
+          <canvas id="stairs" width="1200" height="780" aria-hidden="true"></canvas>
+        </div>
+
+        <div class="wardrobe">
+          <button id="change-look" type="button">Canvia l’aspecte</button>
+          <span id="look-name" class="look-name" role="status">MAT clàssic</span>
         </div>
 
         <p id="route" class="route"></p>
@@ -260,10 +281,10 @@
       const held = new Set();
 
       const worldWidth = canvas.width / 2;
-      const margin = 44;
+      const margin = 46;
       const loopWidth = worldWidth + 2 * margin;
       const floor = 213;
-      const sky = 115;
+      const sky = 145;
       const gravity = 1050;
       const walkSpeed = 165;
       const airSpeed = 285;
@@ -271,27 +292,42 @@
       const celebrationMs = 2100;
       const replayJumpMs = 430;
       const replaySegmentMs = 620;
-
       const dayDurationMs = 6 * 60 * 1000;
-      const dayStartedAt = performance.now();
       const initialDayPhase = .22;
+      const dayStartedAt = performance.now();
+
+      const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+      const mix = (from, to, fraction) => from + (to - from) * fraction;
+
+      const outfits = [
+        { name: 'MAT clàssic', style: 'classic', coat: '#184738', accent: '#fff9eb', badge: 'PCMAT' },
+        { name: 'Explorador', style: 'explorer', coat: '#9a6a38', accent: '#eac27b', badge: '✦' },
+        { name: 'Astronauta', style: 'astronaut', coat: '#ecf1f6', accent: '#253c65', badge: '☆' },
+        { name: 'Pirata', style: 'pirate', coat: '#7b273e', accent: '#ffe0a0', badge: '✕' },
+        { name: 'Mag', style: 'wizard', coat: '#573585', accent: '#ffdf76', badge: '✦' },
+        { name: 'Corredor', style: 'runner', coat: '#bd2739', accent: '#fff5dc', badge: '07' },
+        { name: 'Xef', style: 'chef', coat: '#fff8e8', accent: '#a3363c', badge: '● ●' },
+        { name: 'Músic', style: 'musician', coat: '#285482', accent: '#ffdf90', badge: '♪' },
+        { name: 'Submarinista', style: 'diver', coat: '#075d71', accent: '#b7eff3', badge: '≈' },
+        { name: 'Robot', style: 'robot', coat: '#556b78', accent: '#baf4b2', badge: '◉' }
+      ];
+
+      let outfitIndex = 0;
+
       const landscape = document.createElement('canvas');
       landscape.width = canvas.width;
       landscape.height = canvas.height;
       const brush = landscape.getContext('2d');
       let landscapeInterval = null;
 
-      const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-      const mix = (from, to, fraction) => from + (to - from) * fraction;
-
-      const skyPalettes = [
-        [.00, '#313c65', '#f1a178', '#788590', '#81948c', '#526c68', '#3e5858'],
+      const palettes = [
+        [0,   '#313c65', '#f1a178', '#788590', '#81948c', '#526c68', '#3e5858'],
         [.11, '#b6dce9', '#fff1d3', '#dbe7ca', '#c2d5b7', '#a9c2a3', '#839c70'],
         [.31, '#b8dbea', '#eff2d9', '#dbe7ca', '#c2d5b7', '#a9c2a3', '#839c70'],
         [.47, '#716b9b', '#ffb578', '#a79992', '#99a38e', '#72867c', '#5d7564'],
         [.60, '#18243f', '#3c4a6b', '#33465d', '#3c5364', '#304957', '#344d4b'],
         [.89, '#18243f', '#3c4a6b', '#33465d', '#3c5364', '#304957', '#344d4b'],
-        [1.0, '#313c65', '#f1a178', '#788590', '#81948c', '#526c68', '#3e5858']
+        [1,   '#313c65', '#f1a178', '#788590', '#81948c', '#526c68', '#3e5858']
       ];
 
       const stars = Array.from({ length: 42 }, (_, index) => ({
@@ -300,24 +336,6 @@
         radius: index % 7 === 0 ? 1.6 : .8,
         brightness: .45 + (index % 5) * .12
       }));
-
-      function mixColor(from, to, fraction) {
-        const first = Number.parseInt(from.slice(1), 16);
-        const second = Number.parseInt(to.slice(1), 16);
-        const channels = [16, 8, 0].map(shift =>
-          Math.round(mix((first >> shift) & 255, (second >> shift) & 255, fraction))
-        );
-        return 'rgb(' + channels.join(', ') + ')';
-      }
-
-      function paletteAt(phase) {
-        const nextIndex = skyPalettes.findIndex(entry => entry[0] > phase);
-        const [start, ...from] = skyPalettes[nextIndex - 1];
-        const [end, ...to] = skyPalettes[nextIndex];
-        const fraction = (phase - start) / (end - start);
-
-        return from.map((color, index) => mixColor(color, to[index], fraction));
-      }
 
       function routesTo(remaining) {
         if (remaining === 0) return [''];
@@ -330,6 +348,7 @@
 
       const solutions = Array.from({ length: 6 }, (_, index) => routesTo(index + 1));
       const discoveries = solutions.map(() => new Set());
+
       const mat = {
         x: 0, y: floor, vx: 0, vy: 0, step: 0,
         airborne: false, jumps: 0, facing: 1, turn: 1, stride: 0
@@ -381,8 +400,8 @@
       }
 
       function positions(path) {
-        let sum = 0;
         const steps = [0];
+        let sum = 0;
 
         for (const jump of path) {
           sum += Number(jump);
@@ -398,6 +417,13 @@
 
       function complete(index) {
         return discoveries[index].size === solutions[index].length;
+      }
+
+      function changeLook() {
+        const pick = Math.floor(Math.random() * (outfits.length - 1));
+        outfitIndex = pick >= outfitIndex ? pick + 1 : pick;
+        get('look-name').textContent = outfits[outfitIndex].name;
+        draw();
       }
 
       function place(step) {
@@ -570,8 +596,7 @@
           stopReplay();
         } else {
           replay = { path, steps: positions(path), start: performance.now() };
-          get('replay-status').textContent =
-            equation(path, level) + ' · ' + replay.steps.join(' → ');
+          get('replay-status').textContent = equation(path, level) + ' · ' + replay.steps.join(' → ');
           updateRouteMarkers();
           if (!reduced.matches) queueFrame();
         }
@@ -620,7 +645,6 @@
           button.dataset.path = path;
           button.addEventListener('click', () => toggleReplay(path));
           item.append(sum, button);
-
           return item;
         }));
 
@@ -671,7 +695,8 @@
           (stepHeight(next) < mat.y || next > mat.step + mat.jumps);
 
         if (blocked) {
-          mat.x = nextX > mat.x ? leftEdge(next) - .01 : leftEdge(next) + stairWidth() + .01;
+          mat.x = nextX > mat.x
+            ? leftEdge(next) - .01 : leftEdge(next) + stairWidth() + .01;
           mat.vx = 0;
         } else {
           mat.x = nextX;
@@ -706,8 +731,7 @@
           const jump = buttonJump;
           const progress = clamp((time - jump.start) / 360, 0, 1);
           mat.x = mix(jump.x, centerX(jump.step), progress);
-          mat.y = mix(jump.y, stepHeight(jump.step), progress)
-            - Math.sin(Math.PI * progress) * 58;
+          mat.y = mix(jump.y, stepHeight(jump.step), progress) - Math.sin(Math.PI * progress) * 58;
 
           if (progress === 1) {
             buttonJump = null;
@@ -757,7 +781,7 @@
 
       function oval(context, color, x, y, rx, ry) {
         context.beginPath();
-        context.ellipse(x, y, rx, ry, 0, 0, 2 * Math.PI);
+        context.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
         context.fillStyle = color;
         context.fill();
       }
@@ -771,15 +795,37 @@
         context.fill();
       }
 
+      function box(context, color, x, y, width, height) {
+        context.fillStyle = color;
+        context.fillRect(x, y, width, height);
+      }
+
+      function mixColor(from, to, fraction) {
+        const first = Number.parseInt(from.slice(1), 16);
+        const second = Number.parseInt(to.slice(1), 16);
+        const channels = [16, 8, 0].map(shift =>
+          Math.round(mix((first >> shift) & 255, (second >> shift) & 255, fraction))
+        );
+        return 'rgb(' + channels.join(', ') + ')';
+      }
+
+      function paletteAt(phase) {
+        const next = palettes.findIndex(entry => entry[0] > phase);
+        const [start, ...from] = palettes[next - 1];
+        const [end, ...to] = palettes[next];
+        const fraction = (phase - start) / (end - start);
+
+        return from.map((color, index) => mixColor(color, to[index], fraction));
+      }
+
       function paintLandscape(phase) {
-        const [upperSky, horizon, hills, farTrees, nearTrees, ground] = paletteAt(phase);
+        const [upper, horizon, hills, farTrees, nearTrees, ground] = paletteAt(phase);
 
         brush.setTransform(2, 0, 0, 2, 0, sky * 2);
         const gradient = brush.createLinearGradient(0, -sky, 0, floor);
-        gradient.addColorStop(0, upperSky);
+        gradient.addColorStop(0, upper);
         gradient.addColorStop(1, horizon);
-        brush.fillStyle = gradient;
-        brush.fillRect(0, -sky, worldWidth, landscape.height / 2);
+        box(brush, gradient, 0, -sky, worldWidth, landscape.height / 2);
 
         const night = Math.min(
           clamp((phase - .48) / .14, 0, 1),
@@ -813,6 +859,7 @@
           oval(brush, '#c7d6f1', x - 6, y + 4, 4, 4);
           oval(brush, '#d9e2fa', x + 5, y - 6, 3, 3);
         }
+
         brush.restore();
 
         brush.beginPath();
@@ -833,27 +880,24 @@
           for (let index = 0; index < count; index++) {
             const treeX = (index + .4) * worldWidth / count;
             const height = 32 + (index * (17 + layer * 6)) % 58;
-            const halfWidth = height * .26;
+            const half = height * .26;
             const middle = base - height * .48;
 
             polygon(brush, color, [
-              [treeX, base - height], [treeX + halfWidth * .65, middle],
-              [treeX + halfWidth * .33, middle], [treeX + halfWidth, base],
-              [treeX - halfWidth, base], [treeX - halfWidth * .33, middle],
-              [treeX - halfWidth * .65, middle]
+              [treeX, base - height], [treeX + half * .65, middle],
+              [treeX + half * .33, middle], [treeX + half, base],
+              [treeX - half, base], [treeX - half * .33, middle],
+              [treeX - half * .65, middle]
             ]);
           }
         }
 
-        brush.fillStyle = ground;
-        brush.fillRect(0, floor, worldWidth, landscape.height / 2 - sky - floor);
-        brush.fillStyle = nearTrees;
-        brush.fillRect(0, floor, worldWidth, 3);
+        box(brush, ground, 0, floor, worldWidth, landscape.height / 2 - sky - floor);
+        box(brush, nearTrees, 0, floor, worldWidth, 3);
       }
 
       function refreshLandscape() {
-        const elapsed = performance.now() - dayStartedAt;
-        const phase = (initialDayPhase + elapsed / dayDurationMs) % 1;
+        const phase = (initialDayPhase + (performance.now() - dayStartedAt) / dayDurationMs) % 1;
         paintLandscape(phase);
         queueFrame();
       }
@@ -866,7 +910,6 @@
         }
 
         refreshLandscape();
-
         if (landscapeInterval === null) {
           landscapeInterval = setInterval(refreshLandscape, 120);
         }
@@ -890,14 +933,11 @@
           face.addColorStop(0, reached ? '#417558' : '#e1ebce');
           face.addColorStop(1, reached ? '#28513e' : '#a9bd95');
 
-          ctx.fillStyle = 'rgba(22, 61, 49, .18)';
-          ctx.fillRect(x + 3, y + 3, width, height);
-          ctx.fillStyle = face;
-          ctx.fillRect(x, y, width, height);
+          box(ctx, 'rgba(22, 61, 49, .18)', x + 3, y + 3, width, height);
+          box(ctx, face, x, y, width, height);
           ctx.strokeStyle = reached ? '#234a37' : '#6f8b69';
           ctx.strokeRect(x + .5, y + .5, width - 1, height - 1);
-          ctx.fillStyle = reached ? '#d6ed9e' : '#84a479';
-          ctx.fillRect(x + 1, y + 1, width - 2, 4);
+          box(ctx, reached ? '#d6ed9e' : '#84a479', x + 1, y + 1, width - 2, 4);
           ctx.fillStyle = reached ? '#fffef4' : '#163d31';
           ctx.fillText(String(step), x + width / 2, y + Math.min(19, (height + 4) / 2));
         }
@@ -943,17 +983,98 @@
         ctx.restore();
       }
 
-      const ears = [[-17, -51], [-19, -71], [-3, -59], [6, -59], [17, -71], [18, -49]];
+      function drawAccessory(style) {
+        switch (style) {
+          case 'explorer':
+            oval(ctx, '#b4834b', 0, -66, 16, 9);
+            box(ctx, '#694829', -14, -66, 28, 4);
+            oval(ctx, '#d5a567', 0, -62, 23, 4);
+            break;
+
+          case 'astronaut':
+            ctx.beginPath();
+            ctx.ellipse(0, -49, 23, 27, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = '#edf6fa';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            box(ctx, '#6990b1', -16, -28, 32, 5);
+            oval(ctx, '#d9f5ff', -11, -64, 5, 2);
+            break;
+
+          case 'pirate':
+            polygon(ctx, '#343342', [[-25, -63], [-18, -73], [0, -68], [17, -75], [24, -62]]);
+            box(ctx, '#e8b75f', -18, -64, 36, 3);
+            oval(ctx, '#25232d', 10, -48, 6, 5);
+            polygon(ctx, '#25232d', [[-17, -56], [15, -51], [15, -48], [-17, -53]]);
+            break;
+
+          case 'wizard':
+            polygon(ctx, '#563481', [[-17, -63], [3, -88], [15, -82], [9, -78], [17, -63]]);
+            oval(ctx, '#70459b', 0, -62, 23, 4);
+            oval(ctx, '#ffdf76', 3, -71, 3, 3);
+            break;
+
+          case 'runner':
+            box(ctx, '#e64a48', -18, -58, 36, 6);
+            box(ctx, '#fff0cc', -5, -58, 10, 6);
+            polygon(ctx, '#e64a48', [[-17, -55], [-29, -49], [-21, -47], [-13, -54]]);
+            break;
+
+          case 'chef':
+            oval(ctx, '#fffdf2', -10, -72, 9, 8);
+            oval(ctx, '#fffdf2', 0, -77, 10, 9);
+            oval(ctx, '#fffdf2', 10, -72, 9, 8);
+            box(ctx, '#e5dfce', -13, -71, 26, 9);
+            box(ctx, '#fffdf2', -13, -69, 26, 6);
+            break;
+
+          case 'musician':
+            ctx.beginPath();
+            ctx.arc(0, -48, 19, Math.PI, 2 * Math.PI);
+            ctx.strokeStyle = '#273049';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            oval(ctx, '#735d9e', -18, -48, 5, 8);
+            oval(ctx, '#735d9e', 18, -48, 5, 8);
+            break;
+
+          case 'diver':
+            box(ctx, '#316777', -20, -52, 40, 6);
+            oval(ctx, '#e8fbff', -6, -48, 9, 7);
+            oval(ctx, '#e8fbff', 11, -48, 9, 7);
+            oval(ctx, '#589eb4', -6, -48, 6, 5);
+            oval(ctx, '#589eb4', 11, -48, 6, 5);
+            box(ctx, '#e3a64f', 19, -68, 4, 22);
+            box(ctx, '#e3a64f', 16, -68, 7, 4);
+            break;
+
+          case 'robot':
+            box(ctx, '#647984', -20, -61, 40, 29);
+            box(ctx, '#9dabb6', -17, -58, 34, 23);
+            box(ctx, '#324d5c', -14, -54, 28, 12);
+            oval(ctx, '#baf4b2', -7, -48, 3, 3);
+            oval(ctx, '#baf4b2', 7, -48, 3, 3);
+            box(ctx, '#647984', -2, -74, 4, 14);
+            oval(ctx, '#ffb961', 0, -75, 4, 4);
+            break;
+        }
+      }
+
+      const ears = [
+        [-17, -51], [-19, -71], [-3, -59],
+        [6, -59], [17, -71], [18, -49]
+      ];
 
       function drawFox(x, y, pose) {
         const { turn, stride, pace, air, squash, ghost, wave = null } = pose;
+        const outfit = outfits[outfitIndex];
         const side = turn < 0 ? -1 : 1;
         const swing = Math.sin(stride) * pace * 7;
         const bob = Math.abs(Math.sin(stride)) * pace * 2;
         const tuck = air ? 7 : 0;
-        const orange = ghost ? '#ae7420' : '#dd7835';
-        const cream = ghost ? orange : '#fff9eb';
-        const green = ghost ? orange : '#184738';
+        const fur = ghost ? '#ae7420' : '#dd7835';
+        const cream = ghost ? fur : '#fff9eb';
+        const coat = ghost ? fur : outfit.coat;
 
         ctx.save();
         ctx.translate(x, y);
@@ -964,24 +1085,23 @@
         ctx.scale(side, 1);
         ctx.translate(-9, -19 + bob);
         ctx.rotate(air ? .38 : Math.sin(stride) * pace * .24);
-        oval(ctx, orange, -11, 0, 16, 9);
+        oval(ctx, fur, -11, 0, 16, 9);
         oval(ctx, cream, -22, -1, 7, 7);
         ctx.restore();
 
-        oval(ctx, green, -8 + swing, -4 - tuck - Math.max(0, swing) * .65, 7, 4);
-        oval(ctx, green, 8 - swing, -4 - tuck - Math.max(0, -swing) * .65, 7, 4);
+        oval(ctx, coat, -8 + swing, -4 - tuck - Math.max(0, swing) * .65, 7, 4);
+        oval(ctx, coat, 8 - swing, -4 - tuck - Math.max(0, -swing) * .65, 7, 4);
         ctx.translate(0, -bob + (air ? 2 : 0));
-        oval(ctx, green, 0, -17, 15, 16);
+        oval(ctx, coat, 0, -17, 15, 16);
 
         if (wave !== null) {
           const raise = reduced.matches ? 1 : clamp(Math.min(wave, 1 - wave) / .18, 0, 1);
           const sway = reduced.matches ? 0 : Math.sin(wave * Math.PI * 6) * .24;
-
           ctx.save();
           ctx.translate(side * 11, -23);
           ctx.scale(side, 1);
           ctx.rotate(mix(.95, -1.12, raise) + sway * raise);
-          oval(ctx, green, 8, 0, 10, 4.5);
+          oval(ctx, coat, 8, 0, 10, 4.5);
           oval(ctx, '#e7823d', 18, 0, 5, 4.5);
           ctx.restore();
         }
@@ -989,7 +1109,7 @@
         ctx.save();
         ctx.translate(turn * 3, 0);
         ctx.scale(side, 1);
-        polygon(ctx, ghost ? orange : '#cf662e', ears);
+        polygon(ctx, ghost ? fur : '#cf662e', ears);
 
         if (!ghost) {
           polygon(ctx, '#f8bc93', [
@@ -998,7 +1118,7 @@
           ]);
         }
 
-        oval(ctx, ghost ? orange : '#e7823d', 0, -47, 19, 15);
+        oval(ctx, ghost ? fur : '#e7823d', 0, -47, 19, 15);
 
         if (!ghost) {
           polygon(ctx, cream, [
@@ -1008,15 +1128,16 @@
           oval(ctx, '#302c2a', -5, -48, 2, 2);
           oval(ctx, '#302c2a', 10, -48, 2, 2);
           oval(ctx, '#302c2a', 5, -40, 3, 2);
+          drawAccessory(outfit.style);
         }
 
         ctx.restore();
 
         if (!ghost) {
           ctx.textAlign = 'center';
-          ctx.font = 'bold 7px system-ui';
-          ctx.fillStyle = 'white';
-          ctx.fillText('PCMAT', 0, -15);
+          ctx.font = outfit.style === 'classic' ? 'bold 7px system-ui' : 'bold 12px system-ui';
+          ctx.fillStyle = outfit.accent;
+          ctx.fillText(outfit.badge, 0, -14);
         }
 
         ctx.restore();
@@ -1032,9 +1153,8 @@
         const landed = reduced.matches ? count : index + Number(progress === 1);
 
         ctx.save();
-        ctx.fillStyle = '#c48121';
         for (const step of replay.steps.slice(1, landed + 1)) {
-          ctx.fillRect(leftEdge(step) + 6, stepHeight(step), stairWidth() - 12, 4);
+          box(ctx, '#c48121', leftEdge(step) + 6, stepHeight(step), stairWidth() - 12, 4);
         }
         ctx.restore();
 
@@ -1054,25 +1174,23 @@
 
       function drawConfetti(elapsed, finished) {
         const colors = ['#f9c74f', '#ee784f', '#69a66b', '#4c9db7', '#ad79c7'];
-        const bursts = finished ? [0, 380] : [0];
 
-        for (const delay of bursts) {
+        for (const delay of finished ? [0, 380] : [0]) {
           const progress = (elapsed - delay) / 950;
           if (progress < 0 || progress >= 1) continue;
 
           const pieces = finished ? 26 : 16;
           for (let index = 0; index < pieces; index++) {
             const side = index % 2 === 0 ? -1 : 1;
-            const x = worldWidth / 2 + side * (78 + (38 + (index * 17) % 112) * progress);
-            const y = -sky + 48 - (22 + (index * 13) % 62) * progress + 180 * progress * progress;
+            const x = worldWidth / 2 + side * (78 + (38 + index * 17 % 112) * progress);
+            const y = -sky + 48 - (22 + index * 13 % 62) * progress + 180 * progress * progress;
             const size = 3 + index % 4;
 
             ctx.save();
             ctx.translate(x, y);
             ctx.rotate(index + side * progress * 8);
             ctx.globalAlpha = 1 - clamp((progress - .55) / .45, 0, 1);
-            ctx.fillStyle = colors[index % colors.length];
-            ctx.fillRect(-size / 2, -2, size, index % 3 === 0 ? size : 4);
+            box(ctx, colors[index % colors.length], -size / 2, -2, size, index % 3 === 0 ? size : 4);
             ctx.restore();
           }
         }
@@ -1103,10 +1221,8 @@
         ctx.font = '800 23px system-ui';
         const width = Math.max(190, ctx.measureText(celebration.sum).width + 40);
 
-        ctx.fillStyle = 'rgba(22, 61, 49, .18)';
-        ctx.fillRect(-width / 2 + 3, -27, width, 62);
-        ctx.fillStyle = celebration.finished ? '#ffe19a' : '#fff3cb';
-        ctx.fillRect(-width / 2, -31, width, 62);
+        box(ctx, 'rgba(22, 61, 49, .18)', -width / 2 + 3, -27, width, 62);
+        box(ctx, celebration.finished ? '#ffe19a' : '#fff3cb', -width / 2, -31, width, 62);
         ctx.strokeStyle = '#be842f';
         ctx.lineWidth = 2;
         ctx.strokeRect(-width / 2, -31, width, 62);
@@ -1130,10 +1246,10 @@
         if (landing && landing.step > 0 && !reduced.matches) {
           ctx.save();
           ctx.globalAlpha = .85 * (1 - clamp((time - landing.start) / 300, 0, 1));
-          ctx.fillStyle = '#fff4ad';
           ctx.shadowColor = '#fff4ad';
           ctx.shadowBlur = 12;
-          ctx.fillRect(leftEdge(landing.step) + 2, stepHeight(landing.step), stairWidth() - 4, 4);
+          box(ctx, '#fff4ad', leftEdge(landing.step) + 2,
+            stepHeight(landing.step), stairWidth() - 4, 4);
           ctx.restore();
         }
 
@@ -1174,6 +1290,7 @@
         get('levels').append(button);
       });
 
+      get('change-look').addEventListener('click', changeLook);
       get('one').addEventListener('click', () => jumpByButton(1));
       get('two').addEventListener('click', () => jumpByButton(2));
       get('undo').addEventListener('click', undo);

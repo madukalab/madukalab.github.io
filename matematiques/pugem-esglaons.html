@@ -304,7 +304,7 @@
           Tria l’escala amb <kbd>1</kbd> a <kbd>6</kbd>.
           Mou en MAT amb <kbd>←</kbd> i <kbd>→</kbd>.
           Prem <kbd>Espai</kbd> per saltar i torna’l a prémer a l’aire per fer un doble salt.
-          Amb l’astronauta, mantén <kbd>Espai</kbd> premut per quedar-te a l’aire i deixa’l anar per baixar.
+          Amb l’astronauta, mantén <kbd>Espai</kbd> premut per volar cap amunt i deixa’l anar per baixar.
           Prem <kbd>Q</kbd> per saludar.
           Si surts per una vora, reapareixes per l’altra.
         </p>
@@ -352,11 +352,13 @@
       const loopWidth = worldWidth + 2 * margin;
       const floor = 213;
       const sky = 145;
+      const astronautCeiling = -sky + 86;
+      const astronautRiseSpeed = 250;
       const gravity = 1050;
       const walkSpeed = 165;
       const airSpeed = 285;
       const waveMs = 720;
-      const celebrationMs = 4000;
+      const celebrationMs = 2100;
       const replayJumpMs = 430;
       const replaySegmentMs = 620;
       const dayDurationMs = 6 * 60 * 1000;
@@ -831,10 +833,8 @@
         if (!mat.airborne) return;
 
         if (jumpHeld && mat.jumps > 0 && outfits[outfitIndex].style === 'astronaut') {
-          // Atura el descens al punt més alt i mantén el moviment horitzontal.
-          const riseTime = clamp(-mat.vy / gravity, 0, dt);
-          mat.y += mat.vy * riseTime + .5 * gravity * riseTime * riseTime;
-          mat.vy = Math.min(0, mat.vy + gravity * dt);
+          mat.y = Math.max(astronautCeiling, mat.y - astronautRiseSpeed * dt);
+          mat.vy = 0;
           return;
         }
 

@@ -1728,6 +1728,62 @@ drawFox = function (x, y, pose) {
   drawMatArm(outfit, -side, shoulderY, armAngle + swing, heldItems[outfit.style]);
   ctx.restore();
 };
+
+      const drawFoxWithItems = drawFox;
+
+function drawRocketPlatform(x, y, pose) {
+  const rising = buttonJump
+    ? performance.now() - buttonJump.start < buttonJump.duration / 2
+    : mat.vy < 0;
+
+  const flicker = Math.sin(performance.now() / 45) * 2;
+  const flameLength = reduced.matches ? 8 : (rising ? 18 : 10) + flicker;
+  const width = .65 + .35 * Math.abs(pose.turn);
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(width, 1);
+
+  // Dos propulsors fan de base per a la plataforma.
+  for (const nozzleX of [-12, 12]) {
+    polygon(ctx, '#f5a64f', [
+      [nozzleX - 4, 8],
+      [nozzleX + 4, 8],
+      [nozzleX, 8 + flameLength]
+    ]);
+
+    polygon(ctx, '#fff0a4', [
+      [nozzleX - 2, 8],
+      [nozzleX + 2, 8],
+      [nozzleX, 8 + flameLength * .65]
+    ]);
+
+    box(ctx, '#435971', nozzleX - 5, 4, 10, 5);
+  }
+
+  // La part superior queda a l’altura de les potes recollides.
+  polygon(ctx, '#54718d', [
+    [-23, -7], [23, -7], [19, 5], [-19, 5]
+  ]);
+  box(ctx, '#d7ecf8', -21, -8, 42, 4);
+  box(ctx, '#8ca7bb', -17, -3, 34, 3);
+  oval(ctx, '#a8f4e6', -16, 1, 2, 2);
+  oval(ctx, '#a8f4e6', 16, 1, 2, 2);
+
+  ctx.restore();
+}
+
+drawFox = function (x, y, pose) {
+  const astronaut = outfits[outfitIndex].style === 'astronaut';
+  const inFlight = Boolean(buttonJump) || (mat.airborne && mat.jumps > 0);
+
+  if (!pose.ghost && astronaut && inFlight) {
+    const platformY = pose.air ? y : y + 8;
+    drawRocketPlatform(x, platformY, pose);
+  }
+
+  drawFoxWithItems(x, y, pose);
+};
       
       paintLandscape(initialDayPhase);
       restart();

@@ -686,7 +686,7 @@
 function moveHorizontally(dt) {
   const direction = Number(held.has('ArrowRight')) - Number(held.has('ArrowLeft'));
   const walkingSpeed = outfits[outfitIndex].style === 'runner'
-    ? walkSpeed * 1.35
+    ? walkSpeed * 1.50
     : walkSpeed;
   const speed = direction * (mat.airborne ? airSpeed : walkingSpeed);
 

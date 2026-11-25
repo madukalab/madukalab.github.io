@@ -3714,146 +3714,149 @@ document.addEventListener('visibilitychange', () => {
   // Noms unificats i variants conegudes.
   // Els municipis diferents es mantenen separats.
 
-  const schoolGroups = [
+const schoolGroups = [
+  [
+    'Escola Manuel Ortiz i Castelló',
     [
-      'Escola Manuel Ortiz i Castelló',
-      [
-        'Manuel Ortiz i Castello',
-        'Manuel Ortiz Castello',
-        'Manuel Ortiz',
-        'Manuel Ortiz i Catello',
-        'Manuel Ortiz i Castelló Juneda',
-        'Mauel Ortiz i Castello',
-        'Manuel Ortiz orca Juneda',
-        'Manuel Ortiz i Casrello',
-        'Manuel Oriz i Castello',
-        'Manuel Orti z i Castello'
-        'Manuel Ortiz i Castelló 676767676767',
-        'manuel ortis',
-        'manuel',
-        'escola manuel ortis i castego',
-        'escola Manuel Ortiz Castellò Juneda',
-        'escola manuel ortic castello',
-        'manuel orytis',
-      ]
-    ],
-    [
-      'Escola La Bassa',
-      ['La Bassa']
-    ],
-    [
-      'Escola Sant Salvador',
-    ],
-    [
-      'Escola Minyons d’Urgell',
-      [
-        "Minyons d'Urgell",
-        "Minyons d' Urgell",
-        'Minyons',
-        'Minyonsdurgell'
-        'minyons d'urgell AURA',
-        'Minions d'Urgell',
-      ]
-    ],
-    [
-      'Escola Jaume Balmes · Cervera',
-      [
-        'Jaume Balmes Cervera',
-        'Escola Jaume Balmes de Cervera',
-        'Jaume Balmes',
-        'Jaumebalmes',
-        'Jaume Balmes s',
-        'Jaume Bames',
-        'Escalated jammer blames Cervera',
-        'balmes',
-        'Jaume',
-        'jaumes balmes',
-        'Escola Joume Balmes',
-        'escola jaume balmes cervera 2026',
-      ]
-    ],
-    [
-      'Escola Jaume Balmes · Santa Bàrbara',
-      [
-        'Jaume Balmes Santa Bàrbara',
-        'Jaume Balmes de Santa Bàrbara',
-        'Jaume Balmes Santa',
-      ]
-    ],
-    [
-      'Escola La Rabassa',
-      ['La Rabassa']
-    ],
-    [
-      'Escola Camps Elisis',
-      [
-        'Camps Elisis',
-        'Camps Elisi',
-        'Caps Elisis',
-        'Campselisis'
-      ]
-    ],
-    [
-      'Escola Eugeni d’Ors',
-      [
-        "Eugeni d'Ors",
-        'Eugenidors',
-        'Eugeni dors',
-        'Eugeni d,Ors',
-        'Eugeni d Ors de Valls',
-        'Eugeni d Ors Valls'
-        'ecola eugeni dors',
-      ]
-    ],
-    [
-      'Escola de Ponts',
-      ['Ponts']
-    ],
-    [
-      'Escola Mossèn Josep Arques',
-      [
-        'Mossèn Josep Arques',
-        'Mossen Josep Arques',
-        'Mosen Josep Arques',
-        'Mn. Josep Arques',
-        'Arques'
-        'Josep Arques',
-      ]
-    ],
-    [
-      'Escola Les Muralles',
-      ['Les Muralles']
-    ],
-    [
-      'Escola Riu Segre',
-      ['Riu Segre']
-      'ESCOLA RIU SEGR',
-    ],
-    [
-      'Escola Dolors Martí i Badia',
-      [
-        'Dolors Martí i Badia',
-        'Dolors Marti i Badia',
-        'Dolors Martí',
-        'Dolors Marti'
-      ]
-    ],
-    [
-      'Escola Sant Josep de Calassanç',
-      [
-        'Sant Josep de Calassanç',
-        'Sant Josep de Calassanc'
-      ]
-    ],
-    [
-      'IE Castell d’Òdena',
-      [
-        "I.E Castell d'Odena",
-        "IE Castell d'Odena",
-        'IE Castell d Odena'
-      ]
+      'Manuel Ortiz i Castello',
+      'Manuel Ortiz Castello',
+      'Manuel Ortiz',
+      'Manuel Ortiz i Catello',
+      'Manuel Ortiz i Castelló Juneda',
+      'Mauel Ortiz i Castello',
+      'Manuel Ortiz orca Juneda',
+      'Manuel Ortiz i Casrello',
+      'Manuel Oriz i Castello',
+      'Manuel Orti z i Castello',
+      'Manuel Ortiz i Castelló 676767676767',
+      'manuel ortis',
+      'manuel',
+      'escola manuel ortis i castego',
+      'escola Manuel Ortiz Castellò Juneda',
+      'escola manuel ortic castello',
+      'manuel orytis'
     ]
-  ];
+  ],
+  [
+    'Escola La Bassa',
+    ['La Bassa']
+  ],
+  [
+    'Escola Sant Salvador',
+    ['Sant Salvador']
+  ],
+  [
+    'Escola Minyons d’Urgell',
+    [
+      "Minyons d'Urgell",
+      "Minyons d' Urgell",
+      'Minyons',
+      'Minyonsdurgell',
+      "minyons d'urgell AURA",
+      "Minions d'Urgell"
+    ]
+  ],
+  [
+    'Escola Jaume Balmes · Cervera',
+    [
+      'Jaume Balmes Cervera',
+      'Escola Jaume Balmes de Cervera',
+      'Jaume Balmes',
+      'Jaumebalmes',
+      'Jaume Balmes s',
+      'Jaume Bames',
+      'Escalated jammer blames Cervera',
+      'balmes',
+      'Jaume',
+      'jaumes balmes',
+      'Escola Joume Balmes',
+      'escola jaume balmes cervera 2026'
+    ]
+  ],
+  [
+    'Escola Jaume Balmes · Santa Bàrbara',
+    [
+      'Jaume Balmes Santa Bàrbara',
+      'Jaume Balmes de Santa Bàrbara',
+      'Jaume Balmes Santa'
+    ]
+  ],
+  [
+    'Escola La Rabassa',
+    ['La Rabassa']
+  ],
+  [
+    'Escola Camps Elisis',
+    [
+      'Camps Elisis',
+      'Camps Elisi',
+      'Caps Elisis',
+      'Campselisis'
+    ]
+  ],
+  [
+    'Escola Eugeni d’Ors',
+    [
+      "Eugeni d'Ors",
+      'Eugenidors',
+      'Eugeni dors',
+      'Eugeni d,Ors',
+      'Eugeni d Ors de Valls',
+      'Eugeni d Ors Valls',
+      'ecola eugeni dors'
+    ]
+  ],
+  [
+    'Escola de Ponts',
+    ['Ponts']
+  ],
+  [
+    'Escola Mossèn Josep Arques',
+    [
+      'Mossèn Josep Arques',
+      'Mossen Josep Arques',
+      'Mosen Josep Arques',
+      'Mn. Josep Arques',
+      'Arques',
+      'Josep Arques'
+    ]
+  ],
+  [
+    'Escola Les Muralles',
+    ['Les Muralles']
+  ],
+  [
+    'Escola Riu Segre',
+    [
+      'Riu Segre',
+      'ESCOLA RIU SEGR'
+    ]
+  ],
+  [
+    'Escola Dolors Martí i Badia',
+    [
+      'Dolors Martí i Badia',
+      'Dolors Marti i Badia',
+      'Dolors Martí',
+      'Dolors Marti'
+    ]
+  ],
+  [
+    'Escola Sant Josep de Calassanç',
+    [
+      'Sant Josep de Calassanç',
+      'Sant Josep de Calassanc'
+    ]
+  ],
+  [
+    'IE Castell d’Òdena',
+    [
+      "I.E Castell d'Odena",
+      "IE Castell d'Odena",
+      'IE Castell d Odena'
+    ]
+  ]
+];
 
   function schoolKey(value) {
     return String(value || '')

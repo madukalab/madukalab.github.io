@@ -3182,61 +3182,133 @@ document.addEventListener('visibilitychange', () => {
     let rankingEntries = [];
     let rankingExpanded = false;
 
-    function renderRanking() {
-      rankingList.replaceChildren();
+// Comparació amb l’última classificació carregada.
+let previousRankPositions = null;
+let rankingMovements = new Map();
 
-      const visibleEntries = rankingExpanded
-        ? rankingEntries
-        : rankingEntries.slice(0, 20);
+function rankingPlayerKey(entry) {
+  const normalize = value => String(value || '')
+    .normalize('NFKC')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLocaleLowerCase('ca');
 
-      visibleEntries.forEach(({ name, grade, school, score }) => {
-        const item = document.createElement('li');
-        const player = document.createElement('strong');
-        const gradeLabel = document.createElement('div');
-        const schoolLabel = document.createElement('div');
-        const pointsLabel = document.createElement('div');
+  // Mateixa identitat que utilitza el registre:
+  // àlies i escola.
+  return JSON.stringify([
+    normalize(entry.name),
+    normalize(entry.school)
+  ]);
+}
 
-        gradeLabel.className = 'ranking-grade';
-        schoolLabel.className = 'ranking-school';
-        pointsLabel.className = 'ranking-points';
+function renderRanking() {
+  rankingList.replaceChildren();
 
-        player.textContent = name;
-        gradeLabel.textContent = grade || '—';
-        schoolLabel.textContent = school;
+  const visibleEntries = rankingExpanded
+    ? rankingEntries
+    : rankingEntries.slice(0, 20);
 
-        pointsLabel.textContent =
-          Number(score).toLocaleString('ca-ES') + ' punts';
+  visibleEntries.forEach(entry => {
+    const { name, grade, school, score } = entry;
 
-        item.append(
-          player,
-          gradeLabel,
-          schoolLabel,
-          pointsLabel
-        );
+    const item = document.createElement('li');
+    const player = document.createElement('strong');
+    const gradeLabel = document.createElement('div');
+    const schoolLabel = document.createElement('div');
+    const pointsLabel = document.createElement('div');
 
-        rankingList.append(item);
-      });
+    gradeLabel.className = 'ranking-grade';
+    schoolLabel.className = 'ranking-school';
+    pointsLabel.className = 'ranking-points';
 
-      rankingMore.hidden = rankingEntries.length <= 20;
+    player.textContent = name;
+    gradeLabel.textContent = grade || '—';
+    schoolLabel.textContent = school;
 
-      rankingMore.textContent = rankingExpanded
-        ? 'Mostra’n menys'
-        : 'Mostra’n més';
+    pointsLabel.textContent =
+      Number(score).toLocaleString('ca-ES') + ' punts';
 
-      rankingMore.setAttribute(
-        'aria-expanded',
-        String(rankingExpanded)
-      );
+    const movement =
+      rankingMovements.get(rankingPlayerKey(entry)) || 0;
+
+    if (movement !== 0) {
+      const badge = document.createElement('span');
+      const up = movement > 0;
+      const positions = Math.abs(movement);
+
+      badge.className =
+        'ranking-movement ' + (up ? 'is-up' : 'is-down');
+
+      badge.textContent =
+        (up ? '↑ ' : '↓ ') + positions;
+
+      const description =
+        (up ? 'Ha pujat ' : 'Ha baixat ') +
+        positions +
+        (positions === 1 ? ' posició' : ' posicions') +
+        ' respecte de l’última actualització';
+
+      badge.title = description;
+      badge.setAttribute('role', 'img');
+      badge.setAttribute('aria-label', description);
+
+      player.append(badge);
     }
 
-    function showRanking(entries) {
-      rankingEntries = [...entries].sort((a, b) =>
-        Number(b.score) - Number(a.score) ||
-        String(a.name).localeCompare(String(b.name), 'ca')
-      );
+    item.append(
+      player,
+      gradeLabel,
+      schoolLabel,
+      pointsLabel
+    );
 
-      renderRanking();
+    rankingList.append(item);
+  });
+
+  rankingMore.hidden = rankingEntries.length <= 20;
+
+  rankingMore.textContent = rankingExpanded
+    ? 'Mostra’n menys'
+    : 'Mostra’n més';
+
+  rankingMore.setAttribute(
+    'aria-expanded',
+    String(rankingExpanded)
+  );
+}
+
+function showRanking(entries) {
+  const sortedEntries = [...entries].sort((a, b) =>
+    Number(b.score) - Number(a.score) ||
+    String(a.name).localeCompare(String(b.name), 'ca')
+  );
+
+  const currentPositions = new Map();
+  const movements = new Map();
+
+  sortedEntries.forEach((entry, index) => {
+    const key = rankingPlayerKey(entry);
+    const currentPosition = index + 1;
+
+    currentPositions.set(key, currentPosition);
+
+    // La primera càrrega i els usuaris nous no tenen fletxa.
+    if (previousRankPositions?.has(key)) {
+      const previousPosition = previousRankPositions.get(key);
+
+      movements.set(
+        key,
+        previousPosition - currentPosition
+      );
     }
+  });
+
+  rankingEntries = sortedEntries;
+  rankingMovements = movements;
+  previousRankPositions = currentPositions;
+
+  renderRanking();
+}
 
     async function requestRanking(options = {}) {
       const controller = new AbortController();
@@ -4595,6 +4667,57 @@ body.marquez-theme
     width: min(100%, 440px);
     justify-self: center;
   }
+}
+
+  /* Piràmide visible i difuminada darrere dels controls. */
+.special-93-shell.guide-waiting #stage {
+  filter: blur(5px);
+  opacity: .8;
+}
+
+#game-guide.game-guide {
+  background: rgba(25, 50, 40, .15);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+body.marquez-theme #game-guide.game-guide {
+  background: rgba(25, 10, 15, .2);
+}
+
+/* Moviments de posició al rànquing individual. */
+#ranking-list .ranking-movement {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 6px;
+  padding: 2px 5px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.4;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+#ranking-list .ranking-movement.is-up {
+  background: #e6f3e8;
+  color: #24733c;
+}
+
+#ranking-list .ranking-movement.is-down {
+  background: #fce9e7;
+  color: #b13a32;
+}
+
+body.marquez-theme #ranking-list .ranking-movement.is-up {
+  background: #203e2b;
+  color: #a8e5af;
+}
+
+body.marquez-theme #ranking-list .ranking-movement.is-down {
+  background: #4c2428;
+  color: #ffaaa3;
 }
   
 </style>

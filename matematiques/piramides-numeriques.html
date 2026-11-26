@@ -3772,6 +3772,74 @@ document.addEventListener('visibilitychange', () => {
   overflow-wrap: normal;
   font-variant-numeric: tabular-nums;
 }
+
+  /* Més espai per a les dues classificacions. */
+#game-screen:has(.rankings-layout) {
+  width: min(1320px, calc(100% - 36px));
+}
+
+/* Amplada equilibrada entre els dos rànquings. */
+.rankings-layout {
+  grid-template-columns:
+    minmax(0, 1.1fr)
+    minmax(0, 1fr);
+}
+
+.rankings-layout > * {
+  min-width: 0;
+}
+
+/* La taula s’adapta al seu requadre. */
+.school-ranking-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.school-ranking-table th,
+.school-ranking-table td {
+  padding: 12px 6px;
+}
+
+.school-ranking-table th:nth-child(1),
+.school-ranking-table td:nth-child(1) {
+  width: 13%;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.school-ranking-table th:nth-child(2),
+.school-ranking-table td:nth-child(2) {
+  width: 37%;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.school-ranking-table th:nth-child(3),
+.school-ranking-table td:nth-child(3) {
+  width: 24%;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.school-ranking-table th:nth-child(4),
+.school-ranking-table td:nth-child(4) {
+  width: 26%;
+  text-align: right;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+/* En pantalles petites, cada rànquing ocupa tota l’amplada. */
+@media (max-width: 1100px) {
+  .rankings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
   
 </style>
 

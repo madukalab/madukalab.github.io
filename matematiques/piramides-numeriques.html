@@ -4719,6 +4719,43 @@ body.marquez-theme #ranking-list .ranking-movement.is-down {
   background: #4c2428;
   color: #ffaaa3;
 }
+
+  /* Difumina el joc mentre es mostren els controls. */
+body:has(#game-guide:not([hidden])) #game-screen {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Difumina la piràmide darrere dels controls. */
+.special-93-shell.guide-waiting #stage {
+  filter: blur(7px);
+  opacity: .75;
+}
+
+/* Difumina la resta de contingut, però conserva els controls nítids. */
+body:has(#game-guide:not([hidden])) #player-summary,
+body:has(#game-guide:not([hidden])) #game-screen > h1,
+body:has(#game-guide:not([hidden])) #game-screen > .intro,
+body:has(#game-guide:not([hidden])) .board-head,
+body:has(#game-guide:not([hidden])) .clock,
+body:has(#game-guide:not([hidden])) #last-result,
+body:has(#game-guide:not([hidden])) #puzzle > .actions,
+body:has(#game-guide:not([hidden])) #status,
+body:has(#game-guide:not([hidden])) .layout > aside,
+body:has(#game-guide:not([hidden])) .rankings-layout {
+  filter: blur(5px);
+}
+
+/* Capa transparent: deixa veure el joc al darrere. */
+#game-guide.game-guide {
+  background: rgba(247, 245, 235, .12);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+body.marquez-theme #game-guide.game-guide {
+  background: rgba(15, 15, 18, .15);
+}
   
 </style>
 

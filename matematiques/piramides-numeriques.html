@@ -4229,6 +4229,260 @@ body.marquez-theme #school-ranking .school-ranking-table td {
     transition: none;
   }
 }
+
+  /* ==========================================
+   RÀNQUINGS MÉS COMPACTES I POLITS
+   ========================================== */
+
+/* Més amplada per a l’individual i menys per a les escoles. */
+.rankings-layout {
+  grid-template-columns:
+    minmax(0, 1.3fr)
+    minmax(0, 1fr);
+  gap: 18px;
+}
+
+.rankings-layout > .card {
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 6px 24px rgba(32, 56, 44, .045);
+}
+
+.rankings-layout h2 {
+  margin-bottom: 14px;
+  font-size: clamp(21px, 2vw, 26px);
+}
+
+/* Elimina qualsevol barra anterior. */
+.school-meter {
+  display: none !important;
+}
+
+/* ==========================================
+   CLASSIFICACIÓ D’ESCOLES
+   ========================================== */
+
+#school-ranking .school-ranking-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: auto;
+  border-spacing: 0 6px;
+}
+
+/* L’escola absorbeix l’espai disponible.
+   Població i punts ocupen només el que necessiten. */
+#school-ranking .school-ranking-table th:nth-child(1),
+#school-ranking .school-ranking-table td:nth-child(1) {
+  width: 42px;
+  padding: 12px 5px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+#school-ranking .school-ranking-table th:nth-child(2),
+#school-ranking .school-ranking-table td:nth-child(2) {
+  width: auto;
+  padding: 12px 8px;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+#school-ranking .school-ranking-table th:nth-child(3),
+#school-ranking .school-ranking-table td:nth-child(3) {
+  width: 1%;
+  max-width: 110px;
+  padding: 12px 5px;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: normal;
+}
+
+#school-ranking .school-ranking-table th:nth-child(4),
+#school-ranking .school-ranking-table td:nth-child(4) {
+  width: 1%;
+  padding: 12px 8px 12px 5px;
+  text-align: right;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+#school-ranking .school-ranking-table th {
+  font-size: 10px;
+  letter-spacing: .2px;
+}
+
+#school-ranking .school-ranking-table td {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+#school-ranking .school-ranking-table td:nth-child(2) {
+  font-weight: 700;
+}
+
+#school-ranking .school-ranking-table td:nth-child(3) {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* Posicions normals dins d’un petit cercle. */
+.school-position {
+  min-width: 27px;
+  min-height: 27px;
+  border-radius: 50%;
+  background: var(--ranking-soft, #f3f6ef);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* Medalles del podi. */
+#school-ranking tbody tr:nth-child(-n+3) .school-position {
+  background: transparent;
+  font-size: 24px;
+}
+
+/* Etiqueta de puntuació. */
+.school-points-badge {
+  display: inline-block;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.3px;
+}
+
+/* Detall de color al marge del podi. */
+#school-ranking tbody tr:nth-child(1) td:first-child {
+  box-shadow: inset 3px 0 0 #c69b36;
+}
+
+#school-ranking tbody tr:nth-child(2) td:first-child {
+  box-shadow: inset 3px 0 0 #97a5b5;
+}
+
+#school-ranking tbody tr:nth-child(3) td:first-child {
+  box-shadow: inset 3px 0 0 #bc8862;
+}
+
+#school-ranking tbody tr:nth-child(1) .school-points-badge {
+  border-color: #ddc580;
+  color: #715215;
+}
+
+#school-ranking tbody tr:nth-child(2) .school-points-badge {
+  border-color: #c8d0da;
+  color: #4d6074;
+}
+
+#school-ranking tbody tr:nth-child(3) .school-points-badge {
+  border-color: #dfbda3;
+  color: #855432;
+}
+
+/* ==========================================
+   CLASSIFICACIÓ INDIVIDUAL
+   ========================================== */
+
+#ranking-list {
+  gap: 6px;
+}
+
+#ranking-list li {
+  min-height: 62px;
+  border-radius: 11px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+#ranking-list li:nth-child(1) {
+  box-shadow: inset 3px 0 0 #c69b36;
+}
+
+#ranking-list li:nth-child(2) {
+  box-shadow: inset 3px 0 0 #97a5b5;
+}
+
+#ranking-list li:nth-child(3) {
+  box-shadow: inset 3px 0 0 #bc8862;
+}
+
+#ranking-list .ranking-points {
+  justify-self: end;
+  padding: 6px 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+#ranking-list li:hover {
+  box-shadow: 0 3px 12px rgba(32, 56, 44, .07);
+}
+
+/* Mode Márquez. */
+body.marquez-theme
+#school-ranking tbody tr:nth-child(1) .school-points-badge {
+  color: #ffe1a0;
+}
+
+body.marquez-theme
+#school-ranking tbody tr:nth-child(2) .school-points-badge {
+  color: #dce8f6;
+}
+
+body.marquez-theme
+#school-ranking tbody tr:nth-child(3) .school-points-badge {
+  color: #ffd3b4;
+}
+
+/* Cada rànquing ocupa tota l’amplada quan falta espai. */
+@media (max-width: 1100px) {
+  .rankings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .rankings-layout > .card {
+    padding: 12px;
+  }
+
+  #school-ranking .school-ranking-table th,
+  #school-ranking .school-ranking-table td {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  #school-ranking .school-ranking-table th:nth-child(1),
+  #school-ranking .school-ranking-table td:nth-child(1) {
+    width: 30px;
+  }
+
+  #school-ranking .school-ranking-table td:nth-child(2) {
+    font-size: 11px;
+  }
+
+  #school-ranking .school-ranking-table td:nth-child(3) {
+    font-size: 10px;
+  }
+
+  .school-points-badge {
+    padding: 5px;
+    font-size: 11px;
+  }
+
+  #ranking-list .ranking-points {
+    padding: 5px 3px;
+    font-size: 10px;
+  }
+}
   
 </style>
 
@@ -4588,12 +4842,10 @@ function renderSchools(entries) {
   body.replaceChildren();
 
   const schools = calculateSchools(entries);
-  const highestScore = schools[0]?.score || 1;
 
   schools.forEach((school, index) => {
     const row = document.createElement('tr');
 
-    // Posició.
     const positionCell = document.createElement('td');
     const position = document.createElement('span');
 
@@ -4608,37 +4860,20 @@ function renderSchools(entries) {
 
     positionCell.append(position);
 
-    // Escola i barra proporcional als punts.
     const schoolCell = document.createElement('td');
-    const schoolName = document.createElement('span');
+    schoolCell.textContent = school.name;
 
-    schoolName.textContent = school.name;
-
-    const meter = document.createElement('span');
-    meter.className = 'school-meter';
-    meter.setAttribute('aria-hidden', 'true');
-
-    const fill = document.createElement('span');
-    fill.className = 'school-meter-fill';
-
-    const percentage = Math.min(
-      100,
-      Math.max(0, school.score / highestScore * 100)
-    );
-
-    fill.style.width = percentage + '%';
-
-    meter.append(fill);
-    schoolCell.append(schoolName, meter);
-
-    // Població.
     const townCell = document.createElement('td');
     townCell.textContent = schoolTowns[school.name] || '—';
 
-    // Punts.
     const pointsCell = document.createElement('td');
-    pointsCell.textContent =
+    const pointsBadge = document.createElement('span');
+
+    pointsBadge.className = 'school-points-badge';
+    pointsBadge.textContent =
       school.score.toLocaleString('ca-ES');
+
+    pointsCell.append(pointsBadge);
 
     row.append(
       positionCell,
@@ -4651,7 +4886,7 @@ function renderSchools(entries) {
   });
 
   get('school-ranking-status').textContent = schools.length
-    ? 'Les barres comparen els punts amb els de la primera escola.'
+    ? 'Classificació actualitzada.'
     : 'Encara no hi ha puntuacions d’escoles validades.';
 }
 

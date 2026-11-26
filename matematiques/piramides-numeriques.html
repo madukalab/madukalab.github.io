@@ -3732,6 +3732,46 @@ document.addEventListener('visibilitychange', () => {
   overflow-wrap: normal;
   font-variant-numeric: tabular-nums;
 }
+
+  /* Posició · Escola · Població · Punts */
+.school-ranking-table {
+  width: 100%;
+  min-width: 400px;
+  table-layout: fixed;
+}
+
+.school-ranking-table th:nth-child(1),
+.school-ranking-table td:nth-child(1) {
+  width: 15%;
+  text-align: center;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+.school-ranking-table th:nth-child(2),
+.school-ranking-table td:nth-child(2) {
+  width: 37%;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.school-ranking-table th:nth-child(3),
+.school-ranking-table td:nth-child(3) {
+  width: 23%;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.school-ranking-table th:nth-child(4),
+.school-ranking-table td:nth-child(4) {
+  width: 25%;
+  text-align: right;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  font-variant-numeric: tabular-nums;
+}
   
 </style>
 
@@ -4036,8 +4076,9 @@ if (hiddenSchools.has(key)) {
       <table class="school-ranking-table">
         <thead>
           <tr>
-            <th scope="col">Pos.</th>
+            <th scope="col">Posició</th>
             <th scope="col">Escola</th>
+            <th scope="col">Població</th>
             <th scope="col">Punts</th>
           </tr>
         </thead>
@@ -4058,6 +4099,15 @@ if (hiddenSchools.has(key)) {
 
   layout.append(panel);
 
+const schoolTowns = {
+  'Escola Manuel Ortiz i Castelló': 'Juneda',
+  'Escola Jaume Balmes · Cervera': 'Cervera',
+  'Escola Jaume Balmes · Santa Bàrbara': 'Santa Bàrbara',
+  'Escola Eugeni d’Ors': 'Valls',
+  'Escola de Ponts': 'Ponts',
+  'IE Castell d’Òdena': 'Òdena'
+};
+  
 function renderSchools(entries) {
   const body = get('school-ranking-body');
   body.replaceChildren();
@@ -4070,6 +4120,7 @@ function renderSchools(entries) {
     const positionCell = document.createElement('td');
     positionCell.textContent =
       ['🥇', '🥈', '🥉'][index] || String(index + 1);
+
     positionCell.setAttribute(
       'aria-label',
       'Posició ' + (index + 1)
@@ -4078,11 +4129,20 @@ function renderSchools(entries) {
     const schoolCell = document.createElement('td');
     schoolCell.textContent = school.name;
 
+    const townCell = document.createElement('td');
+    townCell.textContent = schoolTowns[school.name] || '—';
+
     const pointsCell = document.createElement('td');
     pointsCell.textContent =
       school.score.toLocaleString('ca-ES');
 
-    row.append(positionCell, schoolCell, pointsCell);
+    row.append(
+      positionCell,
+      schoolCell,
+      townCell,
+      pointsCell
+    );
+
     body.append(row);
   });
 

@@ -502,7 +502,6 @@
       phase = "question";
       effects.clearLayers();
       countries.setStyle(land);
-      showWorld();
 
       const country = document.createElement("strong");
       country.textContent = nameOf(questions[questionIndex]);
@@ -580,49 +579,6 @@
       }).addTo(effects);
     }
 
-    function mainBounds(layer) {
-      const geometry = layer.feature.geometry;
-      if (geometry.type !== "MultiPolygon") return layer.getBounds();
-
-      let largest = geometry.coordinates[0][0];
-      let largestArea = -1;
-
-      for (const [ring] of geometry.coordinates) {
-        let twiceArea = 0;
-
-        for (let index = 1; index < ring.length; index++) {
-          const [x1, y1] = ring[index - 1];
-          const [x2, y2] = ring[index];
-          twiceArea += x1 * y2 - y1 * x2;
-        }
-
-        const area = Math.abs(twiceArea);
-        if (area > largestArea) {
-          largestArea = area;
-          largest = ring;
-        }
-      }
-
-      return L.latLngBounds(largest.map(([longitude, latitude]) => [latitude, longitude]));
-    }
-
-    function reveal(target, position) {
-      target.setStyle(correct).bringToFront();
-
-      const targetBounds = mainBounds(target);
-      const bounds = L.latLngBounds(targetBounds.getSouthWest(), targetBounds.getNorthEast());
-      if (position) bounds.extend(position);
-
-      map.stop();
-      const options = { padding: [34, 34], maxZoom: 5 };
-
-      if (reducedMotion.matches) {
-        map.fitBounds(bounds, { ...options, animate: false });
-      } else {
-        map.flyToBounds(bounds, { ...options, duration: .85 });
-      }
-    }
-
     function advanceQuestion() {
       if (phase !== "answer") return;
 
@@ -666,7 +622,7 @@
           ? `Has clicat ${label}. El país correcte és ${targetName}, en verd al mapa.`
           : `El país correcte és ${targetName}, en verd al mapa.`;
 
-        reveal(target, position);
+        target.setStyle(correct).bringToFront();
         answerTimer = setTimeout(advanceQuestion, correctionDelay);
       }
 
@@ -708,7 +664,6 @@
       clearTimeout(answerTimer);
       effects.clearLayers();
       countries.setStyle(land);
-      showWorld();
 
       for (const result of results) {
         if (result.hit) layers.get(result.code).setStyle(correct);

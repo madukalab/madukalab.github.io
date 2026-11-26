@@ -5098,6 +5098,250 @@ function renderSchools(entries) {
   });
 })();
 </script>
+
+  <style>
+  /* PANTALLA INICIAL D’INSTRUCCIONS */
+
+  .game-guide {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+    background: rgba(247, 245, 235, .45);
+    -webkit-backdrop-filter: blur(9px);
+    backdrop-filter: blur(9px);
+  }
+
+  .game-guide-card {
+    width: min(100%, 470px);
+    margin: auto;
+    padding: clamp(24px, 5vw, 36px);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: 0 24px 80px rgba(32, 56, 44, .16);
+  }
+
+  .game-guide-label {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .game-guide-card h2 {
+    margin: 0 0 22px;
+    font-size: 30px;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+
+  .game-guide-list {
+    display: grid;
+    gap: 15px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .game-guide-list li {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .game-guide-symbol {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: #edf2e4;
+    color: #20382c;
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .game-guide-list strong {
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .game-guide-list p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .game-guide-note {
+    margin: 22px 0 8px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  #game-guide-start #start {
+    width: 100%;
+    margin-top: 10px;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 17px;
+  }
+</style>
+
+<div id="game-guide" class="game-guide" hidden>
+  <section
+    class="game-guide-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="game-guide-title"
+    aria-describedby="game-guide-note"
+  >
+    <p class="game-guide-label">Abans de començar</p>
+
+    <h2 id="game-guide-title">Com es juga?</h2>
+
+    <ul class="game-guide-list">
+      <li>
+        <span class="game-guide-symbol" aria-hidden="true">+</span>
+        <div>
+          <strong>Suma les dues caselles de sota</strong>
+          <p>Escriu el resultat a la casella que tenen a sobre.</p>
+        </div>
+      </li>
+
+      <li>
+        <span class="game-guide-symbol" aria-hidden="true">↔</span>
+        <div>
+          <strong>Mou-te amb les fletxes</strong>
+          <p>
+            Utilitza les quatre fletxes del teclat,
+            la tecla Tab o el ratolí.
+          </p>
+        </div>
+      </li>
+
+      <li>
+        <span class="game-guide-symbol" aria-hidden="true">✓</span>
+        <div>
+          <strong>Completa la piràmide i continua</strong>
+          <p>
+            Quan totes les respostes siguin correctes,
+            apareixerà una piràmide nova automàticament.
+          </p>
+        </div>
+      </li>
+
+      <li>
+        <span class="game-guide-symbol" aria-hidden="true">★</span>
+        <div>
+          <strong>Suma punts per al rànquing</strong>
+          <p>
+            Quan vulguis desar el resultat,
+            prem «Registra la puntuació».
+          </p>
+        </div>
+      </li>
+    </ul>
+
+    <p id="game-guide-note" class="game-guide-note">
+      El temps començarà quan premis Comença.
+    </p>
+
+    <div id="game-guide-start"></div>
+  </section>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const guide = document.getElementById('game-guide');
+  const slot = document.getElementById('game-guide-start');
+  const entryForm = document.getElementById('entry-form');
+  const beginButton = document.getElementById('start');
+
+  if (!guide || !slot || !entryForm || !beginButton) {
+    return;
+  }
+
+  // Trasllada el mateix botó a la pantalla d’instruccions.
+  // Conserva la lògica que inicia la partida i el rellotge.
+  slot.append(beginButton);
+
+  const background = [
+    document.getElementById('game-screen'),
+    document.getElementById('site-header'),
+    document.getElementById('site-footer')
+  ].filter(Boolean);
+
+  let previousInert = [];
+
+  function showGuide() {
+    if (!playerProfile || sessionStarted || !guide.hidden) {
+      return;
+    }
+
+    previousInert = background.map(element => element.inert);
+
+    background.forEach(element => {
+      element.inert = true;
+    });
+
+    guide.hidden = false;
+    document.body.classList.add('entry-open');
+
+    beginButton.hidden = false;
+    beginButton.focus({ preventScroll: true });
+  }
+
+  function closeGuide() {
+    guide.hidden = true;
+
+    background.forEach((element, index) => {
+      element.inert = previousInert[index] ?? false;
+    });
+
+    document.body.classList.remove('entry-open');
+
+    focusFirstInput();
+  }
+
+  // S’executa després de validar i guardar les dades d’entrada.
+  entryForm.addEventListener('submit', () => {
+    if (playerProfile && !sessionStarted) {
+      showGuide();
+    }
+  });
+
+  // El control original inicia la partida.
+  // Després tanquem la finestra i enfoquem la primera casella.
+  beginButton.addEventListener('click', () => {
+    if (sessionStarted && !guide.hidden) {
+      closeGuide();
+    }
+  });
+
+  // Manté el focus al botó mentre les instruccions són obertes.
+  guide.addEventListener('keydown', event => {
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      beginButton.focus();
+    }
+  });
+})();
+</script>
   
 </body>
 </html>

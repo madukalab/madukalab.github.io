@@ -4525,6 +4525,77 @@ body.marquez-theme
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+  /* Rànquing d’escoles més estret. */
+.rankings-layout {
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 440px);
+  gap: 16px;
+}
+
+#school-ranking {
+  padding: 16px;
+}
+
+#school-ranking-title {
+  font-size: 24px;
+}
+
+/* Lletra més gran i espais compactes. */
+#school-ranking .school-ranking-table th {
+  font-size: 12px;
+}
+
+#school-ranking .school-ranking-table td {
+  font-size: 14px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+#school-ranking .school-ranking-table td:nth-child(3) {
+  font-size: 13px;
+}
+
+#school-ranking .school-ranking-table th:nth-child(1),
+#school-ranking .school-ranking-table td:nth-child(1) {
+  width: 34px;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+#school-ranking .school-ranking-table th:nth-child(2),
+#school-ranking .school-ranking-table td:nth-child(2) {
+  width: auto;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+#school-ranking .school-ranking-table th:nth-child(3),
+#school-ranking .school-ranking-table td:nth-child(3),
+#school-ranking .school-ranking-table th:nth-child(4),
+#school-ranking .school-ranking-table td:nth-child(4) {
+  width: 1%;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#school-ranking .school-points-badge {
+  font-size: 14px;
+  padding: 6px;
+}
+
+/* Evita comprimir les dues classificacions en pantalles petites. */
+@media (max-width: 1000px) {
+  .rankings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #school-ranking {
+    width: min(100%, 440px);
+    justify-self: center;
+  }
+}
   
 </style>
 

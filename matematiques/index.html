@@ -205,6 +205,38 @@
       }
     }
 
+    /* Targeta amb portada del joc */
+.card.card-portada {
+  padding: 0;
+  overflow: hidden;
+  justify-content: flex-start;
+}
+
+.card-portada-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.card-portada-contingut {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 24px;
+}
+
+.card-portada-contingut .etiqueta {
+  align-self: flex-start;
+  margin-bottom: 14px;
+}
+
+.card-portada-contingut .obrir {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
   </style>
 
 </head>
@@ -506,23 +538,31 @@
       
       </a>
 
-       <!-- PIRÀMIDES NUMÈRIQUES -->
+<!-- PIRÀMIDES NUMÈRIQUES -->
 
-      <a class="card" href="./piramides-numeriques.html">
-        <div class="card-top">
-          <div class="icon" aria-hidden="true">🔺</div>
-          <div class="etiqueta">CÀLCUL</div>
-        </div>
+<a class="card card-portada" href="./piramides-numeriques.html">
+  <img
+    class="card-portada-img"
+    src="./portada-piramides.png"
+    alt="Piràmides numèriques"
+    width="1672"
+    height="941"
+    loading="lazy"
+  >
 
-        <div>
-          <h3>Piràmides numèriques</h3>
-          <p>
-            Omple les caselles sumant els dos nombres de sota.
-            Cada cop que resolguis una piràmide, n’apareixerà una de nova.
-          </p>
-          <div class="obrir">Obrir recurs →</div>
-        </div>
-      </a>
+  <div class="card-portada-contingut">
+    <div class="etiqueta">CÀLCUL</div>
+
+    <h3>Piràmides numèriques</h3>
+
+    <p>
+      Omple les caselles sumant els dos nombres de sota.
+      Cada cop que resolguis una piràmide, n’apareixerà una de nova.
+    </p>
+
+    <div class="obrir">Juga ara →</div>
+  </div>
+</a>
 
        <!-- PUGEM ESGLAONS -->
       <a class="card" href="./pugem-esglaons.html">

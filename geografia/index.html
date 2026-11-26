@@ -1,12 +1,9 @@
 <!DOCTYPE html>
 <html lang="ca">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Geografia · MADUKA</title>
-
   <link rel="icon" type="image/png" href="../favicon.png?v=2">
 
   <style>
@@ -136,6 +133,37 @@
       font-weight: 600;
     }
 
+    .card.card-portada {
+      padding: 0;
+      overflow: hidden;
+      justify-content: flex-start;
+    }
+
+    .card-portada-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+    }
+
+    .card-portada-contingut {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      padding: 24px;
+    }
+
+    .card-portada-contingut .etiqueta {
+      align-self: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .card-portada-contingut .obrir {
+      margin-top: auto;
+      padding-top: 20px;
+    }
+
     footer {
       max-width: 1200px;
       margin: auto;
@@ -173,7 +201,6 @@
 </head>
 
 <body>
-
   <header>
     <a class="logo" href="../" aria-label="Torna a l’inici de MADUKA">
       MADUKA
@@ -190,23 +217,23 @@
       <h2 id="titol-recursos">Jocs de geografia</h2>
 
       <div class="grid">
+        <a class="card card-portada" href="./on-es-aquest-pais.html">
+          <img
+            class="card-portada-img"
+            src="./portada-on-es-aquest-pais.png"
+            alt=""
+            width="1672"
+            height="941"
+            decoding="async"
+          >
 
-        <a class="card" href="./on-es-aquest-pais.html">
-          <div class="card-top">
-            <div class="icon" aria-hidden="true">🌍</div>
+          <div class="card-portada-contingut">
             <div class="etiqueta">PAÏSOS DEL MÓN</div>
-          </div>
-
-          <div>
             <h3>On és aquest país?</h3>
-            <p>
-              Situa deu països al mapamundi. Fes zoom per veure millor
-              les fronteres i clica el país que et demana el joc.
-            </p>
+            <p>Explora el mapamundi i situa els països en quatre rondes de dificultat creixent.</p>
             <div class="obrir">Juga-hi <span aria-hidden="true">→</span></div>
           </div>
         </a>
-
       </div>
     </section>
   </main>
@@ -214,6 +241,5 @@
   <footer>
     MADUKA · Materials educatius oberts
   </footer>
-
 </body>
 </html>

@@ -4483,6 +4483,48 @@ body.marquez-theme
     font-size: 10px;
   }
 }
+
+  /* Amplada general més compacta. */
+#game-screen,
+#game-screen:has(.rankings-layout) {
+  width: min(1140px, calc(100% - 32px));
+}
+
+/* Dos rànquings més estrets. */
+.rankings-layout {
+  grid-template-columns:
+    minmax(0, 1.2fr)
+    minmax(0, 1fr);
+  gap: 14px;
+}
+
+.rankings-layout > .card {
+  min-width: 0;
+  padding: 16px;
+}
+
+.rankings-layout h2 {
+  font-size: 22px;
+}
+
+/* Redueix l’espai dins de les files. */
+#ranking-list li {
+  min-height: 56px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+#school-ranking .school-ranking-table td {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* En pantalles petites, un sota l’altre. */
+@media (max-width: 1000px) {
+  .rankings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
   
 </style>
 

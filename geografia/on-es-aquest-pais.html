@@ -196,15 +196,17 @@
       path.leaflet-interactive { transition: none; }
     }
     .ranking { margin-top: 20px; padding: 18px; }
+    #ranking-save-status { margin: 0; padding: 0 16px 12px; }
+    #ranking-save-status:empty { display: none; }
     .ranking h2 { margin-bottom: 14px; }
-    .ranking form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    .ranking input { min-height: 42px; max-width: 100%; padding: 8px 12px; border: 1px solid #53768d; border-radius: 8px; background: #081421; color: inherit; font: inherit; }
+    #ranking-form { padding: 0 16px 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    #ranking-alias { min-height: 42px; max-width: 100%; padding: 8px 12px; border: 1px solid #53768d; border-radius: 8px; background: #081421; color: inherit; font: inherit; }
     .ranking table { width: 100%; border-collapse: collapse; }
     .ranking th, .ranking td { padding: 8px; border-bottom: 1px solid #304a60; text-align: left; }
     .ranking th:last-child, .ranking td:last-child { text-align: right; }
     .ranking td { overflow-wrap: anywhere; }
     .ranking tbody tr:nth-child(-n+3) { color: #72f0be; }
-    .ranking button:disabled { opacity: .55; cursor: default; }
+    #ranking-save:disabled { opacity: .55; cursor: default; }
   </style>
 </head>
 
@@ -244,14 +246,15 @@
         <button id="review" type="button" hidden>Repassem els errors</button>
         <button id="continue" class="primary" type="button" hidden>Ronda següent</button>
       </div>
-    </section>
-    <section class="game ranking" aria-labelledby="ranking-title">
-      <h2 id="ranking-title">Classificació</h2>
       <form id="ranking-form" hidden>
         <label for="ranking-alias">Àlies</label>
         <input id="ranking-alias" name="alias" required maxlength="24" minlength="2" autocomplete="off" placeholder="El teu àlies de joc">
         <button id="ranking-save" type="submit" class="primary">Registra la puntuació</button>
       </form>
+      <p id="ranking-save-status" role="status"></p>
+    </section>
+    <section class="game ranking" aria-labelledby="ranking-title">
+      <h2 id="ranking-title">Classificació</h2>
       <p id="ranking-status" role="status"></p>
       <table aria-labelledby="ranking-title">
         <thead>
@@ -331,6 +334,7 @@
     const rankingSave = document.getElementById("ranking-save");
     const rankingStatus = document.getElementById("ranking-status");
     const rankingRows = document.getElementById("ranking-rows");
+    const rankingSaveStatus = document.getElementById("ranking-save-status");
     let pendingScore = null;
     let rankingBusy = false;
 
@@ -396,7 +400,7 @@
       if (rankingBusy || pendingScore === null) return;
       const alias = rankingAlias.value.trim().normalize("NFC");
       if (!/^[\p{L}\p{N}][\p{L}\p{N} _·-]{1,23}$/u.test(alias)) {
-        rankingStatus.textContent = "Escriu un àlies de 2 a 24 caràcters amb lletres, números, espais o guions.";
+        rankingSaveStatus.textContent = "Escriu un àlies de 2 a 24 caràcters amb lletres, números, espais o guions.";
         rankingAlias.focus();
         return;
       }
@@ -404,16 +408,16 @@
       const entry = { alias, points: submission.points };
       rankingBusy = true;
       rankingSave.disabled = true;
-      rankingStatus.textContent = "Desant la puntuació…";
+      rankingSaveStatus.textContent = "Desant la puntuació…";
       try {
         renderRanking(await getRanking(entry));
         if (pendingScore === submission) {
           pendingScore = null;
           rankingForm.hidden = true;
         }
-        rankingStatus.textContent = "S’ha desat la millor puntuació d’aquest àlies.";
+        rankingSaveStatus.textContent = "S’ha desat la millor puntuació d’aquest àlies.";
       } catch {
-        rankingStatus.textContent = "No s’ha pogut desar la puntuació. Torna-ho a provar.";
+        rankingSaveStatus.textContent = "No s’ha pogut desar la puntuació. Torna-ho a provar.";
       } finally {
         rankingBusy = false;
         rankingSave.disabled = false;
@@ -475,6 +479,9 @@
 
     function showRoundIntro() {
       phase = "intro";
+      pendingScore = null;
+      rankingForm.hidden = true;
+      rankingSaveStatus.textContent = "";
       questions = selections[levelIndex];
       questionIndex = 0;
       roundStart = results.length;
@@ -672,6 +679,12 @@
       const roundHits = results.slice(roundStart).filter(result => result.hit).length;
       const hasNextRound = levelIndex + 1 < selections.length;
 
+      if (!reviewing) {
+        pendingScore = { points: results.filter(result => result.hit).length * 100 };
+        rankingForm.hidden = false;
+        rankingSaveStatus.textContent = "";
+      }
+
       if (hasNextRound) {
         phase = "round-end";
         question.textContent = reviewing ? "Bloc completat!" : "Ronda completada!";
@@ -682,10 +695,6 @@
         continueButton.textContent = reviewing ? "Bloc següent" : "Ronda següent";
       } else {
         phase = "finished";
-        if (!reviewing) {
-          pendingScore = { points: results.filter(result => result.hit).length * 100 };
-          rankingForm.hidden = false;
-        }
         const hits = results.filter(result => result.hit).length;
         const perfect = hits === results.length;
 

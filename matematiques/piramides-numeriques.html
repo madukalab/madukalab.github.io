@@ -3288,7 +3288,7 @@ document.addEventListener('visibilitychange', () => {
         showRanking(data.entries);
 
         rankingStatus.textContent = data.entries.length
-          ? 'Classificació actualitzada.'
+          ? ''
           : 'Encara no hi ha cap partida registrada.';
       } catch {
         rankingStatus.textContent =

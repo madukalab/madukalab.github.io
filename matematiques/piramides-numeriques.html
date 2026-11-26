@@ -4756,6 +4756,81 @@ body:has(#game-guide:not([hidden])) .rankings-layout {
 body.marquez-theme #game-guide.game-guide {
   background: rgba(15, 15, 18, .15);
 }
+
+  /* RESTA DE LA PÀGINA NÍTIDA */
+body:has(#game-guide:not([hidden])) #player-summary,
+body:has(#game-guide:not([hidden])) #game-screen > h1,
+body:has(#game-guide:not([hidden])) #game-screen > .intro,
+body:has(#game-guide:not([hidden])) .board-head,
+body:has(#game-guide:not([hidden])) .clock,
+body:has(#game-guide:not([hidden])) #last-result,
+body:has(#game-guide:not([hidden])) #puzzle > .actions,
+body:has(#game-guide:not([hidden])) #status,
+body:has(#game-guide:not([hidden])) .layout > aside,
+body:has(#game-guide:not([hidden])) .rankings-layout {
+  filter: none;
+}
+
+/* EL DIFUMINAT QUEDA DINS DEL REQUADRE DEL JOC */
+.special-93-shell.guide-waiting {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 15px;
+}
+
+.special-93-shell.guide-waiting #stage {
+  filter: blur(4px);
+  opacity: .85;
+}
+
+/* Capa local sobre la piràmide, sota els controls */
+#game-guide.game-guide {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: rgba(25, 50, 40, .3);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* FINESTRA DE CONTROLS NÍTIDA */
+#game-guide .game-guide-card {
+  position: relative;
+  width: min(100%, 370px);
+  padding: 24px;
+  border: 2px solid #a5b996;
+  border-radius: 17px;
+  background: #203e32;
+  color: #fff9e9;
+  filter: none;
+  box-shadow:
+    0 8px 0 rgba(15, 30, 23, .22),
+    0 16px 35px rgba(15, 30, 23, .18);
+}
+
+#game-guide .game-guide-row {
+  padding: 11px;
+  background: rgba(255, 255, 255, .08);
+}
+
+#game-guide-start #start {
+  margin-top: 18px;
+  padding: 13px;
+  background: #f5d985;
+  color: #21382c;
+  border: 2px solid #d6ba64;
+}
+
+/* Adaptació al mode Márquez */
+body.marquez-theme #game-guide.game-guide {
+  background: rgba(25, 10, 15, .3);
+}
+
+body.marquez-theme #game-guide .game-guide-card {
+  background: #291b22;
+  border-color: #e65a60;
+}
   
 </style>
 

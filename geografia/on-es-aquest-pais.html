@@ -195,6 +195,16 @@
       dialog[open], .pin, .points, #confetti i { animation: none; }
       path.leaflet-interactive { transition: none; }
     }
+    .ranking { margin-top: 20px; padding: 18px; }
+    .ranking h2 { margin-bottom: 14px; }
+    .ranking form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .ranking input { min-height: 42px; max-width: 100%; padding: 8px 12px; border: 1px solid #53768d; border-radius: 8px; background: #081421; color: inherit; font: inherit; }
+    .ranking table { width: 100%; border-collapse: collapse; }
+    .ranking th, .ranking td { padding: 8px; border-bottom: 1px solid #304a60; text-align: left; }
+    .ranking th:last-child, .ranking td:last-child { text-align: right; }
+    .ranking td { overflow-wrap: anywhere; }
+    .ranking tbody tr:nth-child(-n+3) { color: #72f0be; }
+    .ranking button:disabled { opacity: .55; cursor: default; }
   </style>
 </head>
 
@@ -234,6 +244,21 @@
         <button id="review" type="button" hidden>Repassem els errors</button>
         <button id="continue" class="primary" type="button" hidden>Ronda següent</button>
       </div>
+    </section>
+    <section class="game ranking" aria-labelledby="ranking-title">
+      <h2 id="ranking-title">Classificació</h2>
+      <form id="ranking-form" hidden>
+        <label for="ranking-alias">Àlies</label>
+        <input id="ranking-alias" name="alias" required maxlength="24" minlength="2" autocomplete="off" placeholder="El teu àlies de joc">
+        <button id="ranking-save" type="submit" class="primary">Registra la puntuació</button>
+      </form>
+      <p id="ranking-status" role="status"></p>
+      <table aria-labelledby="ranking-title">
+        <thead>
+          <tr><th scope="col">Àlies</th><th scope="col">Punts</th></tr>
+        </thead>
+        <tbody id="ranking-rows"></tbody>
+      </table>
     </section>
   </main>
 
@@ -296,6 +321,104 @@
     let reviewing = false;
     let answerTimer;
     let confettiTimer;
+
+
+    // Enganxa aquí l’URL /exec d’Apps Script per compartir la classificació.
+    const rankingUrl = "";
+    const rankingStorageKey = "maduka-geografia-ranking-v1";
+    const rankingForm = document.getElementById("ranking-form");
+    const rankingAlias = document.getElementById("ranking-alias");
+    const rankingSave = document.getElementById("ranking-save");
+    const rankingStatus = document.getElementById("ranking-status");
+    const rankingRows = document.getElementById("ranking-rows");
+    let pendingScore = null;
+    let rankingBusy = false;
+
+    function renderRanking(entries) {
+      rankingRows.replaceChildren(...entries.slice(0, 20).map(entry => {
+        const row = document.createElement("tr");
+        for (const value of [entry.alias, entry.points]) {
+          row.insertCell().textContent = value;
+        }
+        return row;
+      }));
+    }
+
+    function localRanking() {
+      try {
+        const entries = JSON.parse(localStorage.getItem(rankingStorageKey) || "[]");
+        return Array.isArray(entries) ? entries : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function localScore(entry) {
+      const entries = localRanking();
+      const key = entry.alias.toLocaleLowerCase("ca");
+      const previous = entries.find(item => item.alias.toLocaleLowerCase("ca") === key);
+      if (!previous || entry.points > previous.points) {
+        if (previous) Object.assign(previous, entry);
+        else entries.push(entry);
+      }
+      entries.sort((a, b) => b.points - a.points || a.alias.localeCompare(b.alias, "ca"));
+      localStorage.setItem(rankingStorageKey, JSON.stringify(entries));
+      return entries;
+    }
+
+    async function getRanking(entry) {
+      if (!rankingUrl) return entry ? localScore(entry) : localRanking();
+      const options = entry ? {
+        method: "POST",
+        body: new URLSearchParams({ alias: entry.alias, points: String(entry.points) })
+      } : { cache: "no-store" };
+      const response = await fetch(rankingUrl, options);
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const data = await response.json();
+      if (!data.ok || !Array.isArray(data.entries)) throw new Error("Resposta de classificació incorrecta");
+      return data.entries;
+    }
+
+    async function loadRanking() {
+      rankingStatus.textContent = "Carregant la classificació…";
+      try {
+        const entries = await getRanking();
+        renderRanking(entries);
+        const scope = rankingUrl ? "Classificació compartida." : "Classificació d’aquest navegador.";
+        rankingStatus.textContent = entries.length ? scope : scope + " Encara no hi ha puntuacions.";
+      } catch {
+        rankingStatus.textContent = "Ara mateix no es pot carregar la classificació.";
+      }
+    }
+
+    rankingForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (rankingBusy || pendingScore === null) return;
+      const alias = rankingAlias.value.trim().normalize("NFC");
+      if (!/^[\p{L}\p{N}][\p{L}\p{N} _·-]{1,23}$/u.test(alias)) {
+        rankingStatus.textContent = "Escriu un àlies de 2 a 24 caràcters amb lletres, números, espais o guions.";
+        rankingAlias.focus();
+        return;
+      }
+      const submission = pendingScore;
+      const entry = { alias, points: submission.points };
+      rankingBusy = true;
+      rankingSave.disabled = true;
+      rankingStatus.textContent = "Desant la puntuació…";
+      try {
+        renderRanking(await getRanking(entry));
+        if (pendingScore === submission) {
+          pendingScore = null;
+          rankingForm.hidden = true;
+        }
+        rankingStatus.textContent = "S’ha desat la millor puntuació d’aquest àlies.";
+      } catch {
+        rankingStatus.textContent = "No s’ha pogut desar la puntuació. Torna-ho a provar.";
+      } finally {
+        rankingBusy = false;
+        rankingSave.disabled = false;
+      }
+    });
 
     function nameOf(code) {
       return code === "XK" ? "Kosovo" : regionNames.of(code);
@@ -398,6 +521,8 @@
     }
 
     function startSession(missedCountries = null) {
+      pendingScore = null;
+      rankingForm.hidden = true;
       clearTimeout(answerTimer);
       clearConfetti();
       pins.clearLayers();
@@ -602,6 +727,10 @@
         continueButton.textContent = reviewing ? "Bloc següent" : "Ronda següent";
       } else {
         phase = "finished";
+        if (!reviewing) {
+          pendingScore = { points: results.filter(result => result.hit).length * 100 };
+          rankingForm.hidden = false;
+        }
         const hits = results.filter(result => result.hit).length;
         const perfect = hits === results.length;
 
@@ -717,6 +846,7 @@
     }
 
     load();
+    loadRanking();
   </script>
 </body>
 </html>

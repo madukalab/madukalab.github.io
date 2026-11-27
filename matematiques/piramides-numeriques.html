@@ -4161,16 +4161,27 @@ body.marquez-theme .game-guide {
         ]
       ],
       [
-          'Escola L'Assumpció'
-          [
-            'Assumpció',
-            'Assumpcio deltebre',
-            'Assumció',
-            'escola L ́assumpcio'
-          ]
-        ],
-          
-        
+        'Escola L’Assumpció',
+        [
+          "L'Assumpció",
+          'Assumpció',
+          'Assumpcio deltebre',
+          'Assumció',
+          'escola L ́assumpcio'
+        ]
+      ],
+      [
+        'Escola Carles III',
+        ['Carles III', 'Carles III La Ràpita']
+      ],
+      [
+        'Escola Consol Ferré',
+        ['Consol Ferré', 'Consol Ferre', 'Consol Ferré Amposta']
+      ],
+      [
+        'Escola Agustí Barberà',
+        ['Agustí Barberà', 'Agusti Barbera', 'Agustí Barberà Amposta']
+      ],
       [
           'Escola Els Planells',
           [
@@ -4502,10 +4513,10 @@ body.marquez-theme .game-guide {
       'Escola Sant Salvador': 'Albatàrrec',
       'Escola Els Planells': 'Artesa de Segre',
       'Escola Pau Delclòs': 'Tarragona',
-      'L'assumpció': 'Deltebre',
-      'Carles III': 'La Ràpita',
-      'Consol Ferré': 'Amposta',
-      'Agustí Barberà': 'Amposta'
+      'Escola L’Assumpció': 'Deltebre',
+      'Escola Carles III': 'La Ràpita',
+      'Escola Consol Ferré': 'Amposta',
+      'Escola Agustí Barberà': 'Amposta'
       };
 
     function renderSchools(entries) {
@@ -4619,8 +4630,13 @@ body.marquez-theme .game-guide {
     .filter(name => !name.includes('municipi no indicat'))
     .sort((a, b) => a.localeCompare(b, 'ca'))
     .forEach(name => {
-      select.append(new Option(name, name));
-    });
+        const town = schoolTowns[name];
+        const label = town && !name.includes(' · ')
+          ? name + ' (' + town + ')'
+          : name;
+
+        select.append(new Option(label, name));
+      });
 
     select.append(
     new Option('Una altra escola…', '__other__')

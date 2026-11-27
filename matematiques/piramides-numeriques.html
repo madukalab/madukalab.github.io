@@ -4353,9 +4353,7 @@ body.marquez-theme .game-guide {
     );
 
     function calculateSchools(entries) {
-      const approvedSchools = new Set(
-      schoolGroups.map(([name]) => schoolKey(name))
-      );
+
       const schools = new Map();
 
       for (const entry of entries) {
@@ -4377,7 +4375,7 @@ body.marquez-theme .game-guide {
         const label = canonicalSchool(entry.school);
         const key = schoolKey(label);
 
-        if (!approvedSchools.has(key) || hiddenSchools.has(key)) {
+        if (hiddenSchools.has(key)) {
           continue;
         }
 

@@ -587,7 +587,7 @@ aside details > p {
 }
 
 #ranking-list li::before {
-  content: counter(ranking) ".";
+  content: attr(data-rank) ".";
   color: var(--muted);
   font-size: 13px;
   font-weight: 700;
@@ -623,31 +623,31 @@ aside details > p {
   white-space: nowrap;
 }
 
-#ranking-list li:nth-child(1) {
+#ranking-list li[data-rank="1"] {
   background: #fff4cf;
   border-radius: 10px 10px 0 0;
 }
 
-#ranking-list li:nth-child(1)::before {
+#ranking-list li[data-rank="1"]::before {
   content: "🥇";
   font-size: 21px;
 }
 
-#ranking-list li:nth-child(2) { background: #edf0f3; }
+#ranking-list li[data-rank="2"] { background: #edf0f3; }
 
-#ranking-list li:nth-child(2)::before {
+#ranking-list li[data-rank="2"]::before {
   content: "🥈";
   font-size: 21px;
 }
 
-#ranking-list li:nth-child(3) { background: #f5e7da; }
+#ranking-list li[data-rank="3"] { background: #f5e7da; }
 
-#ranking-list li:nth-child(3)::before {
+#ranking-list li[data-rank="3"]::before {
   content: "🥉";
   font-size: 21px;
 }
 
-#ranking-list li:nth-child(-n+3) strong { font-weight: 900; }
+#ranking-list li[data-podium="true"] strong { font-weight: 900; }
 
 #ranking-more {
   display: block;
@@ -1227,9 +1227,9 @@ body.marquez-theme .grade-choice:has(input:checked) {
   background: #572331;
 }
 
-body.marquez-theme #ranking-list li:nth-child(1) { background: #46351d; }
-body.marquez-theme #ranking-list li:nth-child(2) { background: #30343e; }
-body.marquez-theme #ranking-list li:nth-child(3) { background: #452b23; }
+body.marquez-theme #ranking-list li[data-rank="1"] { background: #46351d; }
+body.marquez-theme #ranking-list li[data-rank="2"] { background: #30343e; }
+body.marquez-theme #ranking-list li[data-rank="3"] { background: #452b23; }
 body.marquez-theme #ranking-list .ranking-points { color: #ffc49b; }
 
 body.marquez-theme footer {
@@ -1786,23 +1786,23 @@ CLASSIFICACIONS: INDIVIDUAL I ESCOLES
   text-align: right;
   letter-spacing: -.3px;
 }
-#ranking-list li:nth-child(1) {
+#ranking-list li[data-rank="1"] {
   border-color: #e9d59d;
   border-radius: 11px;
   background: var(--ranking-gold);
   box-shadow: inset 3px 0 0 #c69b36;
 }
-#ranking-list li:nth-child(2) {
+#ranking-list li[data-rank="2"] {
   border-color: #d9dfe5;
   background: var(--ranking-silver);
   box-shadow: inset 3px 0 0 #97a5b5;
 }
-#ranking-list li:nth-child(3) {
+#ranking-list li[data-rank="3"] {
   border-color: #e8d1be;
   background: var(--ranking-bronze);
   box-shadow: inset 3px 0 0 #bc8862;
 }
-#ranking-list li:nth-child(-n+3)::before { font-size: 22px; }
+#ranking-list li[data-podium="true"]::before { font-size: 22px; }
 #ranking-list .ranking-movement {
   display: inline-flex;
   align-items: center;
@@ -1909,9 +1909,9 @@ body.marquez-theme .rankings-layout > .card {
 }
 body.marquez-theme #ranking-list li,
 body.marquez-theme #school-ranking .school-ranking-table td { border-color: var(--line); }
-body.marquez-theme #ranking-list li:nth-child(1) { background: var(--ranking-gold); }
-body.marquez-theme #ranking-list li:nth-child(2) { background: var(--ranking-silver); }
-body.marquez-theme #ranking-list li:nth-child(3) { background: var(--ranking-bronze); }
+body.marquez-theme #ranking-list li[data-rank="1"] { background: var(--ranking-gold); }
+body.marquez-theme #ranking-list li[data-rank="2"] { background: var(--ranking-silver); }
+body.marquez-theme #ranking-list li[data-rank="3"] { background: var(--ranking-bronze); }
 body.marquez-theme #ranking-list .ranking-movement.is-up { background: #203e2b; color: #a8e5af; }
 body.marquez-theme #ranking-list .ranking-movement.is-down { background: #4c2428; color: #ffaaa3; }
 body.marquez-theme #school-ranking tbody tr:nth-child(1) .school-points-badge { color: #ffe1a0; }
@@ -2087,6 +2087,13 @@ body.marquez-theme .game-guide {
   filter: blur(4px);
   opacity: .85;
 }
+
+/* Cercador del rànquing individual */
+.ranking-search { margin: 22px 0 14px; }
+.ranking-search label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
+.ranking-search input { font-size: 16px; }
+#ranking-search-status { margin: 8px 0 0; min-height: 1.4em; }
+#ranking-list li::before { content: attr(data-rank) "."; }
   </style>
 </head>
 
@@ -2248,6 +2255,21 @@ body.marquez-theme .game-guide {
           <button class="mode" type="button" id="ranking-refresh">
             Actualitza el rànquing
           </button>
+
+          <div class="ranking-search">
+            <label for="ranking-search">Busca el teu àlies</label>
+            <input
+              class="text-input"
+              id="ranking-search"
+              type="search"
+              placeholder="Escriu el teu àlies…"
+              autocomplete="off"
+              spellcheck="false"
+              aria-controls="ranking-list"
+              aria-describedby="ranking-search-status"
+            >
+            <p id="ranking-search-status" class="help" role="status" aria-live="polite"></p>
+          </div>
 
           <div class="ranking-head" aria-hidden="true">
             <span>Pos.</span>
@@ -3641,6 +3663,8 @@ body.marquez-theme .game-guide {
   const rankingStatus = get('ranking-status');
   const rankingRefresh = get('ranking-refresh');
   const rankingMore = get('ranking-more');
+  const rankingSearch = get('ranking-search');
+  const rankingSearchStatus = get('ranking-search-status');
 
   const rankingSubmit =
   rankingForm.querySelector('button[type="submit"]');
@@ -3668,17 +3692,45 @@ body.marquez-theme .game-guide {
     ]);
   }
 
+  function normalizeRankingSearch(value) {
+    return String(value || '')
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase('ca')
+      .trim()
+      .replace(/\s+/g, ' ');
+  }
+
+  rankingSearch.addEventListener('input', renderRanking);
+  rankingSearch.addEventListener('search', renderRanking);
+
   function renderRanking() {
     rankingList.replaceChildren();
 
-    const visibleEntries = rankingExpanded
-    ? rankingEntries
-    : rankingEntries.slice(0, 20);
+    const query = normalizeRankingSearch(rankingSearch.value);
+    const matches = rankingEntries
+      .map((entry, index) => ({ entry, position: index + 1 }))
+      .filter(({ entry }) => !query || normalizeRankingSearch(entry.name).includes(query));
 
-    visibleEntries.forEach(entry => {
+    const visibleEntries = query || rankingExpanded
+      ? matches
+      : matches.slice(0, 20);
+
+    rankingSearchStatus.textContent = !query
+      ? ''
+      : matches.length === 0
+        ? 'No hem trobat cap alumne amb aquest àlies.'
+        : matches.length === 1
+          ? '1 alumne trobat. Es mostra la seva posició al rànquing general.'
+          : matches.length + ' alumnes trobats. Es mostren les posicions al rànquing general.';
+
+    visibleEntries.forEach(({ entry, position }) => {
       const { name, grade, school, score } = entry;
 
       const item = document.createElement('li');
+      item.value = position;
+      item.dataset.rank = String(position);
+      item.dataset.podium = String(position <= 3);
       const player = document.createElement('strong');
       const gradeLabel = document.createElement('div');
       const schoolLabel = document.createElement('div');
@@ -3732,7 +3784,7 @@ body.marquez-theme .game-guide {
       rankingList.append(item);
     });
 
-    rankingMore.hidden = rankingEntries.length <= 20;
+    rankingMore.hidden = Boolean(query) || rankingEntries.length <= 20;
 
     rankingMore.textContent = rankingExpanded
     ? 'Mostra’n menys'

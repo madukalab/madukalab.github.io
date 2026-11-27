@@ -435,6 +435,60 @@
         grid-template-rows: auto 28px minmax(160px, 1fr) 29px auto 32px;
       }
     }
+    .walkthrough {
+      position: absolute;
+      z-index: 4;
+      left: 50%;
+      top: 16%;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .walkthrough {
+      display: grid;
+      justify-items: center;
+      gap: 9px;
+      width: min(280px, calc(100% - 32px));
+      text-align: center;
+    }
+
+    .walkthrough[hidden] { display: none; }
+
+    .walkthrough-label {
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: #203b32ed;
+      color: #fff9e8;
+      font-size: clamp(13px, 2.2vw, 17px);
+      font-weight: 800;
+      line-height: 1.25;
+    }
+    #game-shell.is-fullscreen .walkthrough { top: max(96px, 16%); }
+
+    .walkthrough kbd {
+      display: grid;
+      place-items: center;
+      min-width: 50px;
+      min-height: 48px;
+      padding: 0 12px;
+      border: 2px solid #fff5c9;
+      border-radius: 10px;
+      background: #f4d784;
+      color: #203b32;
+      box-shadow: 0 4px 0 #aa8141, 0 7px 15px #13282059;
+      font: 900 27px/1 system-ui, sans-serif;
+      animation: tutorial-key .85s ease-in-out infinite alternate;
+    }
+
+    .walkthrough[data-space] kbd { min-width: 94px; }
+
+    @keyframes tutorial-key {
+      to { transform: translateY(4px); background: #fff3c8; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .walkthrough kbd { animation: none; }
+    }
   </style>
 </head>
 
@@ -494,6 +548,11 @@
               <span aria-hidden="true">✋</span>
             </button>
           </div>
+          <div id="walkthrough" class="walkthrough" hidden>
+            <span id="tutorial-label" class="walkthrough-label" aria-hidden="true"></span>
+            <kbd id="tutorial-key" aria-hidden="true"></kbd>
+          </div>
+          <div id="tutorial-announcement" class="visually-hidden" role="status" aria-atomic="true"></div>
           <section id="controls-screen" class="controls-screen" aria-labelledby="controls-title">
             <div class="controls-panel">
               <h2 id="controls-title">Controls</h2>
@@ -1097,10 +1156,57 @@
         lastTrailAt = time;
       }
 
+      const tutorialSteps = [
+        { key: '←', label: 'Ves a l’esquerra', instruction: 'Mou en MAT cap a l’esquerra.' },
+        { key: '→', label: 'Ves a la dreta', instruction: 'Ara mou-lo cap a la dreta.' },
+        { key: '␣', label: 'Prem Espai per saltar', instruction: 'Prem Espai per fer saltar en MAT.' }
+      ];
+
+      let tutorialStep = -1;
+      let tutorialDistance = 0;
+
+      function showTutorialStep(index) {
+        tutorialStep = index;
+        tutorialDistance = 0;
+        const step = tutorialSteps[index];
+        const cue = get('walkthrough');
+        cue.toggleAttribute('data-space', index === 2);
+        get('tutorial-label').textContent = step.label;
+        get('tutorial-key').textContent = step.key;
+        cue.hidden = false;
+        get('tutorial-announcement').textContent = step.instruction;
+      }
+
+      function closeTutorial() {
+        tutorialStep = -1;
+        get('walkthrough').hidden = true;
+        get('tutorial-announcement').textContent = '';
+      }
+
+      function updateTutorial(oldX, oldY) {
+        if (tutorialStep < 0) return;
+
+        if (tutorialStep === 2) {
+          if (!(mat.y < oldY && (mat.airborne || buttonJump))) return;
+          closeTutorial();
+          get('tutorial-announcement').textContent = 'Tutorial completat.';
+          return;
+        }
+
+        const direction = tutorialStep === 0 ? -1 : 1;
+        if (!held.has(direction === -1 ? 'ArrowLeft' : 'ArrowRight')) return;
+        let delta = mat.x - oldX;
+        if (Math.abs(delta) > loopWidth / 2) delta -= Math.sign(delta) * loopWidth;
+        tutorialDistance += Math.max(0, direction * delta);
+        if (tutorialDistance >= 12) showTutorialStep(tutorialStep + 1);
+      }
+
       function update(time) {
         frame = null;
         const dt = previousTime === null ? 0 : clamp((time - previousTime) / 1000, 0, .025);
         previousTime = time;
+        const oldTutorialX = mat.x;
+        const oldTutorialY = mat.y;
 
         if (buttonJump) {
           const jump = buttonJump;
@@ -1142,6 +1248,7 @@
           stopReplay();
         }
 
+        updateTutorial(oldTutorialX, oldTutorialY);
         updateJumpTrail(time);
         const birdFlight = birdFlightAt(time);
         const turning = Math.abs(mat.turn - mat.facing) > .01;
@@ -2443,6 +2550,10 @@ function drawMotoRider(x, y, pose) {
       restart();
       document.addEventListener('visibilitychange', syncLandscapeClock);
 
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && tutorialStep >= 0) closeTutorial();
+      });
+
       get('play-game').addEventListener('click', () => {
         playing = true;
         dayStartedAt = performance.now();
@@ -2455,6 +2566,7 @@ function drawMotoRider(x, y, pose) {
           control.inert = false;
         }
         get('one').focus({ preventScroll: true });
+        showTutorialStep(0);
         syncLandscapeClock();
       }, { once: true });
     })();

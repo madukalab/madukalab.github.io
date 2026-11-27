@@ -23,14 +23,11 @@
       line-height: 1.5;
     }
 
-    /* CAPÇALERA */
-
     header {
       max-width: 1200px;
       margin: auto;
       padding: 35px 30px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
     }
 
@@ -42,48 +39,13 @@
       color: #1d1d1f;
     }
 
-    nav a {
-      color: #555;
-      text-decoration: none;
-      margin-left: 30px;
-      font-size: 15px;
-    }
-
-    nav a:hover {
-      color: #000;
-    }
-
-    /* PRESENTACIÓ */
-
-    .hero {
-      max-width: 1200px;
-      margin: auto;
-      padding: 100px 30px 90px;
-    }
-
-    .hero h1 {
-      font-size: clamp(52px, 8vw, 100px);
-      line-height: 0.95;
-      letter-spacing: -5px;
-      max-width: 950px;
-    }
-
-    .hero p {
-      margin-top: 35px;
-      font-size: 21px;
-      color: #666;
-      max-width: 650px;
-    }
-
-    /* RECURSOS */
-
     .recursos {
       max-width: 1200px;
       margin: auto;
-      padding: 40px 30px 100px;
+      padding: 12px 30px 100px;
     }
 
-    .recursos h2 {
+    .recursos h1 {
       font-size: 14px;
       text-transform: uppercase;
       letter-spacing: 2px;
@@ -104,26 +66,22 @@
       min-height: 240px;
       text-decoration: none;
       color: inherit;
-
-      transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
-
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
     }
 
     .icon {
       font-size: 35px;
     }
 
-    .card h3 {
+    .card h2 {
       font-size: 24px;
       margin-bottom: 5px;
     }
@@ -132,8 +90,6 @@
       color: #777;
       font-size: 14px;
     }
-
-    /* PEU */
 
     footer {
       max-width: 1200px;
@@ -144,118 +100,50 @@
       font-size: 13px;
     }
 
-    /* MÒBIL */
-
     @media (max-width: 800px) {
-
       .grid {
         grid-template-columns: 1fr;
       }
-
-      .hero {
-        padding-top: 60px;
-      }
-
-      .hero h1 {
-        letter-spacing: -3px;
-      }
-
-      nav {
-        display: none;
-      }
     }
-
   </style>
 </head>
 
-
 <body>
+  <header>
+    <a class="logo" href="./index.html" aria-label="Torna a l’inici de MADUKA">
+      MADUKA
+    </a>
+  </header>
 
-<header>
+  <main>
+    <section class="recursos" id="recursos">
+      <h1>Explora els recursos</h1>
 
-  <a class="logo" href="./index.html" aria-label="Torna a l’inici de MADUKA">
-    MADUKA
-  </a>
+      <div class="grid">
+        <a class="card" href="matematiques/">
+          <div class="icon" aria-hidden="true">🎲</div>
 
-</header>
+          <div>
+            <h2>Matemàtiques</h2>
+            <p>Jocs, simuladors i activitats interactives.</p>
+          </div>
+        </a>
 
+        <a class="card" href="geografia/">
+          <div class="icon" aria-hidden="true">🌍</div>
 
-<main>
+          <div>
+            <h2>Geografia</h2>
+            <p>Posa a prova el que saps de geografia.</p>
+          </div>
+        </a>
+      </div>
+    </section>
+  </main>
 
-  <!-- PRESENTACIÓ -->
-
-  <section class="hero">
-
-    <h1>
-      Aprendre.<br>
-      Experimentar.<br>
-      Crear.
-    </h1>
-
-    <p>
-      Laboratori de recursos digitals per a l'aula.
-      Activitats interactives, jocs i eines per aprendre
-      experimentant.
-    </p>
-
-  </section>
-
-
-  <!-- RECURSOS -->
-
-  <section class="recursos" id="recursos">
-
-    <h2>Explora els recursos</h2>
-
-    <div class="grid">
-
-      <!-- MATEMÀTIQUES -->
-
-      <a class="card" href="matematiques/">
-
-        <div class="icon">
-          🎲
-        </div>
-
-        <div>
-          <h3>Matemàtiques</h3>
-
-          <p>
-            Jocs, simuladors i activitats interactives.
-          </p>
-        </div>
-
-      </a>
-
-            <!-- JOCS DE GEOGRAFIA -->
-
-      <a class="card" href="geografia/">
-
-        <div class="icon" aria-hidden="true">
-          🌍
-        </div>
-
-        <div>
-          <h3>Geografia</h3>
-
-          <p>
-            Posa a prova el que saps de geografia.
-          </p>
-        </div>
-
-      </a>
-
-    </div>
-
-  </section>
-
-</main>
-
-
-<footer>
-  MADUKA · Recursos educatius oberts
-</footer>
-
-
+  <footer>
+    MADUKA · Recursos educatius oberts
+  </footer>
 </body>
+
 </html>
